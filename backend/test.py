@@ -1,0 +1,341 @@
+# from pymongo import MongoClient
+# from pymongo.collection import Collection
+# from bson import ObjectId
+# from fastapi import FastAPI
+# from pydantic import BaseModel,Field, field_validator
+# import uvicorn
+
+
+# app=FastAPI()
+
+# client=MongoClient("mongodb://localhost:27017/")
+
+# dev_database=client["Memes_test"]
+# user_collection=dev_database["users"]
+# meme_collection=dev_database["memes"]
+
+
+# class CrudActions:
+#     def __init__(self,collection:Collection):
+#         self.collection=collection
+
+#     def create(self, data: dict):
+#         result = self.collection.insert_one(data)
+#         data["id"] = str(result.inserted_id)
+#         return data
+    
+#     def get_data_by_id(self, id: str):
+#         doc = self.collection.find_one({
+#             "_id": ObjectId(id),
+#             "is_deleted": False
+#         })
+#         if doc:
+#             doc["id"] = str(doc["_id"])
+#         return doc
+
+#     def get_all(self):
+#         docs = self.collection.find()
+#         return [{**doc, "id": str(doc["_id"])} for doc in docs]
+
+# class UserServices:
+#     def __init__(self):
+#         self.Actions=CrudActions(user_collection)
+
+#     def create_user(self,data):
+#         action=self.Actions.create(data)
+#         return action
+
+#     def get_user(self):
+#         result=self.Actions.get_all()
+#         return result
+    
+# class MemeServices:
+#     def __init__(self):
+#         self.Actions=CrudActions(meme_collection)
+
+#     def create_meme(self,data):
+#         action=self.Actions.create(data)
+#         return action
+
+#     def get_meme(self):
+#         result=self.Actions.get_all()
+#         return result
+    
+
+# class Users(BaseModel):
+#     name:str
+#     email:str
+#     password:str
+
+# class Memes(BaseModel):
+#     title:str
+#     caption:str
+#     media_url:str
+
+# class MongoBaseModel(BaseModel):
+#     id: str = Field(alias="_id")
+
+#     @field_validator("id", mode="before")
+#     @classmethod
+#     def convert_objectid(cls, v):
+#         return str(v)
+
+#     class Config:
+#         populate_by_name = True 
+
+# class UserResponse(MongoBaseModel):
+#     name:str
+
+# class MemeResponse(MongoBaseModel):
+#     title:str
+#     caption:str
+
+
+# @app.get("/")
+# def health():
+#     return {"message":"server is healthy and fine"}
+
+# @app.get("/users",response_model=list[UserResponse])
+# def get_users():
+#     users=UserServices().get_user()
+#     return users
+
+# @app.post("/user",response_model=UserResponse)
+# def create_user(data:Users):
+#     result=UserServices().create_user(data.model_dump())
+#     return result
+
+# @app.get("/memes",response_model=list[MemeResponse])
+# def get_memes():
+#     users=MemeServices().get_meme()
+#     return users
+
+# @app.post("/memes",response_model=MemeResponse)
+# def create_memes(data:Memes):
+#     result=UserServices().create_user(data.model_dump())
+#     return result
+
+
+
+# # print("enter 1 for create user \n 2 for get users \n 3 for create meme \n 4 for get meme")
+# # while True:
+# #     option=int(input("enter your choise"))
+# #     if option==1:
+# #         name=input("enter the name:")
+# #         email=input("enter the email:")
+# #         password=input("enter the password:")
+# #         data={"name":name,"email":email,"password":password}
+# #         create_user(data)
+# #         print("data inserted")
+    
+# #     elif option==2:
+# #         result=get_user()
+# #         print(result)
+
+# #     elif option==3:
+# #         title=input("enter the title:")
+# #         description=input("enter the description:")
+# #         data={"title":title,"description":description}
+# #         create_meme(data)
+# #         print("data inserted")
+    
+# #     elif option==4:
+# #         result=get_meme()
+# #         print(result)
+
+# #     elif option==5:
+# #         break
+
+# #     else:
+# #         print("wrong option")
+
+
+
+
+# # a=False
+
+# # if not a:
+# #     print("hello")
+# # else:
+# #     print("basd")
+
+# # def main(a:int,b:int=2):
+# #     print(a)
+# #     print(b)
+
+
+# # main(1,5)
+# # memory=[]
+
+# # def add(email,otp):
+# #     data={"email":email,"otp":otp}
+# #     memory.append(data)
+
+# # def check(email,opt):
+# #     for data in memory:
+# #         if data["email"]==email and data["otp"]==opt:
+# #             print("right")
+# #         else:
+# #             print("wrong")
+            
+
+# # add("legend","233")
+# # add("aman","123")
+# # add("sahil","234")
+# # check("sahil","567")
+
+# # print(memory)
+
+# # from fastapi import FastAPI
+# # from pydantic import BaseModel
+
+# # app = FastAPI()
+
+# # # ✅ Step 1: Create a response schema
+# # class UserResponse(BaseModel):
+# #     id: int
+# #     name: str
+# #     email: str
+
+# # # ✅ Step 2: Use response_model parameter
+# # @app.get("/user/{user_id}", response_model=UserResponse)
+# # def get_user(user_id: int):
+# #     id=1
+# #     name="legend"
+# #     email="khan@gmail.com"
+# #     return id,name,email
+
+
+# # app = FastAPI()
+
+
+# # @app.post('/user')
+# # async def add_user(name:str,email:str,password:str):
+# #     user=await Users.findOne({"email":email})
+# #     if user:
+# #         print("user aleady present")
+
+# #     await Users.create({"name":name,"emial":email,"password":password})
+# #     print("user added")
+
+# # @app.post('/user')
+# # def add_user(name:str,email:str,password:str):
+# #     user=Users.findOne({"email":email})
+# #     if user:
+# #         print("user aleady present")
+
+# #     Users.create({"name":name,"emial":email,"password":password})
+# #     print("user added")
+
+# # from fastapi import FastAPI
+
+
+# # import time
+
+# # app=FastAPI()
+
+
+# # @app.get("/get")
+# # def health():
+# #     print("a request hit the server")
+# #     time.sleep(10)
+# #     print("completed")
+# #     return {"message":"server is healthy and running fine"}
+
+# # if __name__=="__main__":
+# #     uvicorn.run("test:app",reload=True)
+# # from fastapi import FastAPI
+
+# # import time
+
+# # app = FastAPI()
+
+# # @app.get("/get")
+# # def endpoint():
+# #     print("hello")
+# #     time.sleep(10)
+# #     print("bye")
+
+
+# data={"name":"hello","kas":"about"}
+# print(data.items())
+# for k,v in data.items():
+#     print(k,v)
+
+
+# data="hello"
+
+# def pri():
+#     print(data)
+
+# pri()
+# from bson import ObjectId
+
+# def check(data:ObjectId):
+#     print(data)
+# check(1)
+
+
+
+#types of way we can get data in fastAPI endpoints
+# from fastapi import FastAPI,Form, File, UploadFile,Header, Cookie
+# from pydantic import BaseModel
+# app = FastAPI()
+
+#1--> using path parameters
+# Data embedded directly within the URL path
+# by adding {parameter_name} in the path decorator and defining a corresponding function parameter with type hints
+# @app.get("/items/{item_id}")
+# async def read_item(item_id: int):
+#     return {"item_id": item_id}   
+
+#2--> using quey parameters
+# Data passed as key-value pairs in the URL after a ?
+# Declared as optional function parameters with type hints
+# @app.get("/items/")
+# async def read_items(skip: int = 0, limit: int = 10):
+#     return {"skip": skip, "limit": limit}
+
+
+#3--> using request body
+# Data sent in the body of the request
+# Defined by declaring a function parameter with a Pydantic BaseModel type.
+# class Item(BaseModel):
+#     name: str
+#     description: str | None = None
+#     price: float
+#     tax: float | None = None
+
+# @app.post("/items/")
+# async def create_item(item: Item):
+#     return item
+
+#4--> using form data
+# Data sent with Content-Type: application/x-www-form-urlencoded or multipart/form-data
+# mostly used when we nees some files or documents.
+# @app.post("/login/")
+# async def login(username: str = Form(), password: str = Form()):
+#     return {"username": username,"password":password}
+
+# @app.post("/uploadfile/")
+# async def create_upload_file(file: UploadFile):
+#     return {"filename": file.filename, "content_type": file.content_type}
+
+
+#6--> using #4--> using form data
+# Access specific HTTP headers or cookies using Header() and Cookie() respectively
+
+# 
+
+
+# try:
+#     # a=0
+#     # b=10
+#     # result=b/a
+#     print(jello)
+
+# except Exception as ZeroDivisionError:
+#     print("eror")
+
+# except Exception as e:
+#     print(e)
