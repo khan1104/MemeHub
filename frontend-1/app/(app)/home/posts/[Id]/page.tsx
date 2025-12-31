@@ -1,4 +1,4 @@
-import PostCard from "@/components/MemeCard"
+import PostCard from "@/components/PostsCard"
 
 interface PageProps {
   params: { id: string }

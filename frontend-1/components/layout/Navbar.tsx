@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import UploadModal from "@/components/UploadPosts";
 import {
   Search,
   Plus,
@@ -10,8 +11,7 @@ import {
   Settings,
   CircleUserRound,
   Menu,
-  X,
-  Bell,
+  X
 } from "lucide-react"
 
 type NavbarProps = {
@@ -20,10 +20,10 @@ type NavbarProps = {
 
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter()
-
-  const isLoggedIn = true 
+  const [openUpload, setOpenUpload] = useState(false)
+  const isLoggedIn = true
   const username = "JD"
-
+  const [openAppModal, setOpenAppModal] = useState(false)
   const [openMenu, setOpenMenu] = useState(false)
   const [mobileSearch, setMobileSearch] = useState(false)
 
@@ -46,7 +46,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-300 bg-white px-4 sm:px-8 py-3">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-5">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6">
 
         {mobileSearch ? (
           <div className="flex w-full items-center gap-3 md:hidden">
@@ -111,25 +111,31 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               </button>
               {isLoggedIn && (
                 <>
-                  <button
-                    type="button"
-                    aria-label="Notifications"
-                    className="relative"
-                  >
-                    <Bell size={22} />
-                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500" />
-                  </button>
-                  <button
-                    type="button"
-                    className="hidden sm:flex items-center gap-1 rounded-full bg-primary px-5 py-2.5 text-[15px] font-bold text-white hover:bg-[#6D28D9]"
-                  >
-                    <Plus size={20} />
-                    Upload
-                  </button>
+                {/* Upload (Desktop Button) */}
+                <button
+                  type="button"
+                  onClick={() => setOpenUpload(true)}
+                  className="hidden sm:flex items-center gap-1 rounded-full bg-primary px-5 py-2.5 text-[15px] font-bold text-white hover:bg-[#6D28D9]"
+                >
+                  <Plus size={20} />
+                  Upload
+                </button>
+
+                {/* Upload (Mobile Icon) */}
+                <button
+                  type="button"
+                  onClick={() => setOpenUpload(true)}
+                  className="sm:hidden flex items-center justify-center"
+                  aria-label="Upload"
+                >
+                  <Plus size={24} />
+                </button>
+
                 </>
               )}
               <button
                 type="button"
+                onClick={() => setOpenAppModal(true)}
                 className="hidden sm:flex items-center gap-2 rounded-full bg-gray-200 px-4 py-2.5 text-[15px] font-semibold"
               >
                 <Download size={20} />
@@ -186,6 +192,37 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
           </>
         )}
       </div>
+      <UploadModal
+        open={openUpload}
+        onClose={() => setOpenUpload(false)}
+      />
+      {openAppModal && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+        {/* Overlay */}
+        <div
+          onClick={() => setOpenAppModal(false)}
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        />
+
+        {/* Modal */}
+        <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+          <h2 className="text-xl font-bold text-gray-900">
+            🚧 We’re Working On It
+          </h2>
+          <p className="mt-2 text-gray-600">
+            MemeHub mobile app is coming soon.
+            Stay tuned for updates!
+          </p>
+
+          <button
+            onClick={() => setOpenAppModal(false)}
+            className="mt-5 rounded-full bg-primary px-6 py-2 text-sm font-bold text-white hover:bg-[#6D28D9]"
+          >
+            Got it 👍
+          </button>
+        </div>
+      </div>
+    )}
     </nav>
   )
 }

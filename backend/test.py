@@ -227,23 +227,85 @@
 # #     Users.create({"name":name,"emial":email,"password":password})
 # #     print("user added")
 
-# # from fastapi import FastAPI
+# from fastapi import FastAPI,Request,UploadFile,File
+# import uvicorn
+# from pydantic import BaseModel
 
 
-# # import time
+# class Data(BaseModel):
+#     name:str
+#     surname:str
+#     roll_no:int
 
-# # app=FastAPI()
 
 
-# # @app.get("/get")
-# # def health():
-# #     print("a request hit the server")
-# #     time.sleep(10)
-# #     print("completed")
-# #     return {"message":"server is healthy and running fine"}
+# import time
 
-# # if __name__=="__main__":
-# #     uvicorn.run("test:app",reload=True)
+# app=FastAPI()
+
+
+# @app.post("/get")
+# def health(user_data:Data,request:Request):
+#     print(request.headers.get("content-length"))
+#     return {"message":"server is healthy and running fine"}
+
+# @app.post("/uploadfile/")
+# async def create_upload_file(file: UploadFile):
+#     print(file.size)
+#     print(file.headers)
+#     return {"filename": file.filename}
+
+# @app.post("/")
+# async def createPost(
+#     file: UploadFile = File(...),
+  
+# ):
+#     print(file.size)
+#     return {"filename": file.filename}
+
+from fastapi import FastAPI, File, UploadFile
+import uvicorn
+
+app = FastAPI()
+
+
+# @app.post("/files/")
+# async def create_file(file: bytes = File()): # read the all Bytes(content) of the file in the RAM 
+#     return {"filename": file.filename}
+
+
+# @app.post("/uploadfile/")
+# async def create_upload_file(file: UploadFile): # read the file upto certain limit first so that RAM not overwelmed
+#     return {"filename": file.filename}
+
+# @app.post("/uploadfile/")
+# async def create_upload_file(file: UploadFile=File(...)): # file is requred 
+#     return {"filename": file.filename}
+
+# async def handle_file(file: UploadFile):
+#     size2=file.size
+#     print(size2)
+
+# async def handle_file(file: UploadFile):
+#     contents = await file.read()
+#     size1 = len(contents)
+#     print(size1)
+    
+# async def handle_file(file: UploadFile):
+#     file.file.seek(0, 2)  # move to end
+#     size = file.file.tell()
+#     file.file.seek(0)     # reset pointer
+#     print(size)
+
+@app.post("/uploadfile/")
+async def create_upload_file(file: UploadFile=File()): # file is optional
+    # await handle_file(file)
+    size=file_size = (file.file.seek(0, 2), file.file.tell(), file.file.seek(0))[1]
+    print(size)
+    return {"filename": file.filename}
+
+if __name__=="__main__":
+    uvicorn.run("test:app",reload=True)
 # # from fastapi import FastAPI
 
 # # import time
@@ -339,3 +401,86 @@
 
 # except Exception as e:
 #     print(e)
+
+
+
+
+
+
+from supabase import create_client
+import uuid
+from fastapi import HTTPException,status
+import magic
+from core.config import settings
+
+MAX_IMAGE_SIZE = 5 * 1024 * 1024      # 5 MB
+MAX_VIDEO_SIZE = 50 * 1024 * 1024     # 50 MB
+
+ALLOWED_IMAGE_EXT = {"jpg", "jpeg", "png"}
+ALLOWED_VIDEO_EXT = {"mp4", "mov", "webm"}
+
+SUPABASE_URL = settings.SUPABASE_URL
+SUPABASE_KEY = settings.SUPABASE_KEY
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def validate_magic_bytes(file_bytes, expected_type):
+    mime = magic.from_buffer(file_bytes[:2048], mime=True)
+    print(mime)
+
+    if expected_type == "image" and not mime.startswith("image/"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Invalid image file. MIME detected: {mime}")
+
+    if expected_type == "video" and not mime.startswith("video/"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Invalid video file. MIME detected: {mime}")
+
+
+async def upload_to_bucket(bucket: str, file, file_ext: str) -> str:
+    try:
+        file_bytes =await file.read()
+        file_size = len(file_bytes)
+        file_ext = file_ext.lower()
+
+        if file_ext in ALLOWED_IMAGE_EXT:
+            media_type = "image"
+            if file_size > MAX_IMAGE_SIZE:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Image too large (max {MAX_IMAGE_SIZE / 1024 / 1024} MB)")
+        
+        elif file_ext in ALLOWED_VIDEO_EXT:
+            media_type = "video"
+            if file_size > MAX_VIDEO_SIZE:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Video too large (max {MAX_VIDEO_SIZE / 1024 / 1024} MB)")
+
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Unsupported file extension '{file_ext}'")
+
+        # Magic Byte Validation
+        validate_magic_bytes(file_bytes, media_type)
+
+        if bucket == "profile_pics":
+            file_name = f"users_profile_pics/{uuid.uuid4()}.{file_ext}"
+
+        elif bucket == "users_posts":
+            folder = "images" if media_type == "image" else "videos"
+            file_name = f"{folder}/{uuid.uuid4()}.{file_ext}"
+
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Invalid bucket name '{bucket}'")
+
+        content_type = f"{media_type}/{file_ext}"
+
+        response = supabase.storage.from_(bucket).upload(
+            file_name,
+            file_bytes,
+            {"contentType": content_type}
+        )
+        if not response.path:
+            raise HTTPException(500, "Upload failed")
+
+        url = supabase.storage.from_(bucket).get_public_url(file_name)
+        return url
+        # fake_url="https://cdn.mastmeme.com/default_profile.png"
+        # return fake_url
+
+    except Exception as e:
+        raise HTTPException(500, str(e))

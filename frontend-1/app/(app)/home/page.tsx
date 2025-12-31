@@ -1,24 +1,13 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from 'react'
-import RightSidebar from '@/components/RightSidebar'
-import PostCard from '@/components/MemeCard' 
+import RightSidebar from '@/components/layout/RightSidebar'
+import PostCard from '@/components/PostsCard' 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { CATEGORIES } from '@/data/MemeCategories'
+import { Post } from '@/types/Posts';
 
-const categories = [
-  "All",
-  "Funny",
-  "Dark",
-  "Relatable",
-  "College",
-  "Programming",
-  "Politics",
-  "Office",
-  "Offices",
-  "Office4",
-]
-
-const posts = [
+const posts: Post[] = [
   {
     "_id": "694c01ff8ae88cfb331532a4",
     "caption": "best journey",
@@ -68,10 +57,7 @@ export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [showLeftArrow, setShowLeftArrow] = useState(false)
   const [showRightArrow, setShowRightArrow] = useState(true)
-
-  const filteredPosts = active === "All" 
-    ? posts 
-    : posts.filter(post => post.tags.includes(active.toLowerCase()))
+  // const [posts,setPosts]=useState<Post[]>([]);
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -98,7 +84,7 @@ export default function Home() {
   }
 
   return (
-    <div className="mx-auto flex max-w-[1440px] gap-6 px-4 sm:px-5 lg:px-8 pt-6">
+    <div className="mx-auto flex max-w-[1440px] gap-6 px-2 sm:px-5 lg:px-8 pt-6">
       
       {/* MAIN FEED */}
       <main className="w-full max-w-[680px] mx-auto flex flex-col gap-5">
@@ -123,7 +109,7 @@ export default function Home() {
               onScroll={checkScroll}
               className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth px-2 no-scrollbar"
             >
-              {categories.map((item) => (
+              {CATEGORIES.map((item) => (
                 <button
                   key={item}
                   onClick={() => setActive(item)}
@@ -152,13 +138,13 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-4">
-          {filteredPosts.length > 0 ? (
-            filteredPosts.map((post: any) => (
+          {posts.length > 0 ? (
+            posts.map((post) => (
               <PostCard key={post._id} post={post} />
             ))
-          ) : (
+            ) : (
             <div className="py-20 text-center text-gray-500 font-medium">
-              No memes found in this category yet!
+              No Posts found in this category yet!
             </div>
           )}
         </div>

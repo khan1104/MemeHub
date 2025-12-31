@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import {
   ThumbsUp,
@@ -9,26 +9,26 @@ import {
   Share2,
   MoreHorizontal,
 } from "lucide-react"
+import { Post } from "@/types/Posts";
+import CustomVideoPlayer from "./CustomVideoPlayer";
 
 interface PostCardProps {
-  post: {
-    _id: string
-    caption: string
-    media_url: string
-    media_type: "image" | "video"
-    tags: string[]
-    created_at: string
-    like_count: number
-    dislike_count: number
-    created_by: {
-      user_name: string
-      profile_pic: string
-    }
-  }
+  post: Post
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post }:PostCardProps) {
   const [openMenu, setOpenMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenu(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
 
   return (
     <div className="w-full max-w-full overflow-hidden bg-gray-100 rounded-xl mb-4">
@@ -37,9 +37,9 @@ export default function PostCard({ post }: PostCardProps) {
           <Image
             src={post.created_by.profile_pic}
             alt="user"
-            width={32}
-            height={32}
-            className="rounded-full"
+            width={36}
+            height={36}
+            className="rounded-full object-cover"
           />
           <div className="text-sm">
             <p className="font-semibold">{post.created_by.user_name}</p>
@@ -49,23 +49,23 @@ export default function PostCard({ post }: PostCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 relative">
+        <div ref={menuRef} className="flex items-center gap-3 relative">
           <button className="text-white px-4 py-1.5 text-sm font-medium rounded-full bg-primary hover:bg-primary/90">
             Follow
           </button>
 
-          <button onClick={() => setOpenMenu(!openMenu)}>
+          <button onClick={() => setOpenMenu((p) => !p)}>
             <MoreHorizontal size={18} className="text-gray-600 hover:text-black" />
           </button>
 
           {openMenu && (
-            <div className="absolute right-0 top-8 w-32 bg-white border rounded-lg shadow-md z-50">
+            <div className="absolute right-0 top-8 w-36 rounded-xl bg-white shadow-lg overflow-hidden z-10">
               <button
-                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 rounded-lg"
                 onClick={() => {
                   setOpenMenu(false)
-                  console.log("Report post:", post._id)
+                  alert("Reported 🚩")
                 }}
+                className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-gray-100"
               >
                 🚩 Report
               </button>

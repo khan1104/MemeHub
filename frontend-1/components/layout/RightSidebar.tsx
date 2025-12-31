@@ -30,7 +30,7 @@ function RightSidebar() {
           View Details & Participate
         </button>
       </div>
-      <div className="rounded-2xl bg-white p-5 shadow">
+      <div className="rounded-2xl bg-white p-5 shadow border-t-4 border-purple-500">
         <h3 className="text-lg font-bold text-gray-800 mb-4">
           Top Creators (This Month)
         </h3>

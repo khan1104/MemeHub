@@ -1,28 +1,10 @@
 "use client"
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import {
-  Home,
-  Flame,
-  Star,
-  Clock,
-  GraduationCap,
-  Code,
-  Skull,
-  ChevronDown,
-  BriefcaseBusiness,
-  UsersRound,
-  Minus,
-  CircleUserRound,
-  Contact,
-  BookOpenText,
-  Settings,
-} from "lucide-react"
-import { BiSupport } from "react-icons/bi"
-import { FaRegFaceLaughSquint } from "react-icons/fa6"
-import { CiSquareInfo } from "react-icons/ci"
+import {ChevronDown} from "lucide-react"
+
+import { SECTION_ONE,SECTION_TWO,SECTION_THREE,CATEGORIES} from "@/data/Sidebar"
 
 type SidebarProps = {
   open: boolean
@@ -30,36 +12,6 @@ type SidebarProps = {
 }
 
 const NAVBAR_HEIGHT = "64px"
-
-const sectionOne = [
-  { name: "Home", href: "/home", icon: Home },
-  { name: "Top", href: "/top", icon: Star },
-  { name: "New", href: "/new", icon: Clock },
-]
-
-const categories = [
-  { name: "All", href: "/category/all", icon: Minus },
-  { name: "Funny", href: "/category/funny", icon: FaRegFaceLaughSquint },
-  { name: "Relatable", href: "/category/relatable", icon: UsersRound },
-  { name: "Dark", href: "/category/dark", icon: Skull },
-  { name: "College", href: "/category/college", icon: GraduationCap },
-  { name: "Programming", href: "/category/programming", icon: Code },
-  { name: "Office", href: "/category/office", icon: BriefcaseBusiness },
-]
-
-const sectionTwo = [
-  { name: "Templates", href: "/templates", icon: Flame },
-  { name: "Friends", href: "/friends", icon: Contact },
-  { name: "My Posts", href: "/friends", icon: Clock },
-  { name: "Profile", href: "/profile", icon: CircleUserRound },
-]
-
-const sectionThree = [
-  { name: "About MemeHub", href: "/about", icon: CiSquareInfo },
-  { name: "Privacy Policy", href: "/policies", icon: BookOpenText },
-  { name: "Support", href: "/friends", icon: BiSupport },
-  { name: "Settings", href: "/settings", icon: Settings },
-]
 
 export default function Sidebar({ open, setOpen }: SidebarProps) {
   const pathname = usePathname()
@@ -111,7 +63,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
         }}
       >
         <div className="flex flex-col gap-3 p-4 overflow-y-auto h-full hover-scrollbar">
-          {sectionOne.map((item) => (
+          {SECTION_ONE.map((item) => (
             <NavItem key={item.name} item={item} />
           ))}
 
@@ -129,7 +81,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
 
           {categoriesOpen && (
             <div className="flex flex-col gap-1 mt-2">
-              {categories.map((cat) => {
+              {CATEGORIES.map((cat) => {
                 const isActive = pathname === cat.href
                 return (
                   <Link
@@ -156,13 +108,13 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
 
           <div className="border-t border-gray-300 mt-2" />
 
-          {sectionTwo.map((item) => (
+          {SECTION_TWO.map((item) => (
             <NavItem key={item.name} item={item} />
           ))}
 
           <div className="border-t border-gray-300 mt-2" />
 
-          {sectionThree.map((item) => (
+          {SECTION_THREE.map((item) => (
             <NavItem key={item.name} item={item} />
           ))}
         </div>

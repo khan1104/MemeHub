@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Form,Depends,status,UploadFile,File
+from fastapi import APIRouter,Form,Depends,status,UploadFile,File,Request
 from models.request.post import Meme,UpdateMeme
 from constants.meme_tags import Memetags
 from dependency.auth_dependency import get_current_user
@@ -23,16 +23,16 @@ async def get_current_user_posts(sort_by: str = "latest",current_user=Depends(ge
     posts=await service.get_current_user_posts(sort_by,current_user["_id"])
     return posts
 
-@route.post("/", status_code=status.HTTP_201_CREATED)
+@route.post("/", status_code=status.HTTP_201_CREATED,response_model=PostResponse)
 async def createPost(
+    request:Request,
     caption: str = Form(...),
     file: UploadFile = File(...),
     tags: list[Memetags] = Form(...),
     current_user=Depends(get_current_user)
 ):
     new_post = await service.createPost(caption, file, tags, current_user["_id"])
-    print(new_post)
-    return {"message":"post is created"}
+    return PostResponse(**new_post)
 
 @route.patch("/{post_id}",status_code=status.HTTP_200_OK)
 async def updatePost(post_id:str,data:UpdateMeme,current_user=Depends(get_current_user)):

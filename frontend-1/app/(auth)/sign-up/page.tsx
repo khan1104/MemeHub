@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
-import { registerSchema } from "@/schemas/auth";
+// import { registerSchema } from "@/schemas/Auth";
+// import { registerSchema } from "@/schemas/auth";
 import axios from 'axios';
 
 
@@ -20,37 +21,37 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-      const result=registerSchema.safeParse({
-      username:username,
-      email:email,
-      password:password
-    })
-    if(!result.success)
-    {
-      const firstIssue = result.error.issues[0];
-      const errorMessage = `${firstIssue.path.join('.')}: ${firstIssue.message}`;
-      setError(errorMessage);
-      return;
-    } 
-    // API call yaha lagega
-    try{
-      const response=await axios.post("http://127.0.0.1:8000/api/auth/register",
-        {
-         user_name:username,
-         email:email,
-         password:password
-        },
-        {
-          withCredentials:true
-        }
-      )
-      if(response.status==201){
-        router.push("/sign-in");
-      }
-    }
-    catch(error){
-        console.log(error);
-    }
+    //   const result=registerSchema.safeParse({
+    //   username:username,
+    //   email:email,
+    //   password:password
+    // })
+    // if(!result.success)
+    // {
+    //   const firstIssue = result.error.issues[0];
+    //   const errorMessage = `${firstIssue.path.join('.')}: ${firstIssue.message}`;
+    //   setError(errorMessage);
+    //   return;
+    // } 
+    // // API call yaha lagega
+    // try{
+    //   const response=await axios.post("http://127.0.0.1:8000/api/auth/register",
+    //     {
+    //      user_name:username,
+    //      email:email,
+    //      password:password
+    //     },
+    //     {
+    //       withCredentials:true
+    //     }
+    //   )
+    //   if(response.status==201){
+    //     router.push("/sign-in");
+    //   }
+    // }
+    // catch(error){
+    //     console.log(error);
+    // }
   };
 
   return (
