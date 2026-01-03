@@ -67,14 +67,14 @@ export default function PostCard({ post }:PostCardProps) {
                 }}
                 className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-gray-100"
               >
-                🚩 Report
+                Report
               </button>
             </div>
           )}
         </div>
       </div>
       <div className="px-4 pb-2">
-        <h2 className="font-semibold text-gray-900 break-words">
+        <h2 className="font-semibold text-gray-900 wrap-break-words">
           {post.caption}
         </h2>
       </div>
@@ -85,16 +85,17 @@ export default function PostCard({ post }:PostCardProps) {
             alt="post"
             width={700}
             height={500}
-            className="w-full max-w-full max-h-[500px] object-contain rounded-lg bg-gray-100"
+            className="w-full max-w-full max-h-125 object-contain rounded-lg bg-gray-100"
           />
         )}
 
         {post.media_type === "video" && (
-          <video
-            src={post.media_url}
-            controls
-            className="w-full max-w-full max-h-[500px] rounded-lg bg-gray-100"
-          />
+          // <video
+          //   src={post.media_url}
+          //   controls
+          //   className="w-full max-w-full max-h-[500px] rounded-lg bg-gray-100"
+          // />
+          <CustomVideoPlayer src={post.media_url} className="w-full max-w-full max-h-125 rounded-lg bg-gray-100"/>
         )}
       </div>
       <div className="flex items-center justify-between px-4 py-3 border-t">

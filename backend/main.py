@@ -39,4 +39,4 @@ def health():
     return {"message":"server is healthy and running fine"}
 
 if __name__=="__main__":
-    uvicorn.run("main:app",reload=True,limit_max_request_size=50 * 1024 * 1024)
+    uvicorn.run("main:app",reload=True)

@@ -1,5 +1,5 @@
 from fastapi import APIRouter,Form,Depends,status,UploadFile,File,Request
-from models.request.post import Meme,UpdateMeme
+from models.request.post import UpdateMeme
 from constants.meme_tags import Memetags
 from dependency.auth_dependency import get_current_user
 from services.post import PostService
@@ -25,12 +25,12 @@ async def get_current_user_posts(sort_by: str = "latest",current_user=Depends(ge
 
 @route.post("/", status_code=status.HTTP_201_CREATED,response_model=PostResponse)
 async def createPost(
-    request:Request,
     caption: str = Form(...),
     file: UploadFile = File(...),
     tags: list[Memetags] = Form(...),
     current_user=Depends(get_current_user)
 ):
+    # print(file._in_memory)
     new_post = await service.createPost(caption, file, tags, current_user["_id"])
     return PostResponse(**new_post)
 

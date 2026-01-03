@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Image, Check } from "lucide-react"
+import { X,ImageIcon,Check } from "lucide-react"
 import { CATEGORIES } from "@/data/MemeCategories"
 import { uploadPostSchema } from "@/schemas/Posts"
 import CustomVideoPlayer from "./CustomVideoPlayer"
@@ -99,7 +99,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
     file !== null && caption.trim().length > 0 && selectedCats.length > 0
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-2">
+    <div className="fixed inset-0 z-100 flex items-center justify-center px-2">
       {/* Overlay */}
       <div
         onClick={handleClose}
@@ -123,7 +123,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
             {previewUrl ? (
               fileType === "video" ? (
                 // <video src={previewUrl} controls className="max-h-56 rounded-lg" />
-                <CustomVideoPlayer src={previewUrl} />
+                <CustomVideoPlayer src={previewUrl} className="w-full h-72 rounded-xl bg-black object-contain"/>
               ) : (
                 <img
                   src={previewUrl}
@@ -133,7 +133,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
               )
             ) : (
               <>
-                <Image size={40} className="text-purple-600" />
+                <ImageIcon size={40} className="text-purple-600"/>
                 <p className="mt-2 font-semibold">Upload Image or Video</p>
                 <p className="text-sm text-gray-500">
                   JPG, PNG, MP4 • Max 20MB

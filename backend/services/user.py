@@ -1,4 +1,5 @@
 from bson import ObjectId
+from datetime import datetime
 from pymongo.errors import DuplicateKeyError
 from database.mongoDB.actions.user import UserActions
 from fastapi import HTTPException,status
@@ -92,4 +93,8 @@ class UserService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="You have already reported this user"
             )
+        
+    async def get_monthly_top_users(self):
+        users=await self.UserActions.get_by_filter({})
+
             

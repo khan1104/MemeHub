@@ -16,7 +16,7 @@ async def register(userdata:RegisterUser):
 @route.post("/send-otp",status_code=status.HTTP_200_OK,response_model=OtpResponse)
 async def sendOtp(data:Otp):
     otp=await service.sendOtp(data.email)
-    return OtpResponse(otp=otp)
+    return OtpResponse(**otp)
     
 @route.post("/verify-otp",status_code=status.HTTP_200_OK)
 async def verifyOtp(data:verifyData):

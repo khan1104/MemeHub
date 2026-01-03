@@ -46,7 +46,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-300 bg-white px-4 sm:px-8 py-3">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6">
+      <div className="mx-auto flex max-w-360 items-center justify-between gap-6">
 
         {mobileSearch ? (
           <div className="flex w-full items-center gap-3 md:hidden">
@@ -197,7 +197,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         onClose={() => setOpenUpload(false)}
       />
       {openAppModal && (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+      <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
         {/* Overlay */}
         <div
           onClick={() => setOpenAppModal(false)}

@@ -84,13 +84,13 @@ export default function Home() {
   }
 
   return (
-    <div className="mx-auto flex max-w-[1440px] gap-6 px-2 sm:px-5 lg:px-8 pt-6">
+    <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-6">
       
       {/* MAIN FEED */}
-      <main className="w-full max-w-[680px] mx-auto flex flex-col gap-5">
+      <main className="w-full max-w-170 mx-auto flex flex-col gap-5">
 
         {/* CATEGORY BAR */}
-        <div className="sticky top-[-24px] z-20 bg-white py-3 -mt-6">
+        <div className="sticky -top-6 z-20 bg-white py-3 -mt-6">
           <div className="group relative flex items-center">
             
             {showLeftArrow && (

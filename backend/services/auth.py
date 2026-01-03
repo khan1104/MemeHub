@@ -6,8 +6,8 @@ from utils.password import hashPassword,verifyPassword
 from database.mongoDB.actions.auth import AuthActions,TokensActions
 from core.config import settings
 from utils.authentication import create_refresh_token,create_token,verify_token
-# from utils.otp_actions import verifyOtp,send_otp_email  #this one is the real otp logic
-from utils.test_email import send_otp_email,verifyOtp
+from utils.otp_actions import verifyOtp,send_otp_email  #this one is the real otp logic
+# from utils.test_email import send_otp_email,verifyOtp
 import httpx
 
 
@@ -92,7 +92,6 @@ class AuthService:
         data=await verifyOtp(email,otp)
         if data:
             await self.AuthActions.updated(user["_id"],{"is_verified": True})
-        return data
 
     async def loginUser(self,loginData:dict):
 

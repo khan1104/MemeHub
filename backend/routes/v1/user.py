@@ -48,5 +48,9 @@ async def report(user_id: str, data: UserReport, current_user=Depends(get_curren
     await service.report(user_id,current_user["_id"],data.model_dump())
     return {"message": "user reported successfully"}
 
+@route.post("/top")
+def get_monthly_top_users(current_user=Depends(get_current_user)):
+    pass
+
 
 

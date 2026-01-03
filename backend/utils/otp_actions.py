@@ -1,6 +1,7 @@
 
 import requests
-import random
+import secrets
+import httpx
 from fastapi import HTTPException, status
 import database.config.redis as redis_config
 from core.config import settings
@@ -9,7 +10,7 @@ from core.config import settings
 API_KEY = settings.BREVO_API_KEY
 
 def generate_otp():
-    return str(random.randint(100000, 999999))
+    return str(secrets.randbelow(900000) + 100000)
 
 async def send_otp_email(email):
     url = "https://api.brevo.com/v3/smtp/email"
@@ -56,9 +57,10 @@ async def send_otp_email(email):
         "content-type": "application/json"
     }
 
-    response =await requests.post(url, json=data, headers=headers)
+    async with httpx.AsyncClient() as client:
+      response = await client.post(url, json=data, headers=headers)
 
-    if response.status_code == 201: 
+    if response.status_code in (200, 201): 
         try:
           await redis_config.redis_client.setex(f"otp:{email}", 300, otp)  # 5 minutes = 300 seconds
           return otp
@@ -77,8 +79,8 @@ async def verifyOtp(email: str, otp: str):
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OTP has expired")
     
-    if str(data) != str(otp):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP")
+    if str(data)!= otp:
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP")
     
     await redis_config.redis_client.delete(f"otp:{email}")
-    return data
+    return True
