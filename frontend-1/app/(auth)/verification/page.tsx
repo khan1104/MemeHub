@@ -1,20 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { AlertCircle } from "lucide-react";
+import { useOtp } from "@/hooks/auth";
 
 const RESEND_TIME = 45;
 
 export default function VerificationPage() {
-  const router = useRouter();
+  const {sendOtp,verifyOtp,loading,error}=useOtp();
 
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
+  const email=localStorage.getItem("verify_email");
+  // const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(RESEND_TIME);
 
   useEffect(() => {
@@ -27,28 +29,18 @@ export default function VerificationPage() {
     return () => clearInterval(interval);
   }, [timer]);
 
+  useEffect(()=>{
+    sendOtp(email);
+  },[]);
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length !== 6) return;
-
-    setLoading(true);
-    try {
-      // 🔗 verify OTP API
-      router.push("/login");
-    } finally {
-      setLoading(false);
-    }
+    verifyOtp(email,otp);
   };
 
   const handleResend = async () => {
     if (timer > 0) return;
-
-    try {
-      // 🔗 resend OTP API
-      setTimer(RESEND_TIME); // reset timer
-    } catch (err) {
-      console.error(err);
-    }
+    sendOtp(email);
+    
   };
 
   return (
@@ -63,6 +55,12 @@ export default function VerificationPage() {
           -mt-10 sm:-mt-20
         "
       >
+        {error && (
+          <div className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 animate-fadeIn">
+            <AlertCircle size={18} className="mt-0.5" />
+            <p>{error}</p>
+          </div>
+        )}
         <h2 className="text-center text-[clamp(1.4rem,4vw,2rem)] mb-2 font-semibold text-title">
           Verify your email
         </h2>
@@ -74,7 +72,7 @@ export default function VerificationPage() {
         <form onSubmit={handleVerify}>
           {/* OTP */}
           <div className="flex justify-center mb-6">
-            <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+            <InputOTP maxLength={6} value={otp} onChange={setOtp} inputMode="numeric" pattern="^[0-9]*$">
               <InputOTPGroup className="gap-1.5 sm:gap-2">
                 {[...Array(6)].map((_, i) => (
                   <InputOTPSlot

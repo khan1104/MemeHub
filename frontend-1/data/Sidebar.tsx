@@ -39,8 +39,7 @@ export const CATEGORIES = [
 export const SECTION_TWO = [
   { name: "Templates", href: "/templates", icon: Flame },
   { name: "Friends", href: "/friends", icon: Contact },
-  { name: "My Posts", href: "/friends", icon: Clock },
-  { name: "Profile", href: "/profile", icon: CircleUserRound },
+  { name: "My Posts", href: "/profile/123", icon: Clock },
   { name: "Monthly Meme Challenge", href: "/challenge", icon: Trophy },
 ]
 

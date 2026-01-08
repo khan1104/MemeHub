@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState} from "react"
 import { useRouter } from "next/navigation"
 import UploadModal from "@/components/UploadPosts";
 import {
@@ -27,25 +27,13 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   const [openMenu, setOpenMenu] = useState(false)
   const [mobileSearch, setMobileSearch] = useState(false)
 
-  const menuRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpenMenu(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [])
-
   const handleLogout = () => {
     setOpenMenu(false)
     router.push("/sign-in")
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-300 bg-white px-4 sm:px-8 py-3">
+    <nav className="sticky top-0 z-50 w-full border-b border-gray-300 px-4 sm:px-8 py-3">
       <div className="mx-auto flex max-w-360 items-center justify-between gap-6">
 
         {mobileSearch ? (
@@ -142,7 +130,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                 Get App
               </button>
               {isLoggedIn ? (
-                <div ref={menuRef} className="relative">
+                <div className="relative">
                   <button
                     type="button"
                     onClick={() => setOpenMenu((p) => !p)}
@@ -152,31 +140,43 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                   </button>
 
                   {openMenu && (
-                    <div className="absolute right-0 mt-2 w-44 rounded-xl bg-white shadow-lg overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => router.push("/profile")}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100"
-                      >
-                        <CircleUserRound size={16} /> Profile
-                      </button>
+                    <>
+                      {/* BACKDROP */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setOpenMenu(false)}
+                      />
 
-                      <button
-                        type="button"
-                        onClick={() => router.push("/settings")}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100"
-                      >
-                        <Settings size={16} /> Settings
-                      </button>
+                      {/* DROPDOWN */}
+                      <div className="absolute right-0 z-50 mt-2 w-44 rounded-xl bg-white shadow-lg overflow-hidden">
+                        <button
+                          onClick={() => {
+                            setOpenMenu(false)
+                            router.push("/profile")
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100"
+                        >
+                          <CircleUserRound size={16} /> Profile
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
-                      >
-                        <LogOut size={16} /> Logout
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => {
+                            setOpenMenu(false)
+                            router.push("/settings")
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100"
+                        >
+                          <Settings size={16} /> Settings
+                        </button>
+
+                        <button
+                          onClick={handleLogout}
+                          className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <LogOut size={16} /> Logout
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               ) : (

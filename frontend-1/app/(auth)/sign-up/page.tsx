@@ -1,64 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff,AlertCircle } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
-// import { registerSchema } from "@/schemas/Auth";
-// import { registerSchema } from "@/schemas/auth";
-import axios from 'axios';
+import { useRegister } from "@/hooks/auth";
+
 
 
 
 export default function RegisterPage() {
-  const router = useRouter();
-
+  const { register, loading, error } = useRegister();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error,setError]=useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    //   const result=registerSchema.safeParse({
-    //   username:username,
-    //   email:email,
-    //   password:password
-    // })
-    // if(!result.success)
-    // {
-    //   const firstIssue = result.error.issues[0];
-    //   const errorMessage = `${firstIssue.path.join('.')}: ${firstIssue.message}`;
-    //   setError(errorMessage);
-    //   return;
-    // } 
-    // // API call yaha lagega
-    // try{
-    //   const response=await axios.post("http://127.0.0.1:8000/api/auth/register",
-    //     {
-    //      user_name:username,
-    //      email:email,
-    //      password:password
-    //     },
-    //     {
-    //       withCredentials:true
-    //     }
-    //   )
-    //   if(response.status==201){
-    //     router.push("/sign-in");
-    //   }
-    // }
-    // catch(error){
-    //     console.log(error);
-    // }
+    if (loading) return; // prevent multiple clicks
+    register(username,email, password);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6">
       {/* Logo */}
-      <header className="mb-6 sm:mb-8">
-        <h1 className="text-[clamp(2rem,6vw,2.5rem)] tracking-wide text-primary font-bold text-center">
+      <header className="mb-6 sm:mb-8 mt-2">
+        <h1 className="text-[clamp(2rem,6vw,2.5rem)] tracking-wide text-primary text-center font-bold">
           MemeHub
         </h1>
       </header>
@@ -68,10 +35,15 @@ export default function RegisterPage() {
         <h2 className="text-center text-[clamp(1.4rem,4vw,2rem)] mb-6 font-semibold text-title">
           Get Started!
         </h2>
-
+        {error && (
+          <div className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 animate-fadeIn">
+            <AlertCircle size={18} className="mt-0.5" />
+            <p>{error}</p>
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           {/* Name */}
-          <div className="mb-4">
+          <div className="mb-4 sm:mb-5">
             <label className="block text-sm font-semibold mb-1.5 text-label">
               Username
             </label>
@@ -148,16 +120,17 @@ export default function RegisterPage() {
           </div>
           {/* Button */}
           <button
-            className="
-              w-full rounded-[10px]
-              py-3 bg-primary
-              text-white font-bold
-              transition-all
-              hover:bg-[#5d35c7]
-              hover:-translate-y-[2px]
-            "
+            disabled={loading}
+            className="w-full rounded-[10px] py-3 bg-primary text-white font-bold transition-all hover:bg-[#5d35c7] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Create Account
+            {loading ? (
+              <>
+                <span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                Signing up...
+              </>
+            ) : (
+              "Sign up"
+            )}
           </button>
         </form>
 
@@ -169,33 +142,13 @@ export default function RegisterPage() {
         </div>
 
         <GoogleLogin
-            onSuccess={async (credentialResponse) => {
-              try {
-                if (!credentialResponse.credential) return;
-
-                const res = await axios.post(
-                  "http://127.0.0.1:8000/api/auth/google",
-                  {
-                    id_token: credentialResponse.credential,
-                  }
-                );
-
-                if (res.status === 200 || res.status === 201) {
-                  console.log(res)
-                }
-              } catch (err) {
-                console.error("Google login error", err);
-                setError("Google authentication failed");
-              }
-            }}
-            onError={() => {
-              setError("Google Login Failed");
-            }}
-          />
+          onSuccess={() => console.log("Google login success")}
+          onError={() => console.log("Google Login Failed")}
+        />
       </div>
 
       {/* Footer */}
-      <footer className="mt-5 text-center text-sm text-label">
+      <footer className="mt-5 text-center text-sm sm:text-[0.95rem] text-label">
         Already have an account?{" "}
         <a href="/sign-in" className="font-bold text-primary">
           Sign In

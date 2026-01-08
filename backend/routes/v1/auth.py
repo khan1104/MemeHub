@@ -1,4 +1,4 @@
-from fastapi import APIRouter,status,Depends,Response
+from fastapi import APIRouter,status,Depends,Response,Cookie
 from models.response.auth import RegisterResponse,OtpResponse,TokenResponse
 from models.request.auth import RegisterUser,LoginUser,Otp,verifyData,RefreshToken,ChangePassword,GoogleAuthRequest
 from services.auth import AuthService
@@ -24,12 +24,33 @@ async def verifyOtp(data:verifyData):
     return {"message":"user verified succesffully"}
     
 @route.post("/login",status_code=status.HTTP_200_OK,response_model=TokenResponse)
-async def login(loginData:LoginUser):
+async def login(loginData:LoginUser,response: Response):
     access_token,refresh_token=await service.loginUser(loginData.model_dump())
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token
+    response.set_cookie(
+        key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=False,     
+            samesite="lax",
+            max_age=60 * 60 * 24 * 5,
+            path="/auth/refresh"
     )
+    return TokenResponse(access_token=access_token)
+
+@route.post("/refresh",status_code=status.HTTP_200_OK,response_model=TokenResponse)
+async def refreshToken(response: Response,refresh_token: str | None = Cookie(default=None, alias="refresh_token")):
+    print(refresh_token)
+    access_token,refresh_token=await service.refreshToken(refresh_token)
+    response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=False,     
+            samesite="lax",
+            max_age=60 * 60 * 24 * 5,
+            path="/auth/refresh"
+    )
+    return TokenResponse(access_token=access_token)
 # @route.post("/login", status_code=status.HTTP_200_OK)
 # async def login(loginData: LoginUser, response: Response):
 #     access_token, refresh_token = await service.loginUser(loginData.model_dump())
@@ -55,14 +76,6 @@ async def login(loginData:LoginUser):
 #     )
 
 #     return {"message": "Login successful"}
-    
-@route.post("/refresh",status_code=status.HTTP_200_OK,response_model=TokenResponse)
-async def refreshToken(refreshToken:RefreshToken):
-    access_token,refresh_token=await service.refreshToken(refreshToken.refresh_token)
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-    )
     
 @route.delete("/logout",status_code=status.HTTP_204_NO_CONTENT)
 async def logut(current_user=Depends(get_current_user)):

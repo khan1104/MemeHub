@@ -1,8 +1,7 @@
 from models.response.base import MongoBaseModel
 from datetime import datetime
-from pydantic import BaseModel
 
-class CreatedByUser(BaseModel):
+class CreatedByUser(MongoBaseModel):
     user_name: str
     profile_pic: str
 

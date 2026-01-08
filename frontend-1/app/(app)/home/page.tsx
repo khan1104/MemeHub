@@ -18,13 +18,14 @@ const posts: Post[] = [
     "like_count": 4,
     "dislike_count": 1,
     "created_by": {
+      "_id":"694c01ff8ae88cfb331532a4",
       "user_name": "Legend",
       "profile_pic": "https://terpdfhqqmambcxoyrxn.supabase.co/storage/v1/object/public/users_posts/images/8e0a2b15-3ee3-40b1-b565-c0db64e322e1.png"
     }
   },
   {
     "_id": "694c02258ae88cfb331532a5",
-    "caption": "me on date",
+    "caption": "me on date deko guys kita haramin log hai apne india me isse harami aur koi nai hai yaha pe",
     "media_url": "https://terpdfhqqmambcxoyrxn.supabase.co/storage/v1/object/public/users_posts/images/3c22a929-dc93-460c-8716-ffa2280cb552.jpg",
     "media_type": "image",
     "tags": ["funny"],
@@ -32,6 +33,7 @@ const posts: Post[] = [
     "like_count": 8,
     "dislike_count": 0,
     "created_by": {
+      "_id":"694c01ff8ae88cfb331532a4",
       "user_name": "Legend",
       "profile_pic": "https://terpdfhqqmambcxoyrxn.supabase.co/storage/v1/object/public/users_posts/images/8e0a2b15-3ee3-40b1-b565-c0db64e322e1.png"
     }
@@ -46,6 +48,7 @@ const posts: Post[] = [
     "like_count": 1,
     "dislike_count": 0,
     "created_by": {
+      "_id":"694c01ff8ae88cfb331532a4",
       "user_name": "Legend",
       "profile_pic": "https://terpdfhqqmambcxoyrxn.supabase.co/storage/v1/object/public/users_posts/images/8e0a2b15-3ee3-40b1-b565-c0db64e322e1.png"
     }

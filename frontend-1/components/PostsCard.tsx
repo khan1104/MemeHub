@@ -7,120 +7,146 @@ import {
   ThumbsDown,
   MessageCircle,
   Share2,
-  MoreHorizontal,
+  Bookmark, // Added for Save feature
 } from "lucide-react"
 import { Post } from "@/types/Posts";
 import CustomVideoPlayer from "./CustomVideoPlayer";
+import { useRouter } from "next/navigation"
 
 interface PostCardProps {
   post: Post
 }
 
-export default function PostCard({ post }:PostCardProps) {
-  const [openMenu, setOpenMenu] = useState(false)
-  const menuRef = useRef<HTMLDivElement | null>(null)
+export default function PostCard({ post }: PostCardProps) {
+  const router = useRouter()
+  const [isSaved, setIsSaved] = useState(false) // State for bookmark toggle
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpenMenu(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [])
+  const handlefollow=(user_id:string,post_id:string)=>{
+    console.log(user_id)
+    console.log(post_id)
+  }
+
+  const handleReport=(post_id:string,user_id:string)=>{
+    console.log(post_id)
+    console.log(user_id);
+  }
+
+  const handleLike=(post_id:string,user_id:string)=>{
+    console.log(post_id)
+    console.log(user_id);
+  }
+   const handleDislike=(post_id:string,user_id:string)=>{
+    console.log(post_id)
+    console.log(user_id);
+  }
+
 
   return (
-    <div className="w-full max-w-full overflow-hidden bg-gray-100 rounded-xl mb-4">
+    <div className="w-full max-w-full overflow-hidden bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Image
-            src={post.created_by.profile_pic}
-            alt="user"
-            width={36}
-            height={36}
-            className="rounded-full object-cover"
-          />
+        <div className="flex items-center gap-3" onClick={()=>{router.push(`/profile/${post.created_by._id}`)}}>
+          <div className="relative h-10 w-10 shrink-0">
+            <Image
+              src={post.created_by.profile_pic}
+              alt={post.created_by.user_name}
+              fill
+              className="rounded-full object-cover border border-gray-100"
+            />
+          </div>
           <div className="text-sm">
-            <p className="font-semibold">{post.created_by.user_name}</p>
+            <p className="text-gray-900 hover:underline cursor-pointer">
+                {post.created_by.user_name}
+            </p>
             <p className="text-gray-500 text-xs">
               {new Date(post.created_at).toLocaleDateString()}
             </p>
           </div>
         </div>
 
-        <div ref={menuRef} className="flex items-center gap-3 relative">
-          <button className="text-white px-4 py-1.5 text-sm font-medium rounded-full bg-primary hover:bg-primary/90">
+        <div className="flex items-center gap-2 relative">
+          <button className="text-white px-5 py-2 text-xs font-bold rounded-full bg-primary hover:bg-blue-700 transition-colors"
+          onClick={()=>console.log("follow")}
+          >
             Follow
           </button>
-
-          <button onClick={() => setOpenMenu((p) => !p)}>
-            <MoreHorizontal size={18} className="text-gray-600 hover:text-black" />
+          <button className="text-white px-5 py-2 text-xs font-bold rounded-full bg-red-600 hover:bg-red-700 transition-colors"
+          onClick={()=>console.log("report")}
+          >
+            Report
           </button>
-
-          {openMenu && (
-            <div className="absolute right-0 top-8 w-36 rounded-xl bg-white shadow-lg overflow-hidden z-10">
-              <button
-                onClick={() => {
-                  setOpenMenu(false)
-                  alert("Reported 🚩")
-                }}
-                className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-gray-100"
-              >
-                Report
-              </button>
-            </div>
-          )}
         </div>
       </div>
-      <div className="px-4 pb-2">
-        <h2 className="font-semibold text-gray-900 wrap-break-words">
+
+      {/* Caption */}
+      <div className="px-4 pb-3">
+        <h2 className="font-bold text-lg text-gray-800 leading-relaxed break-words">
           {post.caption}
         </h2>
       </div>
-      <div className="px-4 pb-4 max-w-full">
+
+      {/* Media Content */}
+      <div className="bg-black/5 flex justify-center items-center w-full">
         {post.media_type === "image" && (
-          <Image
-            src={post.media_url}
-            alt="post"
-            width={700}
-            height={500}
-            className="w-full max-w-full max-h-125 object-contain rounded-lg bg-gray-100"
-          />
+          <div className="relative w-full">
+            <Image
+              src={post.media_url}
+              alt="post content"
+              width={800}
+              height={600}
+              className="w-full h-auto max-h-[500px] object-contain"
+            />
+          </div>
         )}
 
         {post.media_type === "video" && (
-          // <video
-          //   src={post.media_url}
-          //   controls
-          //   className="w-full max-w-full max-h-[500px] rounded-lg bg-gray-100"
-          // />
-          <CustomVideoPlayer src={post.media_url} className="w-full max-w-full max-h-125 rounded-lg bg-gray-100"/>
+          <CustomVideoPlayer src={post.media_url} className="w-full max-h-[500px]" />
         )}
       </div>
-      <div className="flex items-center justify-between px-4 py-3 border-t">
 
-        <div className="flex items-center gap-6">
-          <button className="flex items-center gap-1 text-gray-600 hover:text-purple-600">
-            <ThumbsUp size={18} />
-            <span className="text-sm">{post.like_count}</span>
+      {/* Footer Actions */}
+      <div className="flex items-center justify-between px-2 py-2">
+        <div className="flex items-center gap-1">
+          {/* Like */}
+          <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all group"
+          onClick={()=>{console.log("like")}}
+          >
+            <ThumbsUp size={20} className="group-active:scale-125 transition-transform" />
+            <span className="text-xs font-bold">{post.like_count}</span>
           </button>
 
-          <button className="flex items-center gap-1 text-gray-600 hover:text-red-500">
-            <ThumbsDown size={18} />
-            <span className="text-sm">{post.dislike_count}</span>
+          {/* Dislike */}
+          <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-500 transition-all group"
+          onClick={()=>{console.log("Dislike")}}
+          >
+            <ThumbsDown size={20} className="group-active:scale-125 transition-transform" />
+            <span className="text-xs font-bold">{post.dislike_count}</span>
           </button>
 
-          <button className="flex items-center gap-1 text-gray-600 hover:text-blue-500">
-            <MessageCircle size={18} />
-            <span className="text-sm">Comment</span>
+          {/* Comments */}
+          <button 
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all"
+            onClick={() => router.push(`/posts/${post._id}`)}
+          >
+            <MessageCircle size={20} />
+            <span className="text-xs font-bold">Comment</span>
           </button>
         </div>
 
-        <button className="flex items-center gap-1 text-gray-600 hover:text-green-600">
-          <Share2 size={18} />
-          <span className="text-sm">Share</span>
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Save/Bookmark */}
+          <button 
+            onClick={() => setIsSaved(!isSaved)}
+            className={`p-2 rounded-lg transition-all ${isSaved ? 'text-yellow-500 bg-yellow-50' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
+          </button>
+
+          {/* Share */}
+          <button className="p-2 rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600 transition-all">
+            <Share2 size={20} />
+          </button>
+        </div>
       </div>
     </div>
   )

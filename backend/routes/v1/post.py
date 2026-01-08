@@ -27,7 +27,7 @@ async def get_current_user_posts(sort_by: str = "latest",current_user=Depends(ge
 async def createPost(
     caption: str = Form(...),
     file: UploadFile = File(...),
-    tags: list[Memetags] = Form(...),
+    tags: list[str] = Form(...),
     current_user=Depends(get_current_user)
 ):
     # print(file._in_memory)

@@ -6,8 +6,8 @@ from utils.password import hashPassword,verifyPassword
 from database.mongoDB.actions.auth import AuthActions,TokensActions
 from core.config import settings
 from utils.authentication import create_refresh_token,create_token,verify_token
-from utils.otp_actions import verifyOtp,send_otp_email  #this one is the real otp logic
-# from utils.test_email import send_otp_email,verifyOtp
+# from utils.otp_actions import verifyOtp,send_otp_email  #this one is the real otp logic
+from utils.test_email import send_otp_email,verifyOtp
 import httpx
 
 
@@ -37,7 +37,7 @@ class AuthService:
         return access_token, refresh_token
     
     async def registerUser(self, userData: dict):
-        userData.setdefault("profile_pic", "https://cdn.mastmeme.com/default_profile.png")
+        userData.setdefault("profile_pic", "https://terpdfhqqmambcxoyrxn.supabase.co/storage/v1/object/public/profile_pics/default_profile_pics/default_pic.png")
         userData.setdefault("bio", "Hey there! I'm using MastMeme 😎")
         userData.setdefault("provider", AuthProviders.PROVIDER_EMAIL)
         userData.setdefault("is_verified", False)
@@ -63,7 +63,7 @@ class AuthService:
             else:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="User is already registered"
+                    detail="User is already registered with this"
                 )
 
         userData["password"] = hashPassword(userData.get("password"))

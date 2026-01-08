@@ -19,7 +19,6 @@ class PostService:
         return posts
 
     async def createPost(self, caption: str, media_file, tags, current_user_id: str):
-
         file_ext = media_file.filename.split(".")[-1].lower()
 
         ALLOWED_IMAGE_EXT = {"jpg", "jpeg", "png"}

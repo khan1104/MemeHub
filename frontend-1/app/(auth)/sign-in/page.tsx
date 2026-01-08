@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
+import { useLogin } from "@/hooks/auth";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login, loading, error } = useLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/home");
+    if (loading) return; // prevent multiple clicks
+    login(email, password);
   };
 
   return (
@@ -26,19 +27,18 @@ export default function LoginPage() {
       </header>
 
       {/* Card */}
-      <div
-        className="
-          w-full
-          max-w-[420px]
-          bg-white
-          rounded-[14px]
-          shadow-card
-          p-6 sm:p-8
-        "
-      >
-        <h2 className="text-center text-[clamp(1.4rem,4vw,2rem)] mb-6 font-semibold text-title">
+      <div className="w-full max-w-[420px] bg-white rounded-[14px] shadow-card p-6 sm:p-8">
+        <h2 className="text-center text-[clamp(1.4rem,4vw,2rem)] mb-3 font-semibold text-title">
           Welcome Back!
         </h2>
+
+        {/* ✅ BEAUTIFUL ERROR MESSAGE */}
+        {error && (
+          <div className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 animate-fadeIn">
+            <AlertCircle size={18} className="mt-0.5" />
+            <p>{error}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {/* Email */}
@@ -52,99 +52,61 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="
-                w-full rounded-[10px]
-                border border-border
-                px-3.5 py-3
-                text-base
-                focus:outline-none
-                focus:border-primary
-                focus:ring-3 focus:ring-[rgba(114,64,232,0.2)]
-              "
+              className="w-full rounded-[10px] border border-border px-3.5 py-3 text-base focus:outline-none focus:border-primary focus:ring-3 focus:ring-[rgba(114,64,232,0.2)]"
             />
           </div>
 
           {/* Password */}
           <div className="mb-4 sm:mb-5">
             <label className="block text-sm font-semibold mb-1.5 text-label">
-                Password
+              Password
             </label>
 
             <div className="relative">
-                <input
+              <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="
-                    w-full rounded-[10px]
-                    border border-border
-                    px-3.5 pr-11 py-3
-                    text-base
-                    focus:outline-none
-                    focus:border-primary
-                    focus:ring-3 focus:ring-[rgba(114,64,232,0.2)]
-                "
-                />
+                className="w-full rounded-[10px] border border-border px-3.5 pr-11 py-3 text-base focus:outline-none focus:border-primary focus:ring-3 focus:ring-[rgba(114,64,232,0.2)]"
+              />
 
-                {/* Eye Toggle */}
-                <button
+              <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="
-                    absolute right-3 top-1/2
-                    -translate-y-1/2
-                    text-label
-                    hover:text-primary
-                    transition-colors
-                "
-                >
-                {showPassword ? (
-                    <EyeOff size={20} />
-                ) : (
-                    <Eye size={20} />
-                )}
-                </button>
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-label hover:text-primary transition-colors"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
-            </div>
+          </div>
 
           {/* Options */}
-          <div
-            className="
-              flex justify-between items-center
-              mb-6 text-sm
-              max-[480px]:flex-col
-              max-[480px]:items-start
-              max-[480px]:gap-2
-            "
-          >
+          <div className="flex justify-between items-center mb-6 text-sm max-[480px]:flex-col max-[480px]:items-start gap-2">
             <label className="flex gap-1.5 items-center">
               <input type="checkbox" />
               <span className="text-label">Remember Me</span>
             </label>
 
-            <a className="cursor-pointer text-label">
+            <a className="cursor-pointer text-label hover:text-primary">
               Forgot Password?
             </a>
           </div>
 
-          {/* Button */}
+          {/* ✅ BUTTON WITH LOADER */}
           <button
-            className="
-              w-full rounded-[10px]
-              py-3
-              bg-primary
-              text-white text-[1rem] sm:text-[1.05rem]
-              font-bold
-              transition-all
-              hover:bg-[#5d35c7]
-              hover:-translate-y-[2px]
-              disabled:opacity-60
-            "
+            disabled={loading}
+            className="w-full rounded-[10px] py-3 bg-primary text-white font-bold transition-all hover:bg-[#5d35c7] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Sign In
+            {loading ? (
+              <>
+                <span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 
@@ -158,9 +120,9 @@ export default function LoginPage() {
         </div>
 
         <GoogleLogin
-            onSuccess={()=>console.log("true")}
-            onError={() => console.log("Google Login Failed")}
-          />
+          onSuccess={() => console.log("Google login success")}
+          onError={() => console.log("Google Login Failed")}
+        />
       </div>
 
       {/* Footer */}

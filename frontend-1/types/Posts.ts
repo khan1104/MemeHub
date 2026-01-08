@@ -3,6 +3,7 @@
 export type MediaType = "image" | "video"
 
 export interface User {
+  _id:string
   user_name: string
   profile_pic: string
 }

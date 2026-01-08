@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auth Cookie Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      width: 320px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    button:hover {
+      background: #1e40af;
+    }
+
+    .output {
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      font-size: 12px;
+      border-radius: 5px;
+      height: 100px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Auth Test</h2>
+
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+
+    <button onclick="login()">Login</button>
+    <button onclick="refresh()">Refresh Token</button>
+
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    const API = "http://localhost:8000/api/auth";
+
+    const output = document.getElementById("output");
+
+    function log(msg) {
+      output.innerHTML += msg + "<br/>";
+      output.scrollTop = output.scrollHeight;
+    }
+
+    async function login() {
+      try {
+        const res = await fetch(`${API}/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // 🔥 IMPORTANT
+          body: JSON.stringify({
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+          }),
+        });
+
+        const data = await res.json();
+        log("LOGIN SUCCESS");
+        log(JSON.stringify(data, null, 2));
+      } catch (err) {
+        log("LOGIN ERROR");
+        log(err.message);
+      }
+    }
+
+    async function refresh() {
+      try {
+        const res = await fetch(`${API}/refresh`, {
+          method: "POST",
+          credentials: "include", // 🔥 COOKIE AUTO SEND
+        });
+
+        const data = await res.json();
+        log("REFRESH SUCCESS");
+        log(JSON.stringify(data, null, 2));
+      } catch (err) {
+        log("REFRESH ERROR");
+        log(err.message);
+      }
+    }
+  </script>
+
+</body>
+</html>

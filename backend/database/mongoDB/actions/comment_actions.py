@@ -75,6 +75,7 @@ class CommentActions(BaseActions):
                     "dislike_count": 1,
 
                     "created_by": {
+                        "_id":"$user_info._id",
                         "user_name": "$user_info.user_name",
                         "profile_pic": "$user_info.profile_pic"
                     }
