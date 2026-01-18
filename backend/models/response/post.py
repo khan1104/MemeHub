@@ -15,14 +15,10 @@ class MemeResponse(MongoBaseModel):
     caption: str
     media_url: str
     media_type: str
-
     tags: List[str]
-
     created_at: datetime
-
     like_count: int
     dislike_count: int
-
     created_by: CreatedByUser
 
 class PostResponse(MongoBaseModel):

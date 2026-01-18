@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scrollable Feed with Fixed Navbar</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 60px;
+      width: 100%;
+      background: #202020;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      font-size: 18px;
+      z-index: 1000;
+    }
+
+    /* CONTENT AREA */
+    .content {
+      margin-top: 60px; /* same as navbar height */
+      padding: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* FEED CARD */
+    .card {
+      background: white;
+      height: 200px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .loader {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <div class="navbar">
+    My App
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content"></div>
+
+  <div class="loader" id="loader">Loading more...</div>
+
+  <script>
+    const content = document.getElementById("content");
+    const loader = document.getElementById("loader");
+    let count = 0;
+
+    function createCard() {
+      count++;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.textContent = "Post #" + count;
+      content.appendChild(card);
+    }
+
+    // Initial content
+    for (let i = 0; i < 6; i++) {
+      createCard();
+    }
+
+    // Infinite scroll
+    window.addEventListener("scroll", () => {
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const pageHeight = document.body.offsetHeight;
+
+      if (scrollPosition >= pageHeight - 150) {
+        loadMore();
+      }
+    });
+
+    let loading = false;
+
+    function loadMore() {
+      if (loading) return;
+      loading = true;
+
+      setTimeout(() => {
+        for (let i = 0; i < 3; i++) {
+          createCard();
+        }
+        loading = false;
+      }, 800); // simulate API delay
+    }
+  </script>
+
+</body>
+</html>

@@ -9,7 +9,7 @@ handlePostLike,
 handlePostDislike,
 handlePostReport, 
 handleGetUserPosts} from "@/services/post.service"
-import { Post } from "@/types/posts.type"
+import { Post,PaginatedPostResponse } from "@/types/posts.type"
 
 export const usePost = () => {
   const [loading, setLoading] = useState(false)
@@ -50,11 +50,11 @@ export const usePost = () => {
     }
   }
 
-  const fetchPosts = async (): Promise<Post[] | null> => {
+  const fetchPosts = async (cursor?: string): Promise<PaginatedPostResponse | null> => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await getPosts()
+      const posts = await getPosts(cursor)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -64,11 +64,11 @@ export const usePost = () => {
     }
   }
 
-  const fetchUserPosts=async(user_id:string)=>{
+  const fetchUserPosts=async(user_id:string,cursor?: string):Promise<PaginatedPostResponse|null>=>{
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetUserPosts(user_id)
+      const posts = await handleGetUserPosts(user_id,cursor)
       return posts
     } catch (err: any) {
       setError(err.message)

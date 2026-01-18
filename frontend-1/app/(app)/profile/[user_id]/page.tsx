@@ -40,6 +40,9 @@ export default function Profile() {
   /* -------------------- STATE -------------------- */
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [hasNext, setHasNext] = useState(true)
+  const loaderRef = useRef<HTMLDivElement | null>(null)
 
   /* -------------------- PROFILE PIC CHANGE -------------------- */
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,28 +57,68 @@ export default function Profile() {
   };
 
   /* -------------------- FETCH USER + POSTS -------------------- */
+  
+/* -------------------- LOAD POSTS -------------------- */
+  const loadPosts = async (reset = false) => {
+    if (!hasNext && !reset) return;
+    if (postLoading) return;
+
+    const res = await fetchUserPosts(
+      user_id,
+      reset ? null : cursor,
+      12
+    );
+
+    if (!res) return;
+
+    setPosts((prev) =>
+      reset ? res.items : [...prev, ...res.items]
+    );
+
+    setCursor(res.next_cursor);
+    setHasNext(res.has_next);
+  };
+
+  /* -------------------- LOAD USER -------------------- */
   useEffect(() => {
     if (!user_id) return;
 
-    const loadData = async () => {
-      const userData = await getUserById(user_id);
-      if (userData) setUser(userData);
+    const loadProfile = async () => {
+      const u = await getUserById(user_id);
+      if (u) setUser(u);
 
-      const postData = await fetchUserPosts(user_id);
-      if (postData) setPosts(postData);
+      setCursor(null);
+      setHasNext(true);
+      setPosts([]);
+
+      loadPosts(true);
     };
 
-    loadData();
+    loadProfile();
   }, [user_id]);
 
-  /* -------------------- LOADING -------------------- */
-  if (loading) {
-    return (
-      <p className="text-center mt-10 text-gray-500">
-        Loading profile...
-      </p>
-    );
-  }
+  /* -------------------- INFINITE SCROLL -------------------- */
+  useEffect(() => {
+    const container = document.getElementById("profile-scroll");
+
+    if (!container) return;
+
+    const onScroll = () => {
+      const nearBottom =
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 200;
+
+      if (nearBottom && hasNext && !postLoading) {
+        loadPosts();
+      }
+    };
+
+    container.addEventListener("scroll", onScroll);
+
+    return () =>
+      container.removeEventListener("scroll", onScroll);
+  }, [cursor, hasNext, postLoading]);
+
 
   /* -------------------- UI -------------------- */
   return (
@@ -83,7 +126,7 @@ export default function Profile() {
       <div className="flex-1 flex flex-col">
 
         {/* ================= PROFILE HEADER ================= */}
-        <div className="sticky top-0 left-0 z-50 bg-white border-b">
+        <div className="sticky top-0 left-0 z-10 bg-white border-b">
 
           <div className="flex flex-col md:flex-row md:items-center gap-6">
 
@@ -220,25 +263,27 @@ export default function Profile() {
         </div>
 
         {/* ================= POSTS GRID ================= */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-hide">
-          {postLoading ? (
-            <p className="text-center text-gray-500">
-              Loading posts...
+        <div
+          id="profile-scroll"
+          className="flex-1 overflow-y-auto p-4"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+
+            {posts.map((post) => (
+              <UserPostCard key={post._id} post={post} />
+            ))}
+          </div>
+
+          {postLoading && (
+            <p className="text-center py-6 text-gray-500">
+              Loading more posts...
             </p>
-          ) : postError ? (
-            <p className="text-center text-red-500">
-              {postError}
+          )}
+
+          {!hasNext && posts.length > 0 && (
+            <p className="text-center py-6 text-gray-400 text-sm">
+              🎉 No more posts
             </p>
-          ) : posts.length === 0 ? (
-            <p className="text-center text-gray-500 mt-10">
-              No posts yet
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {posts.map((post) => (
-                <UserPostCard key={post._id} post={post} />
-              ))}
-            </div>
           )}
         </div>
 

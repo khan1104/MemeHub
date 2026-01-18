@@ -1,5 +1,6 @@
 
 export const CATEGORIES = [
+  "All",
   "funny",
   "dark",
   "relatable",

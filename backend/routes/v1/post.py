@@ -10,7 +10,7 @@ route=APIRouter()
 service=PostService()
 
 @route.get("/",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
-async def getPosts(sort_by: str = Query("latest", enum=["latest", "top", "trending"]),cursor: Optional[str] = None,limit: int = 1):
+async def getPosts(sort_by: str = Query("latest", enum=["latest", "top", "trending"]),cursor: Optional[str] = None,limit: int = 10):
     data=await service.get_all_posts(sort_by=sort_by,cursor=cursor,limit=limit)
     return data
 
@@ -20,7 +20,7 @@ async def getPosts(sort_by: str = Query("latest", enum=["latest", "top", "trendi
 #     return posts
 
 @route.get("/user/{user_id}",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
-async def get_user_posts(user_id:str,sort_by: str = Query("latest", enum=["latest", "top"]),cursor: Optional[str] = None,limit: int = 1):
+async def get_user_posts(user_id:str,sort_by: str = Query("latest", enum=["latest", "top"]),cursor: Optional[str] = None,limit: int = 10):
     return await service.getUserPosts(sort_by=sort_by,user_id=user_id,cursor=cursor,limit=limit)
 
 @route.get("/{post_id}",status_code=status.HTTP_200_OK,response_model=MemeResponse)

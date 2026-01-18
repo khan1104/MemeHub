@@ -10,16 +10,23 @@ export const handlePostUpload = async (formData: FormData) => {
   }
 }
 
-
-export const getPosts=async()=>{
+export const getPosts = async (
+  cursor?: string,
+  limit: number = 10
+) => {
   try{
-    const res=await public_api.get("/posts/");
-    return res.data
-  }
-  catch (error: any) {
+  const res = await public_api.get("/posts/", {
+    params: {
+      cursor,
+      limit
+    }
+  })
+
+  return res.data
+}
+catch (error: any) {
   apiError(error)
   }
-
 }
 
 
@@ -33,9 +40,16 @@ export const getSinglePost=async(post_id:string)=>{
   }
 }
 
-export const handleGetUserPosts=async(user_id:string)=>{
+export const handleGetUserPosts=async(user_id:string,
+  cursor?: string,
+  limit: number = 9)=>{
   try{
-    const res=await public_api.get(`/posts/user/${user_id}`);
+    const res=await public_api.get(`/posts/user/${user_id}`,{
+      params: {
+      cursor,
+      limit
+    }
+    });
     return res.data
   }
   catch (error: any) {
