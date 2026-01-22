@@ -1,6 +1,7 @@
 import { protected_api, public_api } from "@/lib/api"
 import { apiError } from "@/lib/apiError"
 
+
 export const handlePostUpload = async (formData: FormData) => {
   try {
     const res = await protected_api.post("/posts/", formData)
@@ -11,14 +12,18 @@ export const handlePostUpload = async (formData: FormData) => {
 }
 
 export const getPosts = async (
+  sort_by?:string,
   cursor?: string,
+  user_id?:string,
   limit: number = 10
 ) => {
   try{
   const res = await public_api.get("/posts/", {
     params: {
+      sort_by,
       cursor,
-      limit
+      limit,
+      user_id
     }
   })
 
@@ -30,9 +35,13 @@ catch (error: any) {
 }
 
 
-export const getSinglePost=async(post_id:string)=>{
+export const getSinglePost=async(post_id:string,user_id?:string)=>{
   try{
-    const res=await public_api.get(`/posts/${post_id}`);
+    const res=await public_api.get(`/posts/${post_id}`,{
+    params: {
+      user_id
+    }
+  });
     return res.data
   }
   catch (error: any) {
@@ -56,15 +65,6 @@ export const handleGetUserPosts=async(user_id:string,
   apiError(error)
   }
 }
-export const getCurrentUserPost=async()=>{
-  try{
-    const res=await protected_api.get("/posts/me");
-    return res.data
-  }
-  catch(error:any){
-    apiError(error)
-  }
-}
 
 export const handlePostLike= async (post_id:string) => {
   try {
@@ -86,7 +86,11 @@ export const handlePostDislike=async(post_id:string)=>{
 
 export const handlePostReport=async(post_id:string)=>{
  try {
-    const res = await protected_api.post(`/posts_actions/report/${post_id}`)
+    const res = await protected_api.post(`/posts_actions/report/${post_id}`,{
+      reason:"exmple",
+      description:"examplw"
+    })
+    console.log(res.data)
     return res.data
   } catch (error: any) {
     apiError(error)

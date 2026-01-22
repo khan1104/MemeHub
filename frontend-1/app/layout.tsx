@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
+import { FeedProvider } from "@/context/FeedContext";
 
 
 export const metadata: Metadata = {
@@ -24,7 +25,9 @@ export default function RootLayout({
           clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
         >
         <UserProvider>
-        {children}
+          <FeedProvider>
+          {children}
+        </FeedProvider>
         </UserProvider>
         </GoogleOAuthProvider>
       </body>

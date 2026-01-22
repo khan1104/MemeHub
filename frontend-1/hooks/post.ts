@@ -4,14 +4,17 @@ import { uploadPostSchema } from "@/schemas/post.schema"
 import { handlePostUpload,
   getPosts,
   getSinglePost, 
-  getCurrentUserPost,
 handlePostLike,
 handlePostDislike,
 handlePostReport, 
 handleGetUserPosts} from "@/services/post.service"
 import { Post,PaginatedPostResponse } from "@/types/posts.type"
+import { useUser } from "@/context/UserContext"
+import { useFeed } from "@/context/FeedContext"
 
 export const usePost = () => {
+  const {user}=useUser()
+  const {feed}=useFeed()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,7 +57,7 @@ export const usePost = () => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await getPosts(cursor)
+      const posts = await getPosts(feed,cursor,user?._id)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -81,21 +84,7 @@ export const usePost = () => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await getSinglePost(post_id)
-      return posts
-    } catch (err: any) {
-      setError(err.message)
-      return null
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchCurrentUserPosts=async()=>{
-    setError(null)
-    try {
-      setLoading(true)
-      const posts = await getCurrentUserPost()
+      const posts = await getSinglePost(post_id,user?._id)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -138,8 +127,6 @@ export const usePost = () => {
       try {
         setLoading(true);
         await handlePostReport(post_id);
-  
-  
       } catch (err: any) {
         setError(err.message || "Action failed");
   
@@ -149,5 +136,5 @@ export const usePost = () => {
     };
 
 
-  return { uploadPost,fetchPosts,fetchUserPosts,fetchSinglePost,fetchCurrentUserPosts,like,dislike,report ,loading, error,setError }
+  return { uploadPost,fetchPosts,fetchUserPosts,fetchSinglePost,like,dislike,report ,loading, error,setError }
 }

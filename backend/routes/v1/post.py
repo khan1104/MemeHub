@@ -10,22 +10,20 @@ route=APIRouter()
 service=PostService()
 
 @route.get("/",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
-async def getPosts(sort_by: str = Query("latest", enum=["latest", "top", "trending"]),cursor: Optional[str] = None,limit: int = 10):
-    data=await service.get_all_posts(sort_by=sort_by,cursor=cursor,limit=limit)
+async def getPosts(sort_by:Optional[str]=None,
+                   cursor: Optional[str] = None,user_id: Optional[str] = None,limit: int = 10):
+    data=await service.get_all_posts(sort_by=sort_by,cursor=cursor,limit=limit,user_id=user_id)
     return data
 
-# @route.get("/me",status_code=status.HTTP_200_OK,response_model=list[MemeResponse])
-# async def get_currentUser_posts(sort_by: str = "latest",current_user=Depends(get_current_user)):
-#     posts=await service.get_current_user_posts(sort_by,current_user["_id"])
-#     return posts
 
 @route.get("/user/{user_id}",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
 async def get_user_posts(user_id:str,sort_by: str = Query("latest", enum=["latest", "top"]),cursor: Optional[str] = None,limit: int = 10):
     return await service.getUserPosts(sort_by=sort_by,user_id=user_id,cursor=cursor,limit=limit)
 
 @route.get("/{post_id}",status_code=status.HTTP_200_OK,response_model=MemeResponse)
-async def get_post_by_id(post_id:str):
-    data=await service.get_post_by_id(post_id)
+async def get_post_by_id(post_id:str,user_id: Optional[str] = None):
+    print(user_id)
+    data=await service.get_post_by_id(post_id=post_id,user_id=user_id)
     return data
 
 

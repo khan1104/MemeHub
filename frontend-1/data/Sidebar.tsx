@@ -8,38 +8,41 @@ import {
   Skull,
   BriefcaseBusiness,
   UsersRound,
-  Minus,
-  CircleUserRound,
   Contact,
   BookOpenText,
   Settings,
-  Trophy
-} from "lucide-react"
+  Trophy,
+  Gamepad2,
+  PersonStanding,
+} from "lucide-react";
 import { BiSupport } from "react-icons/bi"
 import { FaRegFaceLaughSquint } from "react-icons/fa6"
 import { CiSquareInfo } from "react-icons/ci"
 
+
 export const SECTION_ONE = [
-  { name: "Home", href: "/home", icon: Home },
-  { name: "Top", href: "/top", icon: Star },
-  { name: "New", href: "/new", icon: Clock },
-]
+  { name: "Home", href: "/home", icon: Home, feed: "trending" },
+  { name: "Top", href: "/home", icon: Star, feed: "top" },
+  { name: "New", href: "/home", icon: Clock, feed: "latest" },
+];
 
 export const CATEGORIES = [
-  { name: "Funny", href: "/category/funny", icon: FaRegFaceLaughSquint },
-  { name: "Relatable", href: "/category/relatable", icon: UsersRound },
-  { name: "Dark", href: "/category/dark", icon: Skull },
-  { name: "College", href: "/category/college", icon: GraduationCap },
-  { name: "Programming", href: "/category/programming", icon: Code },
-  { name: "Office", href: "/category/office", icon: BriefcaseBusiness },
-]
+  { name: "Funny", href: "/home", icon: FaRegFaceLaughSquint, feed: "funny" },
+  { name: "Relatable", href: "/home", icon: UsersRound, feed: "relatable" },
+  { name: "Dark", href: "/home", icon: Skull, feed: "dark" },
+  { name: "College", href: "/home", icon: GraduationCap, feed: "college" },
+  { name: "Programming", href: "/home", icon: Code, feed: "programming" },
+  { name: "Politics", href: "/home", icon: PersonStanding, feed: "politics" },
+  { name: "Office", href: "/home", icon: BriefcaseBusiness, feed: "office" },
+  { name: "Gaming", href: "/home", icon: Gamepad2, feed: "gaming" },
+];
 
 export const SECTION_TWO = [
   { name: "Templates", href: "/templates", icon: Flame },
-  { name: "Friends", href: "/friends", icon: Contact },
-  { name: "My Posts", href: "/profile", icon: Clock },
+  { name: "Friends", href: "/friends", icon: Contact, requiresAuth: true },
+  { name: "My Posts", href: "/profile", icon: Clock, requiresAuth: true },
   { name: "Monthly Meme Challenge", href: "/challenge", icon: Trophy },
-]
+];
 
 export const SECTION_THREE = [
   { name: "About MemeHub", href: "/about", icon: CiSquareInfo },

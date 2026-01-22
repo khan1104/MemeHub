@@ -27,7 +27,7 @@ export default function AppLayout({
       <div className="flex flex-1 overflow-hidden">
         
         <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 md:px-6 md:pb-6">
              {children}
         </main>
       </div>

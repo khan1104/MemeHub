@@ -9,21 +9,32 @@ class PostAction(BaseActions):
 
     # Python me default arguments ek hi baar create hote hain
     # Aur har function call me SAME object reuse hota hai
-    async def get_all_with_user(self,
-            sort_by: str = "latest",
-            cursor: Optional[str] = None,
-            limit: int = 10,
-            post_id: Optional[str] = None,
-            filter: Optional[dict] = None
-            ):
-
+    async def get_all_with_user(
+        self,
+        sort_by: str = "latest",
+        cursor: Optional[str] = None,
+        limit: int = 10,
+        post_id: Optional[str] = None,
+        filter: Optional[dict] = None,
+        user_id: Optional[str] = None,
+    ):
 
         filter = filter or {}
 
         if post_id:
             filter["_id"] = ObjectId(post_id)
 
+        # ---------------------------------------
+        # Cursor pagination
+        # ---------------------------------------
+        special_sorts = ["latest", "top", "trending"]
 
+        if sort_by not in special_sorts:
+            tags = [tag.strip().lower() for tag in sort_by.split(",")]
+
+            filter["tags"] = {
+                "$in": tags
+            }
         cursor_filter = {}
         if cursor:
             c = self.decode_cursor(cursor)
@@ -37,115 +48,190 @@ class PostAction(BaseActions):
                 ]
             }
 
-        # 🔹 sort logic
+        # ---------------------------------------
+        # Sorting
+        # ---------------------------------------
         sort_stage = {"$sort": {"created_at": -1}}
 
-        if sort_by.lower() == "top":
+        if sort_by == "top":
             sort_stage = {"$sort": {"like_count": -1}}
-        elif sort_by.lower() == "trending":
+
+        elif sort_by == "trending":
             sort_stage = {"$sort": {"like_count": -1, "created_at": -1}}
 
-        pipeline = [
-            {"$match": {**filter, **cursor_filter}},
+        # ---------------------------------------
+        # Logged in user
+        # ---------------------------------------
+        current_user_oid = ObjectId(user_id) if user_id else None
 
-            # 👤 User info (SAFE + LIGHT)
-            {
-                "$lookup": {
-                    "from": "users",
-                    "let": {"uid": "$created_by"},
-                    "pipeline": [
-                        {"$match": {"$expr": {"$eq": ["$_id", "$$uid"]}}},
-                        {
-                            "$project": {
-                                "_id": 1,
-                                "user_name": 1,
-                                "profile_pic": 1,
-                                "email":1
+        # =======================================
+        # PIPELINE STARTS HERE
+        # =======================================
+
+        pipeline = []
+
+        # ---------------------------------------
+        # 1️⃣ Match posts
+        # ---------------------------------------
+        pipeline.append({
+            "$match": {**filter, **cursor_filter}
+        })
+
+        # ---------------------------------------
+        # 2️⃣ Post owner info
+        # ---------------------------------------
+        pipeline.append({
+            "$lookup": {
+                "from": "users",
+                "let": {"uid": "$created_by"},
+                "pipeline": [
+                    {"$match": {"$expr": {"$eq": ["$_id", "$$uid"]}}},
+                    {
+                        "$project": {
+                            "_id": 1,
+                            "user_name": 1,
+                            "profile_pic": 1,
+                            "email": 1
+                        }
+                    }
+                ],
+                "as": "user_info"
+            }
+        })
+
+        pipeline.append({
+            "$unwind": {
+                "path": "$user_info",
+                "preserveNullAndEmptyArrays": True
+            }
+        })
+
+        # ---------------------------------------
+        # 3️⃣ Like count
+        # ---------------------------------------
+        pipeline.append({
+            "$lookup": {
+                "from": "posts_reactions",
+                "let": {"pid": "$_id"},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$post_id", "$$pid"]},
+                                    {"$eq": ["$type", "like"]}
+                                ]
                             }
                         }
-                    ],
-                    "as": "user_info"
-                }
-            },
-            {
-                "$unwind": {
-                    "path": "$user_info",
-                    "preserveNullAndEmptyArrays": True
-                }
-            },
-
-            # 👍 Like count
-            {
-                "$lookup": {
-                    "from": "posts_reactions",
-                    "let": {"pid": "$_id"},
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$and": [
-                                        {"$eq": ["$post_id", "$$pid"]},
-                                        {"$eq": ["$type", "like"]}
-                                    ]
-                                }
-                            }
-                        },
-                        {"$count": "count"}
-                    ],
-                    "as": "likes"
-                }
-            },
-
-            # 👎 Dislike count
-            {
-                "$lookup": {
-                    "from": "posts_reactions",
-                    "let": {"pid": "$_id"},
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$and": [
-                                        {"$eq": ["$post_id", "$$pid"]},
-                                        {"$eq": ["$type", "dislike"]}
-                                    ]
-                                }
-                            }
-                        },
-                        {"$count": "count"}
-                    ],
-                    "as": "dislikes"
-                }
-            },
-
-            # 🎯 Final computed fields
-            {
-                "$addFields": {
-                    "like_count": {
-                        "$ifNull": [{"$arrayElemAt": ["$likes.count", 0]}, 0]
                     },
-                    "dislike_count": {
-                        "$ifNull": [{"$arrayElemAt": ["$dislikes.count", 0]}, 0]
-                    }
+                    {"$count": "count"}
+                ],
+                "as": "likes"
+            }
+        })
+
+        # ---------------------------------------
+        # 4️⃣ Dislike count
+        # ---------------------------------------
+        pipeline.append({
+            "$lookup": {
+                "from": "posts_reactions",
+                "let": {"pid": "$_id"},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$post_id", "$$pid"]},
+                                    {"$eq": ["$type", "dislike"]}
+                                ]
+                            }
+                        }
+                    },
+                    {"$count": "count"}
+                ],
+                "as": "dislikes"
+            }
+        })
+
+        # ---------------------------------------
+        # 5️⃣ Logged-in user reaction
+        # ---------------------------------------
+        if current_user_oid:
+            pipeline.append({
+                "$lookup": {
+                    "from": "posts_reactions",
+                    "let": {"pid": "$_id"},
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$post_id", "$$pid"]},
+                                        {"$eq": ["$user_id", current_user_oid]}
+                                    ]
+                                }
+                            }
+                        },
+                        {"$project": {"type": 1}}
+                    ],
+                    "as": "my_reaction"
                 }
-            },
+            })
+        else:
+            # 👻 guest user
+            pipeline.append({
+                "$addFields": {
+                    "my_reaction": []
+                }
+            })
 
-            sort_stage,
-
-            # 📦 Final response
-            {
-                "$project": {
-                    "caption": 1,
-                    "tags": 1,
-                    "media_url": 1,
-                    "media_type": 1,
-                    "created_at": 1,
-                    "like_count": 1,
-                    "dislike_count": 1,
-                    "created_by": "$user_info"
+        # ---------------------------------------
+        # 6️⃣ Computed fields
+        # ---------------------------------------
+        pipeline.append({
+            "$addFields": {
+                "like_count": {
+                    "$ifNull": [{"$arrayElemAt": ["$likes.count", 0]}, 0]
+                },
+                "dislike_count": {
+                    "$ifNull": [{"$arrayElemAt": ["$dislikes.count", 0]}, 0]
+                },
+                "is_liked": {
+                    "$in": ["like", "$my_reaction.type"]
+                },
+                "is_disliked": {
+                    "$in": ["dislike", "$my_reaction.type"]
                 }
             }
-        ]
+        })
+
+        # ---------------------------------------
+        # 7️⃣ Sort
+        # ---------------------------------------
+        pipeline.append(sort_stage)
+
+        # ---------------------------------------
+        # 8️⃣ Final response
+        # ---------------------------------------
+        pipeline.append({
+            "$project": {
+                "caption": 1,
+                "tags": 1,
+                "media_url": 1,
+                "media_type": 1,
+                "created_at": 1,
+                "like_count": 1,
+                "dislike_count": 1,
+                "is_liked": 1,
+                "is_disliked": 1,
+                "created_by": "$user_info"
+            }
+        })
+
+        # =======================================
+        # EXECUTE QUERY
+        # =======================================
 
         cursor_db = self.collection.aggregate(pipeline)
         docs = [doc async for doc in cursor_db]
@@ -161,6 +247,7 @@ class PostAction(BaseActions):
             "next_cursor": self.encode_cursor(docs[-1]) if has_next else None,
             "has_next": has_next
         }
+
 
     
     

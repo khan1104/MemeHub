@@ -23,7 +23,7 @@ async def dislike(post_id: str, current_user=Depends(get_current_user)):
     return await reaction_service.dislike(post_id,current_user["_id"])
 
 
-@route.post("/report{post_id}",status_code=status.HTTP_200_OK)
+@route.post("/report/{post_id}",status_code=status.HTTP_200_OK)
 async def report(post_id: str, data: PostReport, current_user=Depends(get_current_user)):
     await reaction_service.report(post_id,current_user["_id"],data.model_dump())
     return {"message": "Post reported successfully"}

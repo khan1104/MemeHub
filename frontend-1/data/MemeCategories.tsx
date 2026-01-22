@@ -1,12 +1,11 @@
 
 export const CATEGORIES = [
-  "All",
   "funny",
-  "dark",
   "relatable",
+  "dark",
   "college",
   "programming",
+  "politics",
   "office",
-  "confused",
-  "politics"
-]
+  "gaming",
+];

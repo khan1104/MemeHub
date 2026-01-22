@@ -6,6 +6,7 @@ import { Edit, Users, UserPlus } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 
+
 import UserPostCard from "@/components/UserPostsCrad";
 import { usePost } from "@/hooks/post";
 import { useUsers } from "@/hooks/user";
@@ -17,7 +18,7 @@ export default function Profile() {
   /* -------------------- ROUTE PARAM -------------------- */
   const params = useParams();
   const user_id = params.user_id as string;
-  const { user: currentUser } = useUser();
+  const { user: currentUser,loadUser } = useUser();
   const isOwnProfile = currentUser?._id === user_id;
 
   /* -------------------- HOOKS -------------------- */
@@ -53,10 +54,10 @@ export default function Profile() {
     if (res) {
       const updatedUser = await getUserById(user_id);
       if (updatedUser) setUser(updatedUser);
+      await loadUser()
     }
   };
 
-  /* -------------------- FETCH USER + POSTS -------------------- */
   
 /* -------------------- LOAD POSTS -------------------- */
   const loadPosts = async (reset = false) => {
@@ -122,11 +123,11 @@ export default function Profile() {
 
   /* -------------------- UI -------------------- */
   return (
-    <div className="w-full h-screen flex">
+    <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-6">
       <div className="flex-1 flex flex-col">
 
         {/* ================= PROFILE HEADER ================= */}
-        <div className="sticky top-0 left-0 z-10 bg-white border-b">
+        <div className="sticky top-0 left-0 z-10 py-6 -mt-6 bg-white">
 
           <div className="flex flex-col md:flex-row md:items-center gap-6">
 
@@ -265,7 +266,7 @@ export default function Profile() {
         {/* ================= POSTS GRID ================= */}
         <div
           id="profile-scroll"
-          className="flex-1 overflow-y-auto p-4"
+          className="flex-1 overflow-y-auto"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 

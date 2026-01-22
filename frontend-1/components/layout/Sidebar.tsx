@@ -3,16 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { ChevronDown, LucideIcon } from "lucide-react"
+import { ChevronDown} from "lucide-react"
 import { useUser } from "@/context/UserContext"
 import { SECTION_ONE, SECTION_TWO, SECTION_THREE, CATEGORIES } from "@/data/Sidebar"
+import { useFeed } from "@/context/FeedContext"
+import LoginRequiredModal from "../modals/LoginRequiredModal"
+
 
 // --- Types ---
-type NavItemData = {
-  name: string
-  href: string
-  icon: LucideIcon | any // Supports Lucide or React-icons
-}
 
 type SidebarProps = {
   open: boolean
@@ -22,43 +20,65 @@ type SidebarProps = {
 const NAVBAR_HEIGHT = "64px"
 
 // --- Sub-component for Navigation Items ---
-const NavItem = ({ 
-  item, 
-  user, 
-  pathname, 
-  setOpen 
-}: { 
-  item: NavItemData; 
-  user: any; 
-  pathname: string; 
-  setOpen: (v: boolean) => void 
-}) => {
-  // Fix: Don't mutate the original object. Create a dynamic link.
-  const dynamicHref = item.href === "/profile" ? `/profile/${user?._id}` : item.href
-  const isActive = pathname === dynamicHref
+const NavItem = ({ item, user, pathname, setOpen }: any) => {
+  const { feed, setFeed } = useFeed();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const dynamicHref =
+    item.href === "/profile"
+      ? user?._id
+        ? `/profile/${user._id}`
+        : "/sign-in"
+      : item.href;
+
+  const handleClick = (e: React.MouseEvent) => {
+    // 🔐 guest guard
+    if (item.requiresAuth && !user) {
+      e.preventDefault();
+      setShowLoginModal(true);
+      return;
+    }
+
+    if (item.feed) {
+      setFeed(item.feed);
+    }
+
+    setOpen(false);
+  };
+
+  const isActive = item.feed
+    ? pathname === item.href && feed === item.feed
+    : pathname === dynamicHref;
 
   return (
-    <Link href={dynamicHref} onClick={() => setOpen(false)}>
-      <div
-        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition-all
-        ${
-          isActive
-            ? "bg-purple-100 text-purple-700"
-            : "text-gray-500 hover:bg-gray-100"
-        }`}
-      >
-        <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-        <span className="truncate">{item.name}</span>
-      </div>
-    </Link>
-  )
-}
+    <>
+      <Link href={dynamicHref} onClick={handleClick}>
+        <div
+          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition-all
+          ${
+            isActive
+              ? "bg-purple-100 text-purple-700"
+              : "text-gray-500 hover:bg-gray-100"
+          }`}
+        >
+          <item.icon size={20} />
+          <span>{item.name}</span>
+        </div>
+      </Link>
+
+      {/* Login modal */}
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+    </>
+  );
+};
 
 export default function Sidebar({ open, setOpen }: SidebarProps) {
   const pathname = usePathname()
-  const { user,loading } = useUser()
+  const { user} = useUser()
   const [categoriesOpen, setCategoriesOpen] = useState(true)
-  if (loading) return null;
 
   return (
     <>

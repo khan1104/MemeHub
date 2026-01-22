@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useAuthActions } from "@/hooks/auth";
 import { useUser } from "@/context/UserContext";
-import { useUsers } from "@/hooks/user";
 import { useRouter } from "next/navigation";
 
 type NavbarProps = {
@@ -36,7 +35,6 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
     const success=await logout();
     if(success) router.replace("/sign-in")
   };
-  if (loading) return null;
   return (
     <nav className="sticky top-0 left-0 z-50 w-full border-b border-gray-300 bg-white px-4 py-3 sm:px-8">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6">

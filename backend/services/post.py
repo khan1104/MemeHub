@@ -14,15 +14,13 @@ class PostService:
     async def get_all_posts(self,**kwargs):
         return await self.PostActions.get_all_with_user(**kwargs)
     
-    async def get_post_by_id(self,post_id:str):
+    async def get_post_by_id(self,post_id:str,user_id:str=None):
         self.PostActions.validate_object_id(post_id)
         post=await self.PostActions.get_data_by_id(post_id,{"created_by":1})
         if post is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not exists")
-        return await self.PostActions.get_all_with_user(post_id=post_id)
+        return await self.PostActions.get_all_with_user(post_id=post_id,user_id=user_id)
     
-    # async def get_current_user_posts(self,sort_by: str,current_user_id:str):
-    #     return await self.PostActions.get_all_with_user(sort_by=sort_by,filter={"created_by":current_user_id})
     
     async def getUserPosts(self,sort_by: str,cursor:str,limit:str,user_id:str):
         self.PostActions.validate_object_id(user_id)

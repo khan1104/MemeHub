@@ -17,6 +17,8 @@ export interface Post {
   created_at: string
   like_count: number
   dislike_count: number
+  is_liked:boolean
+  is_disliked:boolean
   created_by: User
 }
 

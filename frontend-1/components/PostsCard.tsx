@@ -8,126 +8,270 @@ import {
   MessageCircle,
   Share2,
   Bookmark,
+  MoreVertical,
+  Flag,
+  Link2
 } from "lucide-react"
-import { Post } from "@/types/posts.type";
-import CustomVideoPlayer from "./CustomVideoPlayer";
+import { Post } from "@/types/posts.type"
+import CustomVideoPlayer from "./CustomVideoPlayer"
 import { useRouter } from "next/navigation"
-import { usePost } from "@/hooks/post";
-import { useUsers } from "@/hooks/user";
+import { usePost } from "@/hooks/post"
+import { useUser } from "@/context/UserContext"
+import ReportModal from "@/components/ReportModal";
+import { formatCount } from "@/lib/formatCount"
+import { timeAgo } from "@/lib/timeAgo"
 
 interface PostCardProps {
   post: Post
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const {like,dislike,report,loading,error}=usePost();
-  const {FollowUser}=useUsers()
   const router = useRouter()
-  const [isSaved, setIsSaved] = useState(false) // State for bookmark toggle
+  const { like, dislike, report, loading,error } = usePost()
+  const { user: currentUser } = useUser()
 
+  const [likeCount, setLikeCount] = useState(post.like_count)
+  const [dislikeCount, setDislikeCount] = useState(post.dislike_count)
+
+  const [isLiked, setIsLiked] = useState(post.is_liked)
+  const [isDisliked, setIsDisliked] = useState(post.is_disliked)
+
+  const [animateLike, setAnimateLike] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  const isOwnProfile = currentUser?._id === post.created_by._id
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  /** close menu on outside click */
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  // ================= LIKE =================
+  const handleLike = async () => {
+    if (loading) return
+
+    setAnimateLike(true)
+    setTimeout(() => setAnimateLike(false), 250)
+
+    // optimistic UI
+    if (isLiked) {
+      setLikeCount(prev => prev - 1)
+      setIsLiked(false)
+    } else {
+      setLikeCount(prev => prev + 1)
+      setIsLiked(true)
+
+      if (isDisliked) {
+        setDislikeCount(prev => prev - 1)
+        setIsDisliked(false)
+      }
+    }
+
+    await like(post._id)
+  }
+
+  // ================= DISLIKE =================
+  const handleDislike = async () => {
+    if (loading) return
+
+    if (isDisliked) {
+      setDislikeCount(prev => prev - 1)
+      setIsDisliked(false)
+    } else {
+      setDislikeCount(prev => prev + 1)
+      setIsDisliked(true)
+
+      if (isLiked) {
+        setLikeCount(prev => prev - 1)
+        setIsLiked(false)
+      }
+    }
+
+    await dislike(post._id)
+  }
   return (
-    <div className="w-full max-w-full overflow-hidden bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
-      {/* Header */}
+    <div className="w-full bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
+
+      {/* ================= HEADER ================= */}
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3" onClick={()=>{router.push(`/profile/${post.created_by._id}`)}}>
-          <div className="relative h-10 w-10 shrink-0">
+
+        {/* user info */}
+        <div
+          onClick={() => router.push(`/profile/${post.created_by._id}`)}
+          className="flex items-center gap-3 cursor-pointer"
+        >
+          <div className="relative h-10 w-10">
             <Image
               src={post.created_by.profile_pic}
-              alt={post.created_by.user_name}
+              alt="profile"
               fill
-              className="rounded-full object-cover border border-gray-100"
+              className="rounded-full object-cover border"
             />
           </div>
-          <div className="text-sm">
-            <p className="text-gray-900 hover:underline cursor-pointer">
-                {post.created_by.user_name}
+
+          <div>
+            <p className="text-sm font-semibold hover:underline">
+              {post.created_by.user_name}
             </p>
-            <p className="text-gray-500 text-xs">
-              {new Date(post.created_at).toLocaleDateString()}
+            <p className="text-xs text-gray-500">
+              {timeAgo(post.created_at)}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 relative">
-          <button className="text-white px-5 py-2 text-xs font-bold rounded-full bg-primary hover:bg-blue-700 transition-colors"
-          onClick={()=>FollowUser(post.created_by._id)}
-          >
-            Follow
-          </button>
-          <button className="text-white px-5 py-2 text-xs font-bold rounded-full bg-red-600 hover:bg-red-700 transition-colors"
-          onClick={()=>report(post._id)}
-          >
-            Report
-          </button>
-        </div>
+
+        {/* right actions */}
+        {!isOwnProfile && (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setMenuOpen(!menuOpen)
+              }}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              <MoreVertical size={20} />
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-11 w-44 bg-white  rounded-b-xl shadow-lg z-10 overflow-hidden">
+
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/posts/${post._id}`
+                    )
+                    setMenuOpen(false)
+                  }}
+                  className="w-full px-4 py-3 flex items-center gap-2 hover:bg-gray-50 text-sm"
+                >
+                  <Link2 size={16} />
+                  Copy link
+                </button>
+
+                <button
+                  onClick={() => {
+                    // report(post._id)
+                    setIsModalOpen(true)
+                    setMenuOpen(false)
+                  }}
+                  className="w-full px-4 py-3 flex items-center gap-2 text-red-600 hover:bg-red-50 text-sm"
+                >
+                  <Flag size={16} />
+                  Report
+                </button>
+              </div>
+            )}
+            <ReportModal 
+              isOpen={isModalOpen} 
+              onClose={() => setIsModalOpen(false)} 
+              targetType="Post" 
+            />
+          </div>
+        )}
       </div>
 
-      {/* Caption */}
+      {/* ================= CAPTION ================= */}
       <div className="px-4 pb-3">
-        <h2 className="font-bold text-lg text-gray-800 leading-relaxed break-words">
+        <p className="font-semibold text-gray-800 break-words">
           {post.caption}
-        </h2>
+        </p>
       </div>
 
-      {/* Media Content */}
-      <div className="bg-black/5 flex justify-center items-center w-full">
+      {/* ================= MEDIA ================= */}
+      <div className="bg-black/5 flex justify-center">
         {post.media_type === "image" && (
-          <div className="relative w-full">
-            <Image
-              src={post.media_url}
-              alt="post content"
-              width={800}
-              height={600}
-              className="w-full h-auto max-h-[500px] object-contain"
-            />
-          </div>
+          <Image
+            src={post.media_url}
+            alt="post"
+            width={900}
+            height={600}
+            className="w-full max-h-[520px] object-contain"
+          />
         )}
 
         {post.media_type === "video" && (
-          <CustomVideoPlayer src={post.media_url} className="w-full max-h-[500px]" />
+          <CustomVideoPlayer
+            src={post.media_url}
+            className="w-full max-h-[520px]"
+          />
         )}
       </div>
 
-      {/* Footer Actions */}
-      <div className="flex items-center justify-between px-2 py-2">
-        <div className="flex items-center gap-1">
-          {/* Like */}
-          <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-all group"
-          onClick={()=>like(post._id)}
+      {/* ================= FOOTER ================= */}
+      <div className="flex items-center justify-between px-3 py-2">
+
+        <div className="flex gap-1">
+
+          {/* like */}
+          <button
+            disabled={loading}
+            onClick={handleLike}
+            className={`flex items-center gap-1 px-3 py-2 rounded-lg transition hover:bg-gray-100
+              ${isLiked
+                ? "text-purple-600"
+                : ""}
+
+              ${animateLike ? "scale-125" : "scale-100"}
+            `}
           >
-            <ThumbsUp size={20} className="group-active:scale-125 transition-transform" />
-            <span className="text-xs font-bold">{post.like_count}</span>
+            <ThumbsUp size={20} fill={isLiked ? "currentColor" : "none"} />
+            <span className="text-xs font-bold">
+              {formatCount(likeCount)}
+            </span>
           </button>
 
-          {/* Dislike */}
-          <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-500 transition-all group"
-          onClick={()=>dislike(post._id)}
+          {/* dislike */}
+          <button
+            disabled={loading}
+            onClick={handleDislike}
+            className={`flex items-center gap-1 px-3 py-2 rounded-lg transition hover:bg-gray-100 
+              ${isDisliked 
+                ? "text-gray-650"
+                : ""}`}
           >
-            <ThumbsDown size={20} className="group-active:scale-125 transition-transform" />
-            <span className="text-xs font-bold">{post.dislike_count}</span>
+            <ThumbsDown
+              size={20}
+              fill={isDisliked ? "currentColor" : "none"}
+            />
+            <span className="text-xs font-bold">{formatCount(dislikeCount)}</span>
           </button>
 
-          {/* Comments */}
-          <button 
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all"
+          {/* comment */}
+          <button
             onClick={() => router.push(`/posts/${post._id}`)}
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
           >
             <MessageCircle size={20} />
             <span className="text-xs font-bold">Comment</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-1">
-          {/* Save/Bookmark */}
-          <button 
+        <div className="flex gap-1">
+          {/* bookmark */}
+          <button
             onClick={() => setIsSaved(!isSaved)}
-            className={`p-2 rounded-lg transition-all ${isSaved ? 'text-yellow-500 bg-yellow-50' : 'text-gray-600 hover:bg-gray-100'}`}
+            className={`p-2 rounded-lg transition
+              ${isSaved
+                ? "text-yellow-500 bg-yellow-50"
+                : "text-gray-600 hover:bg-gray-100"}
+            `}
           >
             <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
           </button>
 
-          {/* Share */}
-          <button className="p-2 rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600 transition-all">
+          {/* share */}
+          <button className="p-2 rounded-lg text-gray-600 hover:bg-gray-100">
             <Share2 size={20} />
           </button>
         </div>
