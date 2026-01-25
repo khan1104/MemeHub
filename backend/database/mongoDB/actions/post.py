@@ -2,13 +2,14 @@ from database.mongoDB.actions.base import BaseActions
 from database.mongoDB.collections.collection import posts_collection
 from bson import ObjectId
 from typing import Optional
+from datetime import datetime
+import base64, json
+
 
 class PostAction(BaseActions):
     def __init__(self):
         super().__init__(posts_collection)
 
-    # Python me default arguments ek hi baar create hote hain
-    # Aur har function call me SAME object reuse hota hai
     async def get_all_with_user(
         self,
         sort_by: str = "latest",
@@ -25,89 +26,53 @@ class PostAction(BaseActions):
             filter["_id"] = ObjectId(post_id)
 
         # ---------------------------------------
-        # Cursor pagination
-        # ---------------------------------------
-        special_sorts = ["latest", "top", "trending"]
-
-        if sort_by not in special_sorts:
-            tags = [tag.strip().lower() for tag in sort_by.split(",")]
-
-            filter["tags"] = {
-                "$in": tags
-            }
-        cursor_filter = {}
-        if cursor:
-            c = self.decode_cursor(cursor)
-            cursor_filter = {
-                "$or": [
-                    {"created_at": {"$lt": c["created_at"]}},
-                    {
-                        "created_at": c["created_at"],
-                        "_id": {"$lt": c["_id"]}
-                    }
-                ]
-            }
-
-        # ---------------------------------------
-        # Sorting
-        # ---------------------------------------
-        sort_stage = {"$sort": {"created_at": -1}}
-
-        if sort_by == "top":
-            sort_stage = {"$sort": {"like_count": -1}}
-
-        elif sort_by == "trending":
-            sort_stage = {"$sort": {"like_count": -1, "created_at": -1}}
-
-        # ---------------------------------------
         # Logged in user
         # ---------------------------------------
         current_user_oid = ObjectId(user_id) if user_id else None
 
         # =======================================
-        # PIPELINE STARTS HERE
+        # PIPELINE
         # =======================================
 
         pipeline = []
 
         # ---------------------------------------
-        # 1️⃣ Match posts
+        # 1️⃣ Base match
         # ---------------------------------------
-        pipeline.append({
-            "$match": {**filter, **cursor_filter}
-        })
+        pipeline.append({"$match": filter})
 
         # ---------------------------------------
-        # 2️⃣ Post owner info
+        # 2️⃣ Post owner
         # ---------------------------------------
-        pipeline.append({
-            "$lookup": {
-                "from": "users",
-                "let": {"uid": "$created_by"},
-                "pipeline": [
-                    {"$match": {"$expr": {"$eq": ["$_id", "$$uid"]}}},
-                    {
-                        "$project": {
-                            "_id": 1,
-                            "user_name": 1,
-                            "profile_pic": 1,
-                            "email": 1
+        pipeline.extend([
+            {
+                "$lookup": {
+                    "from": "users",
+                    "let": {"uid": "$created_by"},
+                    "pipeline": [
+                        {"$match": {"$expr": {"$eq": ["$_id", "$$uid"]}}},
+                        {
+                            "$project": {
+                                "_id": 1,
+                                "user_name": 1,
+                                "profile_pic": 1,
+                                "email": 1
+                            }
                         }
-                    }
-                ],
-                "as": "user_info"
+                    ],
+                    "as": "user_info"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$user_info",
+                    "preserveNullAndEmptyArrays": True
+                }
             }
-        })
-
-        pipeline.append({
-            "$unwind": {
-                "path": "$user_info",
-                "preserveNullAndEmptyArrays": True
-            }
-        })
+        ])
 
         # ---------------------------------------
-        # 3️⃣ Like count
+        # 3️⃣ Likes
         # ---------------------------------------
         pipeline.append({
             "$lookup": {
@@ -131,7 +96,7 @@ class PostAction(BaseActions):
         })
 
         # ---------------------------------------
-        # 4️⃣ Dislike count
+        # 4️⃣ Dislikes
         # ---------------------------------------
         pipeline.append({
             "$lookup": {
@@ -155,7 +120,7 @@ class PostAction(BaseActions):
         })
 
         # ---------------------------------------
-        # 5️⃣ Logged-in user reaction
+        # 5️⃣ User reaction
         # ---------------------------------------
         if current_user_oid:
             pipeline.append({
@@ -179,12 +144,7 @@ class PostAction(BaseActions):
                 }
             })
         else:
-            # 👻 guest user
-            pipeline.append({
-                "$addFields": {
-                    "my_reaction": []
-                }
-            })
+            pipeline.append({"$addFields": {"my_reaction": []}})
 
         # ---------------------------------------
         # 6️⃣ Computed fields
@@ -197,22 +157,78 @@ class PostAction(BaseActions):
                 "dislike_count": {
                     "$ifNull": [{"$arrayElemAt": ["$dislikes.count", 0]}, 0]
                 },
-                "is_liked": {
-                    "$in": ["like", "$my_reaction.type"]
-                },
-                "is_disliked": {
-                    "$in": ["dislike", "$my_reaction.type"]
-                }
+                "is_liked": {"$in": ["like", "$my_reaction.type"]},
+                "is_disliked": {"$in": ["dislike", "$my_reaction.type"]}
             }
         })
 
         # ---------------------------------------
-        # 7️⃣ Sort
+        # 7️⃣ Cursor pagination
         # ---------------------------------------
-        pipeline.append(sort_stage)
+        if cursor:
+            c = self.decode_cursor(cursor)
+
+            if sort_by == "latest":
+                pipeline.append({
+                    "$match": {
+                        "$or": [
+                            {"created_at": {"$lt": c["created_at"]}},
+                            {
+                                "created_at": c["created_at"],
+                                "_id": {"$lt": c["_id"]}
+                            }
+                        ]
+                    }
+                })
+
+            elif sort_by == "top":
+                pipeline.append({
+                    "$match": {
+                        "$or": [
+                            {"like_count": {"$lt": c["like_count"]}},
+                            {
+                                "like_count": c["like_count"],
+                                "_id": {"$lt": c["_id"]}
+                            }
+                        ]
+                    }
+                })
+
+            elif sort_by == "trending":
+                pipeline.append({
+                    "$match": {
+                        "$or": [
+                            {"like_count": {"$lt": c["like_count"]}},
+                            {
+                                "like_count": c["like_count"],
+                                "created_at": {"$lt": c["created_at"]}
+                            },
+                            {
+                                "like_count": c["like_count"],
+                                "created_at": c["created_at"],
+                                "_id": {"$lt": c["_id"]}
+                            }
+                        ]
+                    }
+                })
 
         # ---------------------------------------
-        # 8️⃣ Final response
+        # 8️⃣ Sorting
+        # ---------------------------------------
+        if sort_by == "top":
+            pipeline.append({"$sort": {"like_count": -1, "_id": -1}})
+        elif sort_by == "trending":
+            pipeline.append({"$sort": {"like_count": -1, "created_at": -1, "_id": -1}})
+        else:
+            pipeline.append({"$sort": {"created_at": -1, "_id": -1}})
+
+        # ---------------------------------------
+        # 9️⃣ limit + 1
+        # ---------------------------------------
+        pipeline.append({"$limit": limit + 1})
+
+        # ---------------------------------------
+        # 🔟 Final output
         # ---------------------------------------
         pipeline.append({
             "$project": {
@@ -230,7 +246,7 @@ class PostAction(BaseActions):
         })
 
         # =======================================
-        # EXECUTE QUERY
+        # EXECUTE
         # =======================================
 
         cursor_db = self.collection.aggregate(pipeline)
@@ -244,11 +260,6 @@ class PostAction(BaseActions):
 
         return {
             "items": docs,
-            "next_cursor": self.encode_cursor(docs[-1]) if has_next else None,
+            "next_cursor": self.encode_cursor(docs[-1], sort_by) if has_next else None,
             "has_next": has_next
         }
-
-
-    
-    
-    

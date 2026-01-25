@@ -76,30 +76,38 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-2">
-      <div onClick={handleClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        onClick={handleClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
 
       <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
-        
         {loading && (
           <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/90">
             <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
-            <p className="mt-4 text-lg font-bold text-gray-700">Uploading your meme...</p>
+            <p className="mt-4 text-lg font-bold text-gray-700">
+              Uploading your meme...
+            </p>
           </div>
         )}
-        
+
         <div className="flex items-center justify-between bg-purple-600 px-6 py-4 text-white">
           <h2 className="text-lg font-bold">Create a Meme</h2>
-          <button onClick={handleClose} disabled={loading} className="hover:bg-white/20 rounded-full p-1 transition">
+          <button
+            onClick={handleClose}
+            disabled={loading}
+            className="hover:bg-white/20 rounded-full p-1 transition"
+          >
             <X size={22} />
           </button>
         </div>
 
-        <div className={`max-h-[80vh] overflow-y-auto hover-scrollbar space-y-6 px-6 py-6 transition-opacity ${loading ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-          
+        <div
+          className={`max-h-[80vh] overflow-y-auto hover-scrollbar space-y-6 px-6 py-6 transition-opacity ${loading ? "opacity-20 pointer-events-none" : "opacity-100"}`}
+        >
           <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 p-3 transition hover:border-purple-500 min-h-[260px] bg-gray-50">
             {previewUrl ? (
               <div className="relative w-full h-[260px] flex items-center justify-center overflow-hidden rounded-lg bg-gray-100">
-                
                 {fileType === "video" ? (
                   <CustomVideoPlayer
                     src={previewUrl}
@@ -154,19 +162,22 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
               onChange={(e) => setCaption(e.target.value)}
               placeholder="Write a funny caption..."
               className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-purple-500 transition resize-none"
+              onKeyDown={(e) => e.stopPropagation()}
             />
           </div>
 
           <div className="space-y-3">
             <div className="flex justify-between">
               <h3 className="font-semibold text-gray-800">Select Categories</h3>
-              <span className="text-sm text-gray-500">{selectedCats.length}/3</span>
+              <span className="text-sm text-gray-500">
+                {selectedCats.length}/3
+              </span>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => {
-                const active = selectedCats.includes(cat)
-                const disabled = !active && selectedCats.length >= 3
+                const active = selectedCats.includes(cat);
+                const disabled = !active && selectedCats.length >= 3;
 
                 return (
                   <button
@@ -182,7 +193,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
                     {active && <Check size={14} className="mr-1" />}
                     {cat}
                   </button>
-                )
+                );
               })}
             </div>
           </div>
@@ -210,5 +221,5 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

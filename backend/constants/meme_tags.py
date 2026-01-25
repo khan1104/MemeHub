@@ -11,6 +11,7 @@ class Memetags(str,Enum):
     office="office"
     confused="confused"
     politics="politics"
+    gaming="gaming"
 
 
 

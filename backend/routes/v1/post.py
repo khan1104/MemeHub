@@ -10,7 +10,7 @@ route=APIRouter()
 service=PostService()
 
 @route.get("/",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
-async def getPosts(sort_by:Optional[str]=None,
+async def getPosts(sort_by:Optional[str]="latest",
                    cursor: Optional[str] = None,user_id: Optional[str] = None,limit: int = 10):
     data=await service.get_all_posts(sort_by=sort_by,cursor=cursor,limit=limit,user_id=user_id)
     return data

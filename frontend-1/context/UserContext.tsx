@@ -19,7 +19,6 @@ import { User } from "@/types/user.type";
 
 type UserContextType = {
   user: User | null;
-  loading:boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loadUser: () => Promise<void>;
 };
@@ -28,17 +27,13 @@ const UserContext = createContext<UserContextType | null>(null);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const loadUser = async () => {
-    setLoading(true);
     try {
       const data = await handleGetCurrentUser();
       setUser(data);
     } catch {
       setUser(null);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -47,7 +42,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, loadUser,loading }}>
+    <UserContext.Provider value={{ user, setUser, loadUser }}>
       {children}
     </UserContext.Provider>
   );
@@ -59,6 +54,4 @@ export const useUser = () => {
     throw new Error("useUser must be used within UserProvider");
   }
   return context;
-  
-
 };

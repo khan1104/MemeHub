@@ -93,22 +93,33 @@ class BaseActions:
             )
         
     @staticmethod
-    def encode_cursor(doc):
+    def encode_cursor(doc, sort_by="latest"):
         payload = {
             "_id": str(doc["_id"]),
-            "created_at": doc["created_at"].isoformat()
+            "created_at": doc["created_at"].isoformat(),
+            "like_count": doc.get("like_count", 0)
         }
-        return base64.b64encode(json.dumps(payload).encode()).decode()
+
+        payload["sort_by"] = sort_by
+
+        return base64.b64encode(
+            json.dumps(payload).encode()
+        ).decode()
     
     @staticmethod
     def decode_cursor(cursor: str):
         try:
             data = json.loads(base64.b64decode(cursor).decode())
-        except Exception as error:
-            print(error)
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Inavlid Cursour")
+        except Exception:
+            raise HTTPException(
+                status_code=403,
+                detail="Invalid cursor"
+            )
+
         return {
             "_id": ObjectId(data["_id"]),
-            "created_at": datetime.fromisoformat(data["created_at"])
+            "created_at": datetime.fromisoformat(data["created_at"]),
+            "like_count": data.get("like_count", 0),
+            "sort_by": data.get("sort_by", "latest")
         }
 
