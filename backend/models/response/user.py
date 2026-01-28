@@ -13,6 +13,7 @@ class UserResponse(MongoBaseModel):
     total_followers:int
     total_following:int
     total_friends:int
+    isFollowing:bool
 
 
 

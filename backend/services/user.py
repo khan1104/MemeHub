@@ -34,9 +34,9 @@ class UserService:
         data=await self.UserActions.get_user_with_details(user_id)
         return data
     
-    async def get_user_by_id(self,user_id:str):
+    async def get_user_by_id(self,user_id:str,current_user:str):
         self.UserActions.validate_object_id(user_id)
-        data=await self.UserActions.get_user_with_details(user_id)
+        data=await self.UserActions.get_user_with_details(user_id,current_user)
         
         if data is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")

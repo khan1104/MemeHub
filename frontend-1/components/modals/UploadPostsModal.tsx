@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { X, ImageIcon, Check, Loader2, AlertCircle } from "lucide-react"
 import { CATEGORIES } from "@/data/MemeCategories"
-import CustomVideoPlayer from "./CustomVideoPlayer"
 import { usePost } from "@/hooks/post"
 
 type UploadModalProps = {
@@ -109,8 +108,17 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
             {previewUrl ? (
               <div className="relative w-full h-[260px] flex items-center justify-center overflow-hidden rounded-lg bg-gray-100">
                 {fileType === "video" ? (
-                  <CustomVideoPlayer
+                  // <CustomVideoPlayer
+                  //   src={previewUrl}
+                  //   className="max-h-full max-w-full rounded-lg object-contain"
+                  // />
+                  <video
                     src={previewUrl}
+                    controls
+                    playsInline
+                    controlsList="nodownload noplaybackrate"
+                    disablePictureInPicture
+                    onContextMenu={(e) => e.preventDefault()}
                     className="max-h-full max-w-full rounded-lg object-contain"
                   />
                 ) : (

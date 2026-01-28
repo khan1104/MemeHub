@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { upadateProfilePicSchema } from "@/schemas/user.schema";
 import {handleFollow, handleGetUserById, handleReport, handleUpadteProfilePic} from "@/services/user.service";
+import { useUser } from "@/context/UserContext";
 
 export const useUsers = () => {
+  const {user}=useUser()
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -10,7 +12,7 @@ export const useUsers = () => {
     setError(null);
     try{
       setLoading(true)
-      const data=await handleGetUserById(user_id);
+      const data=await handleGetUserById(user_id,user?._id);
       return data;
     }
     catch(error:any){
@@ -59,10 +61,10 @@ export const useUsers = () => {
       setLoading(false)
     }
   }
-    const ReportUser=async(user_id:string)=>{
+    const ReportUser=async(user_id:string,reason:string,description:string)=>{
     try{
         setLoading(true)
-        await handleReport(user_id);
+        await handleReport(user_id,reason,description);
         return true
     }
     catch(error:any){

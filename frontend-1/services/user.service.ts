@@ -12,9 +12,15 @@ export const handleGetCurrentUser= async () => {
   }
 };
 
-export const handleGetUserById=async(user_id:string)=>{
+export const handleGetUserById=async(user_id:string,current_user_id:string)=>{
   try {
-    const res = await public_api.get(`/users/${user_id}`);
+    const res = await public_api.get(`/users/${user_id}`,
+      {
+        params: {
+          current_user_id
+    }
+      }
+    );
     return res.data;
   } catch (error: any) {
     apiError(error)
@@ -39,9 +45,12 @@ export const handleFollow=async(user_id:string)=>{
   }
 }
 
-export const handleReport=async(user_id:string)=>{
+export const handleReport=async(user_id:string,reason:string,description:string)=>{
    try {
-    const res = await protected_api.post(`/users/report/${user_id}`)
+    const res = await protected_api.post(`/users/report/${user_id}`,{
+      reason:reason,
+      description:description
+    })
     return res.data
   } catch (error: any) {
     apiError(error)

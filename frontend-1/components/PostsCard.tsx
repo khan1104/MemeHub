@@ -13,13 +13,13 @@ import {
   Link2
 } from "lucide-react"
 import { Post } from "@/types/posts.type"
-import CustomVideoPlayer from "./CustomVideoPlayer"
 import { useRouter } from "next/navigation"
 import { usePost } from "@/hooks/post"
 import { useUser } from "@/context/UserContext"
 import ReportModal from "@/components/ReportModal";
 import { formatCount } from "@/lib/formatCount"
 import { timeAgo } from "@/lib/timeAgo"
+import LoginRequiredModal from "./modals/LoginRequiredModal"
 
 interface PostCardProps {
   post: Post
@@ -27,8 +27,9 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   const router = useRouter()
-  const { like, dislike, report, loading,error } = usePost()
-  const { user: currentUser } = useUser()
+  const { like, dislike,loading,error } = usePost()
+  const { user: currentUser,isLoggedIn } = useUser()
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [likeCount, setLikeCount] = useState(post.like_count)
   const [dislikeCount, setDislikeCount] = useState(post.dislike_count)
@@ -57,57 +58,89 @@ export default function PostCard({ post }: PostCardProps) {
   }, [])
 
   // ================= LIKE =================
-  const handleLike = async () => {
-    if (loading) return
-
-    setAnimateLike(true)
-    setTimeout(() => setAnimateLike(false), 250)
-
-    // optimistic UI
-    if (isLiked) {
-      setLikeCount(prev => prev - 1)
-      setIsLiked(false)
+  const checkAuth = (action: () => void) => {
+    if (isLoggedIn) {
+      action();
     } else {
-      setLikeCount(prev => prev + 1)
-      setIsLiked(true)
-
-      if (isDisliked) {
-        setDislikeCount(prev => prev - 1)
-        setIsDisliked(false)
-      }
+      setShowLoginModal(true);
     }
+  };
 
-    await like(post._id)
-  }
+  // ================= LIKE =================
+  const handleLike = async () => {
+    checkAuth(async () => {
+      if (loading) return;
+
+      setAnimateLike(true);
+      setTimeout(() => setAnimateLike(false), 250);
+
+      // optimistic UI
+      if (isLiked) {
+        setLikeCount((prev) => prev - 1);
+        setIsLiked(false);
+      } else {
+        setLikeCount((prev) => prev + 1);
+        setIsLiked(true);
+        if (isDisliked) {
+          setDislikeCount((prev) => prev - 1);
+          setIsDisliked(false);
+        }
+      }
+      await like(post._id);
+    });
+  };
 
   // ================= DISLIKE =================
   const handleDislike = async () => {
-    if (loading) return
+    checkAuth(async () => {
+      if (loading) return;
 
-    if (isDisliked) {
-      setDislikeCount(prev => prev - 1)
-      setIsDisliked(false)
-    } else {
-      setDislikeCount(prev => prev + 1)
-      setIsDisliked(true)
-
-      if (isLiked) {
-        setLikeCount(prev => prev - 1)
-        setIsLiked(false)
+      if (isDisliked) {
+        setDislikeCount((prev) => prev - 1);
+        setIsDisliked(false);
+      } else {
+        setDislikeCount((prev) => prev + 1);
+        setIsDisliked(true);
+        if (isLiked) {
+          setLikeCount((prev) => prev - 1);
+          setIsLiked(false);
+        }
       }
-    }
+      await dislike(post._id);
+    });
+  };
 
-    await dislike(post._id)
-  }
+  // ================= SAVE / BOOKMARK =================
+  const handleSave = () => {
+    checkAuth(() => {
+      setIsSaved(!isSaved);
+      // Agar backend API hai toh yahan call karein
+    });
+  };
+
+  // ================= REPORT =================
+  const handleReportClick =() => {
+    checkAuth(() => {
+      setIsModalOpen(true);
+      setMenuOpen(false);
+    });
+  };
+
+  // handleUserProfile function (already done by you)
+  const handleUserProfile = () => {
+      router.push(`/profile/${post.created_by._id}`);
+  };
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
-
       {/* ================= HEADER ================= */}
       <div className="flex items-center justify-between px-4 py-3">
-
         {/* user info */}
+        <LoginRequiredModal
+          open={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+        />
         <div
-          onClick={() => router.push(`/profile/${post.created_by._id}`)}
+          onClick={handleUserProfile}
           className="flex items-center gap-3 cursor-pointer"
         >
           <div className="relative h-10 w-10">
@@ -123,20 +156,17 @@ export default function PostCard({ post }: PostCardProps) {
             <p className="text-sm font-semibold hover:underline">
               {post.created_by.user_name}
             </p>
-            <p className="text-xs text-gray-500">
-              {timeAgo(post.created_at)}
-            </p>
+            <p className="text-xs text-gray-500">{timeAgo(post.created_at)}</p>
           </div>
         </div>
-
 
         {/* right actions */}
         {!isOwnProfile && (
           <div className="relative" ref={menuRef}>
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                setMenuOpen(!menuOpen)
+                e.stopPropagation();
+                setMenuOpen(!menuOpen);
               }}
               className="p-2 rounded-full hover:bg-gray-100"
             >
@@ -145,13 +175,12 @@ export default function PostCard({ post }: PostCardProps) {
 
             {menuOpen && (
               <div className="absolute right-0 top-11 w-44 bg-white  rounded-b-xl shadow-lg z-10 overflow-hidden">
-
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(
-                      `${window.location.origin}/posts/${post._id}`
-                    )
-                    setMenuOpen(false)
+                      `${window.location.origin}/posts/${post._id}`,
+                    );
+                    setMenuOpen(false);
                   }}
                   className="w-full px-4 py-3 flex items-center gap-2 hover:bg-gray-50 text-sm"
                 >
@@ -160,11 +189,7 @@ export default function PostCard({ post }: PostCardProps) {
                 </button>
 
                 <button
-                  onClick={() => {
-                    // report(post._id)
-                    setIsModalOpen(true)
-                    setMenuOpen(false)
-                  }}
+                  onClick={handleReportClick}
                   className="w-full px-4 py-3 flex items-center gap-2 text-red-600 hover:bg-red-50 text-sm"
                 >
                   <Flag size={16} />
@@ -172,10 +197,11 @@ export default function PostCard({ post }: PostCardProps) {
                 </button>
               </div>
             )}
-            <ReportModal 
-              isOpen={isModalOpen} 
-              onClose={() => setIsModalOpen(false)} 
-              targetType="Post" 
+            <ReportModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              targetType="Post"
+              id={post._id}
             />
           </div>
         )}
@@ -201,34 +227,37 @@ export default function PostCard({ post }: PostCardProps) {
         )}
 
         {post.media_type === "video" && (
-          <CustomVideoPlayer
+          // <CustomVideoPlayer
+          //   src={post.media_url}
+          //   className="w-full max-h-[520px]"
+          // />
+          <video
             src={post.media_url}
-            className="w-full max-h-[520px]"
+            controls
+            playsInline
+            controlsList="nodownload noplaybackrate"
+            disablePictureInPicture
+            onContextMenu={(e) => e.preventDefault()}
+            className="w-full max-h-130"
           />
         )}
       </div>
 
       {/* ================= FOOTER ================= */}
       <div className="flex items-center justify-between px-3 py-2">
-
         <div className="flex gap-1">
-
           {/* like */}
           <button
             disabled={loading}
             onClick={handleLike}
             className={`flex items-center gap-1 px-3 py-2 rounded-lg transition hover:bg-gray-100
-              ${isLiked
-                ? "text-purple-600"
-                : ""}
+              ${isLiked ? "text-purple-600" : ""}
 
               ${animateLike ? "scale-125" : "scale-100"}
             `}
           >
             <ThumbsUp size={20} fill={isLiked ? "currentColor" : "none"} />
-            <span className="text-xs font-bold">
-              {formatCount(likeCount)}
-            </span>
+            <span className="text-xs font-bold">{formatCount(likeCount)}</span>
           </button>
 
           {/* dislike */}
@@ -236,15 +265,12 @@ export default function PostCard({ post }: PostCardProps) {
             disabled={loading}
             onClick={handleDislike}
             className={`flex items-center gap-1 px-3 py-2 rounded-lg transition hover:bg-gray-100 
-              ${isDisliked 
-                ? "text-gray-650"
-                : ""}`}
+              ${isDisliked ? "text-gray-650" : ""}`}
           >
-            <ThumbsDown
-              size={20}
-              fill={isDisliked ? "currentColor" : "none"}
-            />
-            <span className="text-xs font-bold">{formatCount(dislikeCount)}</span>
+            <ThumbsDown size={20} fill={isDisliked ? "currentColor" : "none"} />
+            <span className="text-xs font-bold">
+              {formatCount(dislikeCount)}
+            </span>
           </button>
 
           {/* comment */}
@@ -260,11 +286,13 @@ export default function PostCard({ post }: PostCardProps) {
         <div className="flex gap-1">
           {/* bookmark */}
           <button
-            onClick={() => setIsSaved(!isSaved)}
+            onClick={handleSave}
             className={`p-2 rounded-lg transition
-              ${isSaved
-                ? "text-yellow-500 bg-yellow-50"
-                : "text-gray-600 hover:bg-gray-100"}
+              ${
+                isSaved
+                  ? "text-yellow-500 bg-yellow-50"
+                  : "text-gray-600 hover:bg-gray-100"
+              }
             `}
           >
             <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
@@ -277,5 +305,5 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

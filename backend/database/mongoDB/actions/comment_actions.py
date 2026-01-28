@@ -16,7 +16,7 @@ class CommentActions(BaseActions):
         post_id: str,
         sort_by: str = "latest",
         cursor: Optional[str] = None,
-        limit: int = 10
+        limit: int = 2
     ):
         post_id = ObjectId(post_id)
 

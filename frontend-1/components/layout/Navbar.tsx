@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import UploadModal from "@/components/UploadPosts";
+import UploadModal from "@/components/modals/UploadPostsModal";
 import {
   Search,
   Plus,

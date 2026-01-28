@@ -9,4 +9,5 @@ export interface User {
   total_followers: number;
   total_following: number;
   total_friends: number;
+  isFollowing?: boolean;
 };

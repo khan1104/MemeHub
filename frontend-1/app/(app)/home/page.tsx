@@ -41,7 +41,7 @@ export default function Home() {
       setCursor(data.next_cursor);
       setHasNext(data.has_next);
     },
-    [cursor, hasNext, loading, feed, fetchPosts],
+    [cursor, hasNext, loading, fetchPosts],
   );
 
   // 2. Reset feed when Category changes

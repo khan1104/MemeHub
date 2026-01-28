@@ -26,8 +26,8 @@ async def get_current_user(current_user=Depends(get_current_user)):
 
 
 @route.get("/{user_id}",status_code=status.HTTP_200_OK,response_model=UserResponse)
-async def get_user_by_id(user_id:str):
-    data=await service.get_user_by_id(user_id)
+async def get_user_by_id(user_id:str,current_user_id:str|None = None):
+    data=await service.get_user_by_id(user_id,current_user_id)
     return data
 
 @route.patch("/me/info",status_code=status.HTTP_200_OK)

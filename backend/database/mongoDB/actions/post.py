@@ -2,8 +2,6 @@ from database.mongoDB.actions.base import BaseActions
 from database.mongoDB.collections.collection import posts_collection
 from bson import ObjectId
 from typing import Optional
-from datetime import datetime
-import base64, json
 
 
 class PostAction(BaseActions):
@@ -25,25 +23,26 @@ class PostAction(BaseActions):
         if post_id:
             filter["_id"] = ObjectId(post_id)
 
-        # ---------------------------------------
+
+        special_sorts = ["latest", "top", "trending","oldest"]
+
+        if sort_by not in special_sorts:
+            tags = [tag.strip().lower() for tag in sort_by.split(",")]
+
+            filter["tags"] = {
+                "$in": tags
+            }
+
         # Logged in user
-        # ---------------------------------------
         current_user_oid = ObjectId(user_id) if user_id else None
 
-        # =======================================
         # PIPELINE
-        # =======================================
-
         pipeline = []
 
-        # ---------------------------------------
         # 1️⃣ Base match
-        # ---------------------------------------
         pipeline.append({"$match": filter})
 
-        # ---------------------------------------
         # 2️⃣ Post owner
-        # ---------------------------------------
         pipeline.extend([
             {
                 "$lookup": {
@@ -71,9 +70,7 @@ class PostAction(BaseActions):
             }
         ])
 
-        # ---------------------------------------
         # 3️⃣ Likes
-        # ---------------------------------------
         pipeline.append({
             "$lookup": {
                 "from": "posts_reactions",
@@ -95,9 +92,7 @@ class PostAction(BaseActions):
             }
         })
 
-        # ---------------------------------------
         # 4️⃣ Dislikes
-        # ---------------------------------------
         pipeline.append({
             "$lookup": {
                 "from": "posts_reactions",
@@ -119,9 +114,7 @@ class PostAction(BaseActions):
             }
         })
 
-        # ---------------------------------------
         # 5️⃣ User reaction
-        # ---------------------------------------
         if current_user_oid:
             pipeline.append({
                 "$lookup": {
@@ -146,9 +139,7 @@ class PostAction(BaseActions):
         else:
             pipeline.append({"$addFields": {"my_reaction": []}})
 
-        # ---------------------------------------
         # 6️⃣ Computed fields
-        # ---------------------------------------
         pipeline.append({
             "$addFields": {
                 "like_count": {
@@ -162,9 +153,7 @@ class PostAction(BaseActions):
             }
         })
 
-        # ---------------------------------------
         # 7️⃣ Cursor pagination
-        # ---------------------------------------
         if cursor:
             c = self.decode_cursor(cursor)
 
@@ -212,24 +201,31 @@ class PostAction(BaseActions):
                     }
                 })
 
-        # ---------------------------------------
+            elif sort_by == "oldest":
+                pipeline.append({
+                    "$match": {
+                        "$or": [
+                            {"created_at": {"$gt": c["created_at"]}},
+                            {
+                                "created_at": c["created_at"],
+                                "_id": {"$gt": c["_id"]}
+                            }
+                        ]
+                    }
+                })
+
         # 8️⃣ Sorting
-        # ---------------------------------------
         if sort_by == "top":
             pipeline.append({"$sort": {"like_count": -1, "_id": -1}})
         elif sort_by == "trending":
             pipeline.append({"$sort": {"like_count": -1, "created_at": -1, "_id": -1}})
+        elif sort_by=="oldest":
+            pipeline.append({"$sort": {"created_at": 1, "_id": 1}})
         else:
             pipeline.append({"$sort": {"created_at": -1, "_id": -1}})
 
-        # ---------------------------------------
-        # 9️⃣ limit + 1
-        # ---------------------------------------
         pipeline.append({"$limit": limit + 1})
 
-        # ---------------------------------------
-        # 🔟 Final output
-        # ---------------------------------------
         pipeline.append({
             "$project": {
                 "caption": 1,
@@ -244,10 +240,6 @@ class PostAction(BaseActions):
                 "created_by": "$user_info"
             }
         })
-
-        # =======================================
-        # EXECUTE
-        # =======================================
 
         cursor_db = self.collection.aggregate(pipeline)
         docs = [doc async for doc in cursor_db]

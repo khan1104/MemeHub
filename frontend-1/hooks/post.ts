@@ -67,11 +67,11 @@ export const usePost = () => {
     }
   }
 
-  const fetchUserPosts=async(user_id:string,cursor?: string):Promise<PaginatedPostResponse|null>=>{
+  const fetchUserPosts=async(user_id:string,sort_by?:string,cursor?: string):Promise<PaginatedPostResponse|null>=>{
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetUserPosts(user_id,cursor)
+      const posts = await handleGetUserPosts(user_id,sort_by,cursor)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -122,11 +122,11 @@ export const usePost = () => {
         setLoading(false);
       }
     };
-    const report = async (post_id:string) => {
+    const report = async (post_id:string,reason:string,description:string) => {
       setError(null);
       try {
         setLoading(true);
-        await handlePostReport(post_id);
+        await handlePostReport(post_id,reason,description);
       } catch (err: any) {
         setError(err.message || "Action failed");
   

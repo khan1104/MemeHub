@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { Edit, Users, UserPlus } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-
 
 import UserPostCard from "@/components/UserPostsCrad";
 import { usePost } from "@/hooks/post";
@@ -18,32 +17,25 @@ export default function Profile() {
   /* -------------------- ROUTE PARAM -------------------- */
   const params = useParams();
   const user_id = params.user_id as string;
-  const { user: currentUser,loadUser } = useUser();
+  const { user: currentUser, loadUser } = useUser();
   const isOwnProfile = currentUser?._id === user_id;
+  const [activeTab,setActiveTab]=useState("latest");
 
   /* -------------------- HOOKS -------------------- */
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const {
-    getUserById,
-    updateProfilePic,
-    loading,
-    error,
-  } = useUsers();
+  const { getUserById, updateProfilePic, FollowUser, loading, error } =
+    useUsers();
 
-  const {
-    fetchUserPosts,
-    loading: postLoading,
-    error: postError,
-  } = usePost();
+  const { fetchUserPosts, loading: postLoading, error: postError } = usePost();
 
   /* -------------------- STATE -------------------- */
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasNext, setHasNext] = useState(true)
-  const loaderRef = useRef<HTMLDivElement | null>(null)
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasNext, setHasNext] = useState(true);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
   /* -------------------- PROFILE PIC CHANGE -------------------- */
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,31 +46,31 @@ export default function Profile() {
     if (res) {
       const updatedUser = await getUserById(user_id);
       if (updatedUser) setUser(updatedUser);
-      await loadUser()
+      await loadUser();
     }
   };
 
-  
-/* -------------------- LOAD POSTS -------------------- */
-  const loadPosts = async (reset = false) => {
-    if (!hasNext && !reset) return;
-    if (postLoading) return;
+  /* -------------------- LOAD POSTS -------------------- */
+  const loadPosts = useCallback(
+    async (isInitial = false) => {
+      if (postLoading || (!hasNext && !isInitial)) return;
 
-    const res = await fetchUserPosts(
-      user_id,
-      reset ? null : cursor,
-      12
-    );
+      const currentCursor = isInitial ? null : cursor;
+      const res = await fetchUserPosts(user_id,activeTab ,currentCursor);
 
-    if (!res) return;
+      if (!res) return;
 
-    setPosts((prev) =>
-      reset ? res.items : [...prev, ...res.items]
-    );
+      if (isInitial) {
+        setPosts(res.items);
+      } else {
+        setPosts((prev) => [...prev, ...res.items]);
+      }
 
-    setCursor(res.next_cursor);
-    setHasNext(res.has_next);
-  };
+      setCursor(res.next_cursor);
+      setHasNext(res.has_next);
+    },
+    [user_id, cursor,activeTab ,hasNext, postLoading, fetchUserPosts],
+  );
 
   /* -------------------- LOAD USER -------------------- */
   useEffect(() => {
@@ -100,37 +92,33 @@ export default function Profile() {
 
   /* -------------------- INFINITE SCROLL -------------------- */
   useEffect(() => {
-    const container = document.getElementById("profile-scroll");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNext && !postLoading) {
+          loadPosts();
+        }
+      },
+      { threshold: 0.1 },
+    );
 
-    if (!container) return;
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
 
-    const onScroll = () => {
-      const nearBottom =
-        container.scrollTop + container.clientHeight >=
-        container.scrollHeight - 200;
+    return () => observer.disconnect();
+  }, [loadPosts, hasNext, postLoading]);
 
-      if (nearBottom && hasNext && !postLoading) {
-        loadPosts();
-      }
-    };
-
-    container.addEventListener("scroll", onScroll);
-
-    return () =>
-      container.removeEventListener("scroll", onScroll);
-  }, [cursor, hasNext, postLoading]);
-
+  const handleFollow = async () => {
+    await FollowUser(user?._id);
+  };
 
   /* -------------------- UI -------------------- */
   return (
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-6">
       <div className="flex-1 flex flex-col">
-
         {/* ================= PROFILE HEADER ================= */}
         <div className="sticky top-0 left-0 z-10 py-6 -mt-6 bg-white">
-
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-
             {/* ---------- PROFILE IMAGE ---------- */}
             <div className="relative mx-auto md:mx-0">
               <div className="w-[110px] h-[110px] rounded-full overflow-hidden border">
@@ -184,7 +172,6 @@ export default function Profile() {
 
               {/* ---------- STATS ---------- */}
               <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-4 text-sm">
-
                 <div>
                   <span className="font-semibold">{user?.total_posts}</span>{" "}
                   Posts
@@ -203,9 +190,7 @@ export default function Profile() {
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() =>
-                    router.push(`/profile/${user?._id}/followers`)
-                  }
+                  onClick={() => router.push(`/profile/${user?._id}/followers`)}
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">
@@ -216,9 +201,7 @@ export default function Profile() {
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() =>
-                    router.push(`/profile/${user?._id}/following`)
-                  }
+                  onClick={() => router.push(`/profile/${user?._id}/following`)}
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">
@@ -226,7 +209,6 @@ export default function Profile() {
                   </span>{" "}
                   Following
                 </button>
-
               </div>
             </div>
 
@@ -234,42 +216,47 @@ export default function Profile() {
             <div className="w-full md:w-auto">
               {isOwnProfile ? (
                 <button
-                  onClick={() => router.push("/settings/profile")}
+                  onClick={() => router.push("/settings")}
                   className="w-full md:w-auto bg-primary text-white px-5 py-2 rounded-xl"
                 >
                   Edit Profile
                 </button>
               ) : (
-                <button className="w-full md:w-auto bg-primary text-white px-5 py-2 rounded-xl"
-                onClick={()=>console.log("follow")}>
-                  Follow
+                <button
+                  className="w-full md:w-auto bg-primary text-white px-5 py-2 rounded-xl"
+                  onClick={handleFollow}
+                >
+                  {user?.isFollowing ? "Unfollow" : "Follow"}
                 </button>
               )}
             </div>
-
           </div>
 
           {/* ---------- TABS ---------- */}
           <div className="mt-6 flex gap-6 border-b text-sm font-medium overflow-x-auto">
-            <button className="pb-3 border-b-2 text-primary">
-              My Memes
-            </button>
+            <button className="pb-3 border-b-2 text-primary">Home</button>
             <button className="pb-3 text-gray-500 hover:text-primary">
               Most Liked
             </button>
             <button className="pb-3 text-gray-500 hover:text-primary">
-              Saved
+              Oldest
             </button>
+            {isOwnProfile && (
+              <>
+                <button className="pb-3 text-gray-500 hover:text-primary">
+                  Saved
+                </button>
+                <button className="pb-3 text-gray-500 hover:text-primary">
+                  Liked Posts
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         {/* ================= POSTS GRID ================= */}
-        <div
-          id="profile-scroll"
-          className="flex-1 overflow-y-auto"
-        >
+        <div id="profile-scroll" className="flex-1 overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-
             {posts.map((post) => (
               <UserPostCard key={post._id} post={post} />
             ))}
@@ -283,12 +270,14 @@ export default function Profile() {
 
           {!hasNext && posts.length > 0 && (
             <p className="text-center py-6 text-gray-400 text-sm">
-              🎉 No more posts
+              No more posts
             </p>
           )}
         </div>
-
       </div>
     </div>
   );
 }
+
+
+// check

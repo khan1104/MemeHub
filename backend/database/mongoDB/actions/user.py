@@ -18,8 +18,9 @@ class UserActions(BaseActions):
         return [doc async for doc in cursor]
     
     async def get_user_with_details(
-    self,
-    user_id: str | None = None
+        self,
+        user_id: str | None = None,
+        current_user_id: str | None = None
     ):
         match_stage = {
             "is_deleted": False,
@@ -29,7 +30,11 @@ class UserActions(BaseActions):
         if user_id:
             match_stage["_id"] = ObjectId(user_id)
 
+        current_user_oid = ObjectId(current_user_id) if current_user_id else None
+
         pipeline = [
+
+            # 1️⃣ Base match
             {"$match": match_stage},
 
             # 🧮 Posts count
@@ -93,7 +98,32 @@ class UserActions(BaseActions):
                 }
             },
 
-            # 🎯 Final computed fields
+            # ⭐ CHECK IF CURRENT USER FOLLOWS THIS USER
+            {
+                "$lookup": {
+                    "from": "followers",
+                    "let": {
+                        "profileUserId": "$_id",
+                        "currentUserId": current_user_oid
+                    },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$follower_id", "$$currentUserId"]},
+                                        {"$eq": ["$following_id", "$$profileUserId"]}
+                                    ]
+                                }
+                            }
+                        },
+                        {"$limit": 1}
+                    ],
+                    "as": "is_following_doc"
+                }
+            },
+
+            # 🎯 Computed fields
             {
                 "$addFields": {
                     "total_posts": {
@@ -107,6 +137,14 @@ class UserActions(BaseActions):
                     },
                     "total_friends": {
                         "$ifNull": [{"$arrayElemAt": ["$friends.count", 0]}, 0]
+                    },
+
+                    # ✅ FINAL BOOLEAN
+                    "isFollowing": {
+                        "$gt": [
+                            {"$size": "$is_following_doc"},
+                            0
+                        ]
                     }
                 }
             },
@@ -118,7 +156,8 @@ class UserActions(BaseActions):
                     "posts": 0,
                     "followers": 0,
                     "following": 0,
-                    "friends": 0
+                    "friends": 0,
+                    "is_following_doc": 0
                 }
             }
         ]
@@ -130,6 +169,7 @@ class UserActions(BaseActions):
             return result[0] if result else None
 
         return await cursor.to_list(length=None)
+
 
 
 class FollowActions(BaseActions):
