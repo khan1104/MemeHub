@@ -4,43 +4,62 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { Edit, Users, UserPlus } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import { useUser } from "@/context/UserContext";
 
-import UserPostCard from "@/components/UserPostsCrad";
+import { useUser } from "@/context/UserContext";
 import { usePost } from "@/hooks/post";
 import { useUsers } from "@/hooks/user";
+
+import UserPostCard from "@/components/UserPostsCrad";
 
 import { Post } from "@/types/posts.type";
 import { User } from "@/types/user.type";
 
 export default function Profile() {
-  /* -------------------- ROUTE PARAM -------------------- */
+  /* ================= ROUTE ================= */
   const params = useParams();
   const user_id = params.user_id as string;
-  const { user: currentUser, loadUser } = useUser();
-  const isOwnProfile = currentUser?._id === user_id;
-  const [activeTab,setActiveTab]=useState("latest");
 
-  /* -------------------- HOOKS -------------------- */
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const { getUserById, updateProfilePic, FollowUser, loading, error } =
-    useUsers();
+  const { user: currentUser, loadUser } = useUser();
+  const isOwnProfile = currentUser?._id === user_id;
 
-  const { fetchUserPosts, loading: postLoading, error: postError } = usePost();
+  /* ================= TABS ================= */
+  const [activeTab, setActiveTab] = useState<
+    "latest" | "top" | "oldest" | "saved" | "liked"
+  >("latest");
 
-  /* -------------------- STATE -------------------- */
+  /* ================= HOOKS ================= */
+  const { getUserById, updateProfilePic, FollowUser } = useUsers();
+
+  const {
+    fetchUserPosts,
+    fetchSavedPosts,
+    fetchLikedPosts,
+    loading: postLoading,
+  } = usePost();
+
+  /* ================= STATE ================= */
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(true);
+
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  /* -------------------- PROFILE PIC CHANGE -------------------- */
+  /* ================= TAB STYLE ================= */
+  const tabClass = (tab: string) =>
+    `pb-3 border-b-2 whitespace-nowrap transition ${
+      activeTab === tab
+        ? "border-primary text-primary"
+        : "border-transparent text-gray-500 hover:text-primary"
+    }`;
+
+  /* ================= PROFILE PIC ================= */
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user_id) return;
+    if (!file) return;
 
     const res = await updateProfilePic(file);
     if (res) {
@@ -50,29 +69,42 @@ export default function Profile() {
     }
   };
 
-  /* -------------------- LOAD POSTS -------------------- */
+  /* ================= LOAD POSTS ================= */
   const loadPosts = useCallback(
     async (isInitial = false) => {
       if (postLoading || (!hasNext && !isInitial)) return;
 
       const currentCursor = isInitial ? null : cursor;
-      const res = await fetchUserPosts(user_id,activeTab ,currentCursor);
+      let res;
+
+      if (activeTab === "saved") {
+        res = await fetchSavedPosts(currentCursor);
+      } else if (activeTab === "liked") {
+        res = await fetchLikedPosts(currentCursor);
+      } else {
+        res = await fetchUserPosts(user_id, activeTab, currentCursor);
+      }
 
       if (!res) return;
 
-      if (isInitial) {
-        setPosts(res.items);
-      } else {
-        setPosts((prev) => [...prev, ...res.items]);
-      }
+      setPosts((prev) => (isInitial ? res.items : [...prev, ...res.items]));
 
       setCursor(res.next_cursor);
       setHasNext(res.has_next);
     },
-    [user_id, cursor,activeTab ,hasNext, postLoading, fetchUserPosts],
+    [
+      activeTab,
+      cursor,
+      hasNext,
+      postLoading,
+      user_id,
+      fetchUserPosts,
+      fetchSavedPosts,
+      fetchLikedPosts,
+    ],
   );
 
-  /* -------------------- LOAD USER -------------------- */
+  /* ================= LOAD PROFILE ================= */
   useEffect(() => {
     if (!user_id) return;
 
@@ -80,17 +112,17 @@ export default function Profile() {
       const u = await getUserById(user_id);
       if (u) setUser(u);
 
+      setPosts([]);
       setCursor(null);
       setHasNext(true);
-      setPosts([]);
 
       loadPosts(true);
     };
 
     loadProfile();
-  }, [user_id]);
+  }, [user_id, activeTab]);
 
-  /* -------------------- INFINITE SCROLL -------------------- */
+  /* ================= INFINITE SCROLL ================= */
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -108,8 +140,11 @@ export default function Profile() {
     return () => observer.disconnect();
   }, [loadPosts, hasNext, postLoading]);
 
+  /* ================= FOLLOW ================= */
   const handleFollow = async () => {
     await FollowUser(user?._id);
+    const updated = await getUserById(user_id);
+    if (updated) setUser(updated);
   };
 
   /* -------------------- UI -------------------- */
@@ -234,19 +269,37 @@ export default function Profile() {
 
           {/* ---------- TABS ---------- */}
           <div className="mt-6 flex gap-6 border-b text-sm font-medium overflow-x-auto">
-            <button className="pb-3 border-b-2 text-primary">Home</button>
-            <button className="pb-3 text-gray-500 hover:text-primary">
+            <button
+              className={tabClass("latest")}
+              onClick={() => setActiveTab("latest")}
+            >
+              Home
+            </button>
+            <button
+              className={tabClass("top")}
+              onClick={() => setActiveTab("top")}
+            >
               Most Liked
             </button>
-            <button className="pb-3 text-gray-500 hover:text-primary">
+            <button
+              className={tabClass("oldest")}
+              onClick={() => setActiveTab("oldest")}
+            >
               Oldest
             </button>
+
             {isOwnProfile && (
               <>
-                <button className="pb-3 text-gray-500 hover:text-primary">
+                <button
+                  className={tabClass("saved")}
+                  onClick={() => setActiveTab("saved")}
+                >
                   Saved
                 </button>
-                <button className="pb-3 text-gray-500 hover:text-primary">
+                <button
+                  className={tabClass("liked")}
+                  onClick={() => setActiveTab("liked")}
+                >
                   Liked Posts
                 </button>
               </>
@@ -278,6 +331,5 @@ export default function Profile() {
     </div>
   );
 }
-
 
 // check

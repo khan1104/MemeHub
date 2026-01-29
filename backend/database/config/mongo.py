@@ -16,6 +16,11 @@ async def create_indexes():
         [("post_id", ASCENDING), ("type", ASCENDING)]
     )
 
+    # saved posts
+    await db["saved_posts"].create_index(
+        [("post_id",ASCENDING),("saved_by",ASCENDING)]
+    )
+
     # 📌 FOLLOWERS (prevent duplicate follows)
     await db["followers"].create_index(
         [("follower_id", ASCENDING), ("following_id", ASCENDING)],

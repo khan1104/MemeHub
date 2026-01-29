@@ -27,6 +27,18 @@ export const handleGetUserById=async(user_id:string,current_user_id:string)=>{
   }
 }
 
+export const handleUpadteUserInfo=async(user_name?:string,bio?:string)=>{
+  try {
+    const res = await protected_api.patch("/users/me/info",{
+      user_name,
+      bio
+    })
+    return res.data
+  } catch (error: any) {
+    apiError(error)
+  }
+}
+
 export const handleUpadteProfilePic=async(formData: FormData)=>{
   try {
     const res = await protected_api.patch("/users/me/profile-pic", formData)

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { upadateProfilePicSchema } from "@/schemas/user.schema";
-import {handleFollow, handleGetUserById, handleReport, handleUpadteProfilePic} from "@/services/user.service";
+import {handleFollow, handleGetUserById, handleReport, handleUpadteProfilePic, handleUpadteUserInfo} from "@/services/user.service";
 import { useUser } from "@/context/UserContext";
 
 export const useUsers = () => {
@@ -23,9 +23,24 @@ export const useUsers = () => {
     }
   }
 
+    const updateUserInfo=async(user_name?:string,bio?:string)=>{
+      setError(null)
+      try{
+          setLoading(true)
+          await handleUpadteUserInfo(user_name,bio);
+          return true
+      }
+      catch(error:any){
+        setError(error.message)
+        return null
+      }finally {
+        setLoading(false)
+      }
+    }
+
+
   const updateProfilePic=async(file: File,)=>{
     setError(null)
-    
     const validation = upadateProfilePicSchema.safeParse({file});
 
     if (!validation.success) {
@@ -78,6 +93,6 @@ export const useUsers = () => {
 
   
 
-  return {getUserById, updateProfilePic,FollowUser,ReportUser, loading, error, setError };
+  return {getUserById,updateUserInfo, updateProfilePic,FollowUser,ReportUser, loading, error, setError };
 };
 

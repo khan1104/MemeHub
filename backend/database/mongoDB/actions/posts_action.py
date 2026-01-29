@@ -1,5 +1,5 @@
 
-from database.mongoDB.collections.collection import posts_reaction_collection,post_reports
+from database.mongoDB.collections.collection import posts_reaction_collection,post_reports,saved_posts
 from database.mongoDB.actions.base import BaseActions
 from bson import ObjectId
 from datetime import datetime
@@ -38,4 +38,12 @@ class PostReactionAction(BaseActions):
 class ReportActions(BaseActions):
     def __init__(self):
         super().__init__(post_reports)
+
+
+class SavedActions(BaseActions):
+    def __init__(self):
+        super().__init__(saved_posts)
+
+
+
     

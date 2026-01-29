@@ -3,6 +3,7 @@ from services.posts_action import PostActionService
 from dependency.auth_dependency import get_current_user
 from models.request.posts_action import Comment,PostReport
 from models.response.posts_action import CommentResponse,Comments,PaginatedCommentResponse
+from models.response.post import PaginatedPostResponse
 from services.comment_actions import CommentService
 from typing import Optional
 
@@ -17,6 +18,10 @@ comment_service=CommentService()
 async def like(post_id: str, current_user=Depends(get_current_user)):
     return await reaction_service.like(post_id,current_user["_id"])
 
+@route.get("/liked",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
+async def get_liked_posts(current_user=Depends(get_current_user)):
+    return await reaction_service.get_likedPosts(current_user["_id"])
+
 
 @route.post("/dislike/{post_id}",status_code=status.HTTP_200_OK)
 async def dislike(post_id: str, current_user=Depends(get_current_user)):
@@ -27,6 +32,16 @@ async def dislike(post_id: str, current_user=Depends(get_current_user)):
 async def report(post_id: str, data: PostReport, current_user=Depends(get_current_user)):
     await reaction_service.report(post_id,current_user["_id"],data.model_dump())
     return {"message": "Post reported successfully"}
+
+@route.get("/save",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
+async def get_saved_posts(current_user=Depends(get_current_user)):
+    data=await reaction_service.get_saved_posts(current_user["_id"])
+    return data
+
+@route.post("/save/{post_id}",status_code=status.HTTP_201_CREATED)
+async def save(post_id:str,current_user=Depends(get_current_user)):
+    return await reaction_service.save(post_id=post_id,saved_by=current_user["_id"])
+
 
 
 @route.get("/comments/{post_id}", status_code=status.HTTP_200_OK, response_model=PaginatedCommentResponse)

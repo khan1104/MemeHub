@@ -7,7 +7,9 @@ import { handlePostUpload,
 handlePostLike,
 handlePostDislike,
 handlePostReport, 
-handleGetUserPosts} from "@/services/post.service"
+handleGetUserPosts,
+handleGetSavedPosts,
+handleGetLikedPosts} from "@/services/post.service"
 import { Post,PaginatedPostResponse } from "@/types/posts.type"
 import { useUser } from "@/context/UserContext"
 import { useFeed } from "@/context/FeedContext"
@@ -94,6 +96,34 @@ export const usePost = () => {
     }
   }
 
+  const fetchSavedPosts=async()=>{
+    setError(null)
+    try {
+      setLoading(true)
+      const posts = await handleGetSavedPosts();
+      return posts
+    } catch (err: any) {
+      setError(err.message)
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchLikedPosts=async()=>{
+    setError(null)
+    try {
+      setLoading(true)
+      const posts = await handleGetLikedPosts();
+      return posts
+    } catch (err: any) {
+      setError(err.message)
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const like = async (post_id:string) => {
       setError(null);
       try {
@@ -136,5 +166,6 @@ export const usePost = () => {
     };
 
 
-  return { uploadPost,fetchPosts,fetchUserPosts,fetchSinglePost,like,dislike,report ,loading, error,setError }
+  return { uploadPost,fetchPosts,fetchUserPosts,fetchSinglePost,fetchSavedPosts,fetchLikedPosts,
+    like,dislike,report ,loading, error,setError }
 }

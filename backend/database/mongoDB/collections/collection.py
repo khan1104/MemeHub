@@ -11,6 +11,7 @@ friend_requests=db["friend_requests"]
 posts_collection = db["posts"]
 posts_reaction_collection = db["posts_reactions"] 
 post_reports=db["reported_posts"]
+saved_posts=db["saved_posts"]
 
 
 comments_collection = db["comments"]

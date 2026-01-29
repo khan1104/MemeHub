@@ -48,5 +48,5 @@ export const SECTION_THREE = [
   { name: "About MemeHub", href: "/about", icon: CiSquareInfo },
   { name: "Privacy Policy", href: "/policies", icon: BookOpenText },
   { name: "Support", href: "/support", icon: BiSupport },
-  { name: "Settings", href: "/settings", icon: Settings },
-]
+  { name: "Settings", href: "/settings", icon: Settings, requiresAuth: true },
+];

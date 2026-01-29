@@ -69,6 +69,25 @@ export const handleGetUserPosts=async(
   }
 }
 
+
+export const handleGetSavedPosts=async()=>{
+  try {
+    const res = await protected_api.get(`/posts_actions/save`)
+    return res.data
+  } catch (error: any) {
+    apiError(error)
+  }
+}
+
+export const handleGetLikedPosts=async()=>{
+  try {
+    const res = await protected_api.get(`/posts_actions/liked`)
+    return res.data
+  } catch (error: any) {
+    apiError(error)
+  }
+}
+
 export const handlePostLike= async (post_id:string) => {
   try {
     const res = await protected_api.post(`/posts_actions/like/${post_id}`)
