@@ -22,7 +22,7 @@ type NavbarProps = {
 
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
-  const { user, loading} = useUser(); // Context se user data le rahe hain
+  const { user, isLoading} = useUser(); // Context se user data le rahe hain
   const isLoggedIn=!!user;
   const {logout}=useAuthActions();
   const [openUpload, setOpenUpload] = useState(false);
@@ -134,7 +134,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               </button>
 
               {/* User Profile / Login Button */}
-              {!loading && (
+              {!isLoading && (
                 <>
                   {isLoggedIn ? (
                     <div className="relative">
@@ -163,8 +163,12 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                           <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white py-2 shadow-xl">
                             {/* User Info Header */}
                             <div className="border-b border-gray-50 px-4 py-3">
-                                <p className="text-sm font-bold text-gray-900 truncate">{user?.user_name}</p>
-                                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                              <p className="text-sm font-bold text-gray-900 truncate">
+                                {user?.user_name}
+                              </p>
+                              <p className="text-xs text-gray-500 truncate">
+                                {user?.email}
+                              </p>
                             </div>
 
                             <button
@@ -215,10 +219,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         )}
       </div>
 
-      <UploadModal
-        open={openUpload}
-        onClose={() => setOpenUpload(false)}
-      />
+      <UploadModal open={openUpload} onClose={() => setOpenUpload(false)} />
 
       {/* App Modal */}
       {openAppModal && (

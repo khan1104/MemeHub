@@ -41,7 +41,7 @@ export const SECTION_TWO = [
   { name: "Templates", href: "/templates", icon: Flame },
   { name: "Friends", href: "/friends", icon: Contact, requiresAuth: true },
   { name: "My Posts", href: "/profile", icon: Clock, requiresAuth: true },
-  { name: "Monthly Meme Challenge", href: "/challenge", icon: Trophy },
+  { name: "Monthly Meme Challenge", href: "/monthlyChallenege", icon: Trophy },
 ];
 
 export const SECTION_THREE = [

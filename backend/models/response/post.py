@@ -17,10 +17,12 @@ class MemeResponse(MongoBaseModel):
     media_type: str
     tags: List[str]
     created_at: datetime
-    like_count: int
-    dislike_count: int
+    like_count: int=0
+    dislike_count: int=0
+    total_comments:int=0
     is_liked:bool=False
     is_disliked:bool=False
+    is_saved:bool=False
     created_by: CreatedByUser
 
 class PostResponse(MongoBaseModel):

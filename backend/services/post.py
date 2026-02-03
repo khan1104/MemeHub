@@ -27,7 +27,7 @@ class PostService:
         user=await self.UserAction.get_data_by_id(user_id,{"created_by":1})
         if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")
-        return await self.PostActions.get_all_with_user(sort_by=sort_by,cursor=cursor,limit=limit,filter={"created_by":ObjectId(user_id)})
+        return await self.PostActions.get_all_with_user(sort_by=sort_by,cursor=cursor,limit=limit,query_filter={"created_by":ObjectId(user_id)})
         
     async def createPost(self, caption: str, media_file, tags, current_user_id: str):
         file_ext = media_file.filename.split(".")[-1].lower()

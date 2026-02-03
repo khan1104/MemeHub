@@ -38,6 +38,7 @@ export default function Settings() {
   const USERNAME = user?.user_name;
   const expectedDeleteText = `delete+${USERNAME}`;
 
+
   const handleLogout = async () => {
     const success = await logout();
     if (success) router.replace("/sign-in");
@@ -223,7 +224,9 @@ export default function Settings() {
       {showChangeNameModal && (
         <Modal
           title="Change Username"
-          onClose={() => setShowChangeNameModal(false)}
+          onClose={() => {
+            setShowChangeNameModal(false)
+          setNewName("")}}
         >
           <input
             value={newName}
@@ -242,7 +245,9 @@ export default function Settings() {
 
       {/* CHANGE BIO */}
       {showChangeBioModal && (
-        <Modal title="Change Bio" onClose={() => setShowChangeBioModal(false)}>
+        <Modal title="Change Bio" onClose={() => {setShowChangeBioModal(false)
+          setNewBio("")
+        }}>
           <textarea
             value={newBio}
             onChange={(e) => setNewBio(e.target.value)}

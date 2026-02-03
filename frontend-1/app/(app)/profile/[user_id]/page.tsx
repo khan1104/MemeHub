@@ -8,6 +8,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { usePost } from "@/hooks/post";
 import { useUsers } from "@/hooks/user";
+import { usePostAction } from "@/hooks/postsAction";
 
 import UserPostCard from "@/components/UserPostsCrad";
 
@@ -35,10 +36,10 @@ export default function Profile() {
 
   const {
     fetchUserPosts,
-    fetchSavedPosts,
-    fetchLikedPosts,
     loading: postLoading,
   } = usePost();
+
+  const {fetchSavedPosts,fetchLikedPosts}=usePostAction()
 
   /* ================= STATE ================= */
   const [user, setUser] = useState<User | null>(null);

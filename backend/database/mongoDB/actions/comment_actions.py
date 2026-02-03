@@ -16,37 +16,64 @@ class CommentActions(BaseActions):
         post_id: str,
         sort_by: str = "latest",
         cursor: Optional[str] = None,
-        limit: int = 2
+        limit: int = 10,
+        user_id: Optional[str] = None,
     ):
-        post_id = ObjectId(post_id)
+        post_oid = ObjectId(post_id)
+        current_user_oid = ObjectId(user_id) if user_id else None
 
+        # -----------------------------------------
+        # Cursor filter
+        # -----------------------------------------
         cursor_filter = {}
+
         if cursor:
             c = self.decode_cursor(cursor)
-            cursor_filter = {
-                "$or": [
-                    {"created_at": {"$lt": c["created_at"]}},
-                    {
-                        "created_at": c["created_at"],
-                        "_id": {"$lt": c["_id"]}
-                    }
-                ]
-            }
 
-        sort_stage = {"$sort": {"created_at": -1, "_id": -1}}
+            if sort_by == "top":
+                cursor_filter = {
+                    "$or": [
+                        {"like_count": {"$lt": c["like_count"]}},
+                        {
+                            "like_count": c["like_count"],
+                            "_id": {"$lt": ObjectId(c["_id"])}
+                        }
+                    ]
+                }
+            else:
+                cursor_filter = {
+                    "$or": [
+                        {"created_at": {"$lt": c["created_at"]}},
+                        {
+                            "created_at": c["created_at"],
+                            "_id": {"$lt": ObjectId(c["_id"])}
+                        }
+                    ]
+                }
 
+        # -----------------------------------------
+        # Sorting
+        # -----------------------------------------
         if sort_by == "top":
             sort_stage = {"$sort": {"like_count": -1, "_id": -1}}
+        else:
+            sort_stage = {"$sort": {"created_at": -1, "_id": -1}}
 
         pipeline = [
+
+            # -----------------------------------------
+            # Match
+            # -----------------------------------------
             {
                 "$match": {
-                    "post_id": post_id,
+                    "post_id": post_oid,
                     **cursor_filter
                 }
             },
 
-            # 👤 user
+            # -----------------------------------------
+            # User info
+            # -----------------------------------------
             {
                 "$lookup": {
                     "from": "users",
@@ -60,7 +87,9 @@ class CommentActions(BaseActions):
             },
             {"$unwind": "$user_info"},
 
-            # 👍 likes
+            # -----------------------------------------
+            # Likes
+            # -----------------------------------------
             {
                 "$lookup": {
                     "from": "comments_reactions",
@@ -82,7 +111,9 @@ class CommentActions(BaseActions):
                 }
             },
 
-            # 👎 dislikes
+            # -----------------------------------------
+            # Dislikes
+            # -----------------------------------------
             {
                 "$lookup": {
                     "from": "comments_reactions",
@@ -103,6 +134,39 @@ class CommentActions(BaseActions):
                     "as": "dislikes"
                 }
             },
+        ]
+
+        # -----------------------------------------
+        # My reaction
+        # -----------------------------------------
+        if current_user_oid:
+            pipeline.append({
+                "$lookup": {
+                    "from": "comments_reactions",
+                    "let": {"cid": "$_id"},
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$comment_id", "$$cid"]},
+                                        {"$eq": ["$user_id", current_user_oid]}
+                                    ]
+                                }
+                            }
+                        },
+                        {"$project": {"type": 1}}
+                    ],
+                    "as": "my_reaction"
+                }
+            })
+        else:
+            pipeline.append({"$addFields": {"my_reaction": []}})
+
+        # -----------------------------------------
+        # Final computed fields
+        # -----------------------------------------
+        pipeline += [
 
             {
                 "$addFields": {
@@ -111,6 +175,12 @@ class CommentActions(BaseActions):
                     },
                     "dislike_count": {
                         "$ifNull": [{"$arrayElemAt": ["$dislikes.count", 0]}, 0]
+                    },
+                    "is_liked": {
+                        "$in": ["like", "$my_reaction.type"]
+                    },
+                    "is_disliked": {
+                        "$in": ["dislike", "$my_reaction.type"]
                     }
                 }
             },
@@ -125,6 +195,8 @@ class CommentActions(BaseActions):
                     "updated_at": 1,
                     "like_count": 1,
                     "dislike_count": 1,
+                    "is_liked": 1,
+                    "is_disliked": 1,
                     "created_by": "$user_info"
                 }
             }

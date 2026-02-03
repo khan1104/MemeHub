@@ -24,7 +24,7 @@ export default function UserPostCard({ post }: UserPostCardProps) {
           alt="post"
           width={400}
           height={400}
-          className="w-full h-64 object-cover"
+          className="w-full h-64 object-contain"
         />
       )}
 
@@ -32,7 +32,7 @@ export default function UserPostCard({ post }: UserPostCardProps) {
         <video
           src={post.media_url}
           muted
-          className="w-full h-64 object-cover"
+          className="w-full h-64 object-contain"
         />
       )}
 

@@ -45,8 +45,8 @@ async def save(post_id:str,current_user=Depends(get_current_user)):
 
 
 @route.get("/comments/{post_id}", status_code=status.HTTP_200_OK, response_model=PaginatedCommentResponse)
-async def get_comments(post_id: str, sort_by: str = Query("latest", enum=["latest", "top"]),cursor: Optional[str] = None,limit: int = 1):
-    data =await comment_service.get_comments(post_id=post_id, sort_by=sort_by,cursor=cursor,limit=limit)
+async def get_comments(post_id: str,user_id: Optional[str] = None, sort_by: str = Query("latest", enum=["latest", "top"]),cursor: Optional[str] = None,limit: int = 1):
+    data =await comment_service.get_comments(post_id=post_id,user_id=user_id, sort_by=sort_by,cursor=cursor,limit=limit)
     return data
 
 @route.post("/comment/{post_id}", status_code=status.HTTP_200_OK, response_model=CommentResponse)

@@ -11,14 +11,14 @@ class CommentService:
         self.CommentAction = CommentActions()
         self.PostAction=PostAction()
 
-    async def get_comments(self,post_id:str,sort_by:str,cursor:str,limit:str):
+    async def get_comments(self,post_id:str,user_id:str,sort_by:str,cursor:str,limit:str):
 
         self.CommentAction.validate_object_id(post_id)
         post=await self.PostAction.get_data_by_id(post_id,{"_id": 1})
         if not post:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not found")
         
-        data=await self.CommentAction.get_comments(post_id,sort_by,cursor,limit)
+        data=await self.CommentAction.get_comments(post_id,sort_by,cursor,limit,user_id)
         return data
     
     async def add_comment(self,post_id:str,user_id:str,comment:str):

@@ -69,52 +69,12 @@ export const handleGetUserPosts=async(
   }
 }
 
-
-export const handleGetSavedPosts=async()=>{
-  try {
-    const res = await protected_api.get(`/posts_actions/save`)
+export const handleDeletePost=async(post_id:string)=>{
+  try{
+    const res=await protected_api.delete(`/posts/${post_id}`);
     return res.data
-  } catch (error: any) {
-    apiError(error)
   }
-}
-
-export const handleGetLikedPosts=async()=>{
-  try {
-    const res = await protected_api.get(`/posts_actions/liked`)
-    return res.data
-  } catch (error: any) {
-    apiError(error)
-  }
-}
-
-export const handlePostLike= async (post_id:string) => {
-  try {
-    const res = await protected_api.post(`/posts_actions/like/${post_id}`)
-    return res.data
-  } catch (error: any) {
-    apiError(error)
-  }
-}
-
-export const handlePostDislike=async(post_id:string)=>{
-  try {
-    const res = await protected_api.post(`/posts_actions/dislike/${post_id}`)
-    return res.data
-  } catch (error: any) {
-    apiError(error)
-  }
-}
-
-export const handlePostReport=async(post_id:string,reason:string,description:string)=>{
- try {
-    const res = await protected_api.post(`/posts_actions/report/${post_id}`,{
-      reason:reason,
-      description:description
-    })
-    console.log(res.data)
-    return res.data
-  } catch (error: any) {
-    apiError(error)
+  catch (error: any) {
+  apiError(error)
   }
 }

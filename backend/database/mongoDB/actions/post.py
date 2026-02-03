@@ -14,14 +14,14 @@ class PostAction(BaseActions):
         cursor: Optional[str] = None,
         limit: int = 10,
         post_id: Optional[str] = None,
-        filter: Optional[dict] = None,
+        query_filter: Optional[dict] = None,
         user_id: Optional[str] = None,
     ):
 
-        filter = filter or {}
+        query_filter = query_filter or {}
 
         if post_id:
-            filter["_id"] = ObjectId(post_id)
+            query_filter["_id"] = ObjectId(post_id)
 
 
         special_sorts = ["latest", "top", "trending","oldest"]
@@ -29,7 +29,7 @@ class PostAction(BaseActions):
         if sort_by not in special_sorts:
             tags = [tag.strip().lower() for tag in sort_by.split(",")]
 
-            filter["tags"] = {
+            query_filter["tags"] = {
                 "$in": tags
             }
 
@@ -40,7 +40,7 @@ class PostAction(BaseActions):
         pipeline = []
 
         # 1️⃣ Base match
-        pipeline.append({"$match": filter})
+        pipeline.append({"$match": query_filter})
 
         # 2️⃣ Post owner
         pipeline.extend([
@@ -113,6 +113,24 @@ class PostAction(BaseActions):
                 "as": "dislikes"
             }
         })
+        #total comments
+        pipeline.append({
+            "$lookup": {
+                "from": "comments",
+                "let": {"pid": "$_id"},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$eq": ["$post_id", "$$pid"]
+                            }
+                        }
+                    },
+                    {"$count": "count"}
+                ],
+                "as": "comments"
+            }
+        })
 
         # 5️⃣ User reaction
         if current_user_oid:
@@ -136,7 +154,28 @@ class PostAction(BaseActions):
                     "as": "my_reaction"
                 }
             })
+            pipeline.append({
+                "$lookup": {
+                    "from": "saved_posts",
+                    "let": {"pid": "$_id"},
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$post_id", "$$pid"]},
+                                        {"$eq": ["$saved_by", current_user_oid]}
+                                    ]
+                                }
+                            }
+                        },
+                        {"$limit": 1}
+                    ],
+                    "as": "saved_post"
+                }
+            })
         else:
+            pipeline.append({"$addFields": {"saved_post": []}})
             pipeline.append({"$addFields": {"my_reaction": []}})
 
         # 6️⃣ Computed fields
@@ -148,8 +187,13 @@ class PostAction(BaseActions):
                 "dislike_count": {
                     "$ifNull": [{"$arrayElemAt": ["$dislikes.count", 0]}, 0]
                 },
+                "total_comments": {
+                    "$ifNull": [{"$arrayElemAt": ["$comments.count", 0]}, 0]
+                },
                 "is_liked": {"$in": ["like", "$my_reaction.type"]},
-                "is_disliked": {"$in": ["dislike", "$my_reaction.type"]}
+                "is_disliked": {"$in": ["dislike", "$my_reaction.type"]},
+                "is_saved": {
+                "$gt": [{"$size": "$saved_post"}, 0]}
             }
         })
 
@@ -235,8 +279,10 @@ class PostAction(BaseActions):
                 "created_at": 1,
                 "like_count": 1,
                 "dislike_count": 1,
+                "total_comments":1,
                 "is_liked": 1,
                 "is_disliked": 1,
+                "is_saved": 1,
                 "created_by": "$user_info"
             }
         })

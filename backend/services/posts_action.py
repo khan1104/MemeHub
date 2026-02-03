@@ -29,7 +29,7 @@ class PostActionService:
         for doc in liked_post_doc:
             post_id=doc["post_id"]
             list_post.append(post_id)
-        return await self.PostAction.get_all_with_user(filter={"_id": {"$in": list_post}})
+        return await self.PostAction.get_all_with_user(query_filter={"_id": {"$in": list_post}})
 
 
     async def dislike(self,post_id: str, user_id: str):
@@ -91,7 +91,7 @@ class PostActionService:
         for doc in saved_post_doc:
             post_id=doc["post_id"]
             list_post.append(post_id)
-        return await self.PostAction.get_all_with_user(filter={"_id": {"$in": list_post}})
+        return await self.PostAction.get_all_with_user(query_filter={"_id": {"$in": list_post}})
         
         
 

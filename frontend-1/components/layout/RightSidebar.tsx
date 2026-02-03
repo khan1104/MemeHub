@@ -1,4 +1,5 @@
 import React from "react"
+import { useRouter } from "next/navigation";
 
 const topCreators = [
   { rank: 1, name: "@MemeLord_5000", likes: "9.8K", color: "bg-yellow-400" },
@@ -7,6 +8,7 @@ const topCreators = [
 ]
 
 function RightSidebar() {
+  const router = useRouter();
   return (
     <aside className="w-full lg:w-[320px] space-y-6">
       
@@ -26,7 +28,8 @@ function RightSidebar() {
           <span className="text-yellow-300 font-bold">Ends in: 5 Days</span>
         </div>
 
-        <button className="mt-4 w-full rounded-full bg-yellow-400 text-purple-900 font-bold py-2 hover:bg-yellow-300 transition">
+        <button className="mt-4 w-full rounded-full bg-yellow-400 text-purple-900 font-bold py-2 hover:bg-yellow-300 transition"
+        onClick={()=>router.push("/monthlyChallenege")}>
           View Details & Participate
         </button>
       </div>

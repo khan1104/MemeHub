@@ -3,13 +3,9 @@ import { useState } from "react"
 import { uploadPostSchema } from "@/schemas/post.schema"
 import { handlePostUpload,
   getPosts,
-  getSinglePost, 
-handlePostLike,
-handlePostDislike,
-handlePostReport, 
-handleGetUserPosts,
-handleGetSavedPosts,
-handleGetLikedPosts} from "@/services/post.service"
+  getSinglePost,  
+  handleGetUserPosts,
+  handleDeletePost} from "@/services/post.service"
 import { Post,PaginatedPostResponse } from "@/types/posts.type"
 import { useUser } from "@/context/UserContext"
 import { useFeed } from "@/context/FeedContext"
@@ -96,12 +92,11 @@ export const usePost = () => {
     }
   }
 
-  const fetchSavedPosts=async()=>{
+    const deletePost = async (post_id:string)=> {
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetSavedPosts();
-      return posts
+      await handleDeletePost(post_id)
     } catch (err: any) {
       setError(err.message)
       return null
@@ -110,62 +105,5 @@ export const usePost = () => {
     }
   }
 
-  const fetchLikedPosts=async()=>{
-    setError(null)
-    try {
-      setLoading(true)
-      const posts = await handleGetLikedPosts();
-      return posts
-    } catch (err: any) {
-      setError(err.message)
-      return null
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const like = async (post_id:string) => {
-      setError(null);
-      try {
-        setLoading(true);
-        await handlePostLike(post_id);
-  
-  
-      } catch (err: any) {
-        setError(err.message || "Action failed");
-  
-      } finally {
-        setLoading(false);
-      }
-    };
-    const dislike = async (post_id:string) => {
-      setError(null);
-      try {
-        setLoading(true);
-        await handlePostDislike(post_id);
-  
-  
-      } catch (err: any) {
-        setError(err.message || "Action failed");
-  
-      } finally {
-        setLoading(false);
-      }
-    };
-    const report = async (post_id:string,reason:string,description:string) => {
-      setError(null);
-      try {
-        setLoading(true);
-        await handlePostReport(post_id,reason,description);
-      } catch (err: any) {
-        setError(err.message || "Action failed");
-  
-      } finally {
-        setLoading(false);
-      }
-    };
-
-
-  return { uploadPost,fetchPosts,fetchUserPosts,fetchSinglePost,fetchSavedPosts,fetchLikedPosts,
-    like,dislike,report ,loading, error,setError }
+  return { uploadPost,fetchPosts,fetchUserPosts,fetchSinglePost,deletePost,loading, error,setError }
 }

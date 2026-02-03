@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import { Post } from "@/types/posts.type"
 import { useRouter } from "next/navigation"
-import { usePost } from "@/hooks/post"
+import { usePostAction } from "@/hooks/postsAction"
 import { useUser } from "@/context/UserContext"
 import ReportModal from "@/components/ReportModal";
 import { formatCount } from "@/lib/formatCount"
@@ -23,11 +23,12 @@ import LoginRequiredModal from "./modals/LoginRequiredModal"
 
 interface PostCardProps {
   post: Post
+  from:string
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post,from }: PostCardProps) {
   const router = useRouter()
-  const { like, dislike,loading,error } = usePost()
+  const { like, dislike,save, loading, error } = usePostAction();
   const { user: currentUser,isLoggedIn } = useUser()
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -38,7 +39,7 @@ export default function PostCard({ post }: PostCardProps) {
   const [isDisliked, setIsDisliked] = useState(post.is_disliked)
 
   const [animateLike, setAnimateLike] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
+  const [isSaved, setIsSaved] = useState(post.is_saved);
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -111,10 +112,12 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   // ================= SAVE / BOOKMARK =================
-  const handleSave = () => {
-    checkAuth(() => {
-      setIsSaved(!isSaved);
-      // Agar backend API hai toh yahan call karein
+  const handleSave = async () => {
+    checkAuth(async () => {
+      if (loading) return;
+
+      setIsSaved((prev) => !prev); // optimistic
+      await save(post._id);
     });
   };
 
@@ -287,14 +290,10 @@ export default function PostCard({ post }: PostCardProps) {
           {/* bookmark */}
           <button
             onClick={handleSave}
-            className={`p-2 rounded-lg transition
-              ${
-                isSaved
-                  ? "text-yellow-500 bg-yellow-50"
-                  : "text-gray-600 hover:bg-gray-100"
-              }
-            `}
-          >
+            className={`p-2 transition rounded-lg hover:bg-gray-100
+            ${isSaved ? "text-purple-600 bg-purple-100" : "text-gray-600"}
+          `}
+                  >
             <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
           </button>
 

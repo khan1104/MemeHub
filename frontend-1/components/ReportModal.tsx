@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { usePost } from "@/hooks/post";
 import { useUsers } from "@/hooks/user";
+import { useCommentAction } from "@/hooks/commentActions";
+import { usePostAction } from "@/hooks/postsAction";
 
 type ReportModalProps = {
   isOpen: boolean;
@@ -20,18 +22,19 @@ type ReportModalProps = {
 
 const ReportModal = ({ isOpen, onClose, targetType, id }: ReportModalProps) => {
   const {
-    report: postReport,
+    postReport,
     error: postError,
     loading: postLoading,
-  } = usePost();
+  } = usePostAction();
   const { ReportUser, error: userError, loading: userLoading } = useUsers();
+  const {reportComment,error:commentError}=useCommentAction();
 
   const [step, setStep] = useState(1);
   const [selectedReason, setSelectedReason] = useState("");
   const [description, setDescription] = useState("");
 
   // Hook errors ko merge kar lete hain
-  const apiError = postError || userError;
+  const apiError = postError || userError || commentError;
   const isLoading = postLoading || userLoading;
 
   const resetState = () => {
@@ -72,8 +75,9 @@ const ReportModal = ({ isOpen, onClose, targetType, id }: ReportModalProps) => {
   const handleSubmit = async () => {
     if (targetType === "Post") {
       await postReport(id, selectedReason, description);
-    } else {
-      await ReportUser(id, selectedReason, description);
+    } 
+    else if(targetType==="Comment"){
+      await reportComment(id,selectedReason,description);
     }
     // API call ke baad humesha Step 3 par bhejo
     setStep(3);

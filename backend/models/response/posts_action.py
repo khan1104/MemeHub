@@ -16,6 +16,8 @@ class Comments(MongoBaseModel):
     created_at: datetime
     like_count:int
     dislike_count:int
+    is_liked: bool=False
+    is_disliked: bool=False
     created_by:CreatedByUser
 
 
