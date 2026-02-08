@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { X, ImageIcon, Check, Loader2, AlertCircle } from "lucide-react"
 import { CATEGORIES } from "@/data/MemeCategories"
 import { usePost } from "@/hooks/post"
+import { toast } from "sonner";
 
 type UploadModalProps = {
   open: boolean
@@ -67,6 +68,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
     
     if (success) {
       // Small delay or immediate close
+      toast.success("Post Uploaded sucess",{position:"top-center"});
       handleClose()
     }
   }

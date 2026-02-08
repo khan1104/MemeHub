@@ -194,7 +194,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
               liked ? "text-purple-600" : ""
             }`}
           >
-            <ThumbsUp size={14} />
+            <ThumbsUp size={14} fill={liked ? "currentColor" : "none"} />
             {formatCount(likes)}
           </button>
 
@@ -204,7 +204,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
               disliked ? "text-gray-700" : ""
             }`}
           >
-            <ThumbsDown size={14} />
+            <ThumbsDown size={14} fill={disliked ? "currentColor" : "none"} />
             {formatCount(dislikes)}
           </button>
         </div>

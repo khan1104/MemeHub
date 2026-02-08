@@ -18,17 +18,15 @@ export default function RootLayout({
 {
   return (
     <html lang="en">
-      <body
-        className={"bg-white"}
-      >
+      <body className={"bg-white"}>
         <GoogleOAuthProvider
           clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
         >
-        <UserProvider>
-          <FeedProvider>
-          {children}
-        </FeedProvider>
-        </UserProvider>
+          <UserProvider>
+            <FeedProvider>
+              {children}
+            </FeedProvider>
+          </UserProvider>
         </GoogleOAuthProvider>
       </body>
     </html>

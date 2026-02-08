@@ -23,10 +23,9 @@ import LoginRequiredModal from "./modals/LoginRequiredModal"
 
 interface PostCardProps {
   post: Post
-  from:string
 }
 
-export default function PostCard({ post,from }: PostCardProps) {
+export default function PostCard({ post}: PostCardProps) {
   const router = useRouter()
   const { like, dislike,save, loading, error } = usePostAction();
   const { user: currentUser,isLoggedIn } = useUser()
@@ -225,7 +224,7 @@ export default function PostCard({ post,from }: PostCardProps) {
             alt="post"
             width={900}
             height={600}
-            className="w-full max-h-[520px] object-contain"
+            className="w-full max-h-130 object-contain"
           />
         )}
 
@@ -241,7 +240,7 @@ export default function PostCard({ post,from }: PostCardProps) {
             controlsList="nodownload noplaybackrate"
             disablePictureInPicture
             onContextMenu={(e) => e.preventDefault()}
-            className="w-full max-h-130"
+            className="w-full max-h-130 object-contain"
           />
         )}
       </div>
@@ -293,7 +292,7 @@ export default function PostCard({ post,from }: PostCardProps) {
             className={`p-2 transition rounded-lg hover:bg-gray-100
             ${isSaved ? "text-purple-600 bg-purple-100" : "text-gray-600"}
           `}
-                  >
+          >
             <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
           </button>
 
