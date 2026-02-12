@@ -11,7 +11,7 @@ import { useUser } from "@/context/UserContext";
 import { timeAgo } from "@/lib/timeAgo";
 import { formatCount } from "@/lib/formatCount";
 import {useCommentAction} from "@/hooks/commentActions"
-import ReportModal from "./ReportModal";
+import ReportModal from "./modals/ReportModal";
 import LoginRequiredModal from "./modals/LoginRequiredModal";
 
 interface CommentProps {

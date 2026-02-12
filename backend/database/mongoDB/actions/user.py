@@ -2,7 +2,7 @@ from database.mongoDB.actions.base import BaseActions
 from database.mongoDB.collections.collection import user_collection
 from database.mongoDB.collections.collection import followers_collection,user_reports
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime,timedelta
 
 
 class UserActions(BaseActions):
@@ -33,11 +33,7 @@ class UserActions(BaseActions):
         current_user_oid = ObjectId(current_user_id) if current_user_id else None
 
         pipeline = [
-
-            # 1️⃣ Base match
             {"$match": match_stage},
-
-            # 🧮 Posts count
             {
                 "$lookup": {
                     "from": "posts",
@@ -122,6 +118,40 @@ class UserActions(BaseActions):
                     "as": "is_following_doc"
                 }
             },
+            # check where current user is friend or not
+            {
+                "$lookup": {
+                    "from": "friends",
+                    "let": {
+                        "profileUserId": "$_id",
+                        "currentUserId": current_user_oid
+                    },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$or": [
+                                        {
+                                            "$and": [
+                                                {"$eq": ["$user_one", "$$currentUserId"]},
+                                                {"$eq": ["$user_two", "$$profileUserId"]}
+                                            ]
+                                        },
+                                        {
+                                            "$and": [
+                                                {"$eq": ["$user_one", "$$profileUserId"]},
+                                                {"$eq": ["$user_two", "$$currentUserId"]}
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {"$limit": 1}
+                    ],
+                    "as": "is_friend_doc"
+                }
+            },
 
             # 🎯 Computed fields
             {
@@ -145,6 +175,12 @@ class UserActions(BaseActions):
                             {"$size": "$is_following_doc"},
                             0
                         ]
+                    },
+                    "isFriend": {
+                        "$gt": [
+                            {"$size": "$is_friend_doc"},
+                            0
+                        ]
                     }
                 }
             },
@@ -157,7 +193,8 @@ class UserActions(BaseActions):
                     "followers": 0,
                     "following": 0,
                     "friends": 0,
-                    "is_following_doc": 0
+                    "is_following_doc": 0,
+                    "is_friend_doc":0
                 }
             }
         ]
@@ -169,6 +206,10 @@ class UserActions(BaseActions):
             return result[0] if result else None
 
         return await cursor.to_list(length=None)
+
+
+    async def getMonthlyTopUser(self):
+        pass
 
 
 

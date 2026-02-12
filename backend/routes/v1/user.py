@@ -37,6 +37,7 @@ async def update(data:UserUpdate,current_user=Depends(get_current_user)):
 
 @route.patch("/me/profile-pic",status_code=status.HTTP_200_OK)
 async def upadte_profile_pic(profile_pic: UploadFile = File(...),current_user=Depends(get_current_user)):
+    print("endpoint call")
     await service.updateProfilePic(current_user["_id"],profile_pic)
 
 
@@ -56,8 +57,9 @@ async def report(user_id: str, data: UserReport, current_user=Depends(get_curren
     return {"message": "user reported successfully"}
 
 @route.post("/top")
-def get_monthly_top_users(current_user=Depends(get_current_user)):
-    pass
+async def get_monthly_top_users():
+    data=await  service.get_monthly_top_users()
+    print(data)
 
 
 

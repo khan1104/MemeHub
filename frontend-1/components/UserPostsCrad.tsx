@@ -26,6 +26,7 @@ export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!menuRef.current?.contains(e.target as Node)) {

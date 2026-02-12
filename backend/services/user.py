@@ -102,6 +102,6 @@ class UserService:
             )
         
     async def get_monthly_top_users(self):
-        users=await self.UserActions.get_by_filter({})
+        return await self.UserActions.getMonthlyTopUser()
 
             

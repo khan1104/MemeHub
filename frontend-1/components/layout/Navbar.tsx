@@ -15,6 +15,8 @@ import {
 import { useAuthActions } from "@/hooks/auth";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import { IoMdNotifications } from "react-icons/io";
+
 
 type NavbarProps = {
   toggleSidebar: () => void;
@@ -104,6 +106,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               {isLoggedIn && (
                 <>
                   {/* Upload Button */}
+                  <IoMdNotifications size={27}/>
                   <button
                     type="button"
                     onClick={() => setOpenUpload(true)}

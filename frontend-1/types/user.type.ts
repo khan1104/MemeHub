@@ -10,4 +10,5 @@ export interface User {
   total_following: number;
   total_friends: number;
   isFollowing?: boolean;
+  isFriend?: boolean;
 };

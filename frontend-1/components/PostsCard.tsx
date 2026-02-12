@@ -16,7 +16,7 @@ import { Post } from "@/types/posts.type"
 import { useRouter } from "next/navigation"
 import { usePostAction } from "@/hooks/postsAction"
 import { useUser } from "@/context/UserContext"
-import ReportModal from "@/components/ReportModal";
+import ReportModal from "@/components/modals/ReportModal";
 import { formatCount } from "@/lib/formatCount"
 import { timeAgo } from "@/lib/timeAgo"
 import LoginRequiredModal from "./modals/LoginRequiredModal"
