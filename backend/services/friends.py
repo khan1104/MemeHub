@@ -139,12 +139,11 @@ class FriendService:
         })
         await self.FriendsActions.hard_delete(friend["_id"])
 
-    async def get_friends(self, current_user_id: str):
-        friends=await self.FriendsActions.get_all({
-            "$or": [
-                {"user_one": current_user_id},
-                {"user_two": current_user_id},
-            ]
-        })
+    async def get_friends(self,**kwargs):
+        friends=await self.FriendsActions.get_user_friends(**kwargs)
+        return friends
+    
+    async def get_mutual_friends(self,**kwargs):
+        friends=await self.FriendsActions.get_mutual_friends(**kwargs)
         return friends
     

@@ -50,6 +50,14 @@ async def follow(user_id: str, current_user=Depends(get_current_user)):
     data =await service.follow(user_id, current_user["_id"])
     return data
 
+@route.get("/followers/{user_id}")
+async def get_followers(user_id:str,cursor: str|None = None,limit: int = 10):
+    pass
+
+@route.get("/followings/{user_id}")
+async def get_followings(user_id:str,cursor: str|None = None,limit: int = 10):
+    pass
+
 
 @route.post("/report{user_id}", status_code=status.HTTP_201_CREATED)
 async def report(user_id: str, data: UserReport, current_user=Depends(get_current_user)):

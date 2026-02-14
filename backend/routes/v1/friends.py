@@ -1,8 +1,10 @@
 from fastapi import APIRouter, status, Depends, Query
 from dependency.auth_dependency import get_current_user
 from services.friends import FriendService
-from models.response.friends import RequestResponse,FriendsResponse
+from models.response.friends import RequestResponse,FriendsResponse,PaginatedFriendsResponse
 from constants.requestStatus import FriendRequestStatus
+from typing import Optional
+
 route = APIRouter()
 service = FriendService()
 
@@ -37,7 +39,13 @@ async def remove_friend(user_id: str, current_user=Depends(get_current_user)):
     await service.remove_friend(user_id,current_user["_id"])
     return {"message": "Friend removed"}
 
-@route.get("/friends",status_code=status.HTTP_200_OK,response_model=list[FriendsResponse])
-async def get_friends(current_user=Depends(get_current_user)):
-    data =await service.get_friends(current_user["_id"])
+@route.get("/friends/{user_id}",status_code=status.HTTP_200_OK,response_model=PaginatedFriendsResponse)
+async def get_friends(user_id:str,current_user=Depends(get_current_user),
+        sort_by: str = Query("latest", enum=["latest","oldest"]),cursor: Optional[str] = None,limit: int = 12):
+    data =await service.get_friends(user_id=user_id,logged_in_user_id=current_user["_id"],sort_by=sort_by,cursor=cursor,limit=limit)
+    return data
+
+@route.get("/mutual-friends/{user_id}",status_code=status.HTTP_200_OK,response_model=PaginatedFriendsResponse)
+async def get_mutual_friends(user_id:str,current_user=Depends(get_current_user),cursor: Optional[str] = None,limit: int = 12):
+    data =await service.get_mutual_friends(user_id=user_id,logged_in_user_id=current_user["_id"],cursor=cursor,limit=limit)
     return data
