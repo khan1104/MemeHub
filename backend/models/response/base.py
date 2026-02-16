@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
+#use this base model for nested object that contain ObjectId
 class MongoBaseModel(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
 

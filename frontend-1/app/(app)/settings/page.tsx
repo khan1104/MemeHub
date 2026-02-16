@@ -160,7 +160,7 @@ export default function Settings() {
 
               {/* AVATAR */}
               <SettingItem
-                onClick={() => router.push(`/profile/${user?._id}`)}
+                onClick={() => router.push(`/profile/${user?.user_id}`)}
                 icon={<Camera size={20} />}
                 title="Avatar"
                 desc="Change your profile picture"

@@ -119,7 +119,7 @@ export const usePostAction = () => {
       setError(null)
       try {
         setLoading(true)
-        const comments = await handleGetComments(post_id,cursor,user?._id,sort_by)
+        const comments = await handleGetComments(post_id,cursor,user?.user_id,sort_by)
         return comments
       } catch (err: any) {
         setError(err.message)

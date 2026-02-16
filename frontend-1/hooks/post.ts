@@ -55,7 +55,7 @@ export const usePost = () => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await getPosts(feed,cursor,user?._id)
+      const posts = await getPosts(feed,cursor,user?.user_id)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -82,7 +82,7 @@ export const usePost = () => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await getSinglePost(post_id,user?._id)
+      const posts = await getSinglePost(post_id,user?.user_id)
       return posts
     } catch (err: any) {
       setError(err.message)

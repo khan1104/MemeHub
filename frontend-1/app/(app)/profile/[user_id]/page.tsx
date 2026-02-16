@@ -9,7 +9,6 @@ import { usePostAction } from "@/hooks/postsAction";
 
 import UserPostCard from "@/components/UserPostsCrad";
 import ProfileHeader from "@/components/ProfileHeader";
-import Friends from "@/components/Friends";
 
 import { Post } from "@/types/posts.type";
 import { User } from "@/types/user.type";
@@ -20,11 +19,11 @@ export default function Profile() {
   const user_id = params.user_id as string;
 
   const { user: currentUser, loadUser } = useUser();
-  const isOwnProfile = currentUser?._id === user_id;
+  const isOwnProfile = currentUser?.user_id === user_id;
 
   /* ================= TABS ================= */
   const [activeTab, setActiveTab] = useState<
-    "latest" | "top" | "oldest" | "friends"|"saved" | "liked"
+    "latest" | "top" | "oldest" |"saved" | "liked"
   >("latest");
 
   /* ================= HOOKS ================= */
@@ -130,14 +129,14 @@ export default function Profile() {
 
   /* ================= FOLLOW ================= */
   const handleFollow = async () => {
-    if (!user?._id) return;
+    if (!user?.user_id) return;
 
-    await FollowUser(user._id);
+    await FollowUser(user.user_id);
     const updated = await getUserById(user_id);
     if (updated) setUser(updated);
   };
   const handleDeleteLocal = (id: string) => {
-    setPosts((prev) => prev.filter((post) => post._id !== id));
+    setPosts((prev) => prev.filter((post) => post.post_id !== id));
 
     setUser((prev) =>
       prev
@@ -169,16 +168,11 @@ export default function Profile() {
             }
           }}
         />
-        {/* ================= CONTENT ================= */}
-        {activeTab === "friends" ? (
-          <Friends />
-        ) : (
-          <>
             {/* ================= POSTS GRID ================= */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {posts.map((post) => (
                 <UserPostCard
-                  key={post._id}
+                  key={post.post_id}
                   post={post}
                   onDelete={handleDeleteLocal}
                 />
@@ -196,8 +190,6 @@ export default function Profile() {
                 No more posts
               </p>
             )}
-          </>
-        )}
       </div>
     </div>
   );

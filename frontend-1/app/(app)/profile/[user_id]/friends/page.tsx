@@ -1,16 +1,22 @@
-"use client";
-import React, { useEffect, useState } from "react";
+'use client'
+
+import React,{useState} from 'react'
+import { useRouter, useParams } from "next/navigation";
 import { useFriends } from "@/hooks/friends";
 
-const Tabs = ["Friends", "Recently Added","Mutual Friends", "Followers", "Following"];
+const Tabs = [
+  "Friends",
+  "Recently Added",
+  "Mutual Friends",
+  "Followers",
+  "Following",
+];
 
-interface FriendProps {
-  user_id: string;
-}
-
-function Friends({ user_id }: FriendProps) {
-  const [activeTab, setActiveTab] = useState("Friends");
-  const { getFriends } = useFriends();
+function Friends() {
+    const params = useParams();
+    const user_id = params.user_id as string;
+    const [activeTab, setActiveTab] = useState("Friends");
+    const { getFriends } = useFriends();
   
   return (
     <div className="flex flex-col gap-4">
@@ -49,4 +55,4 @@ function Friends({ user_id }: FriendProps) {
   );
 }
 
-export default Friends;
+export default Friends

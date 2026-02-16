@@ -115,7 +115,7 @@ const handleAddComment = async () => {
 };
 
 const handleDeleteLocal = (id: string) => {
-  setComments((prev) => prev.filter((c) => c._id !== id));
+  setComments((prev) => prev.filter((c) => c.comment_id !== id));
 
   // ✅ decrease total comments
   setPost((prev) =>
@@ -124,7 +124,7 @@ const handleDeleteLocal = (id: string) => {
 };
   const handleUpdateLocal = (id: string, text: string) => {
     setComments((prev) =>
-      prev.map((c) => (c._id === id ? { ...c, comment: text } : c)),
+      prev.map((c) => (c.comment_id === id ? { ...c, comment: text } : c)),
     );
   };
 
@@ -229,7 +229,7 @@ const handleDeleteLocal = (id: string) => {
           <>
             {comments.map((comment) => (
               <Comments
-                key={comment._id}
+                key={comment.comment_id}
                 comment={comment}
                 onDelete={handleDeleteLocal}
                 onUpdate={handleUpdateLocal}

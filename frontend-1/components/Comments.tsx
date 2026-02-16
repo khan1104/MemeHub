@@ -35,7 +35,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
     error,
   } = useCommentAction();
 
-  const isOwnComment = user?._id === comment.created_by._id;
+  const isOwnComment = user?.user_id === comment.created_by.user_id;
 
   // optimistic local state
   const [likes, setLikes] = useState(comment.like_count || 0);
@@ -67,7 +67,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
           setDisliked(false);
         }
       }
-      await like(comment._id);
+      await like(comment.comment_id);
     });
   };
 
@@ -87,7 +87,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
           setLiked(false);
         }
       }
-      await dislike(comment._id);
+      await dislike(comment.comment_id);
     });
   };
   const handleReportClick = () => {
@@ -102,9 +102,9 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
       setMenuOpen(false);
 
       // optimistic remove
-      onDelete(comment._id);
+      onDelete(comment.comment_id);
 
-      await deleteComment(comment._id);
+      await deleteComment(comment.comment_id);
     });
   };
 
@@ -112,10 +112,10 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
     if (!editText.trim()) return;
 
     // optimistic UI update
-    onUpdate(comment._id, editText);
+    onUpdate(comment.comment_id, editText);
     setIsEditing(false);
 
-    await updateComment(comment._id, editText);
+    await updateComment(comment.comment_id, editText);
   };
 
   return (
@@ -127,7 +127,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
       />
       <div
         className="relative h-9 w-9 shrink-0 cursor-pointer"
-        onClick={() => router.push(`/profile/${comment.created_by._id}`)}
+        onClick={() => router.push(`/profile/${comment.created_by.user_id}`)}
       >
         <Image
           src={comment.created_by.profile_pic}
@@ -143,7 +143,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
         <div className="flex items-center gap-2 text-sm">
           <span
             className="font-medium cursor-pointer hover:underline"
-            onClick={() => router.push(`/profile/${comment.created_by._id}`)}
+            onClick={() => router.push(`/profile/${comment.created_by.user_id}`)}
           >
             {comment.created_by.user_name}
           </span>
@@ -263,7 +263,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         targetType="Comment"
-        id={comment._id}
+        id={comment.comment_id}
       />
     </div>
   );

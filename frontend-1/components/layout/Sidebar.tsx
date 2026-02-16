@@ -26,8 +26,8 @@ const NavItem = ({ item, user, pathname, setOpen }: any) => {
 
   const dynamicHref =
     item.href === "/profile"
-      ? user?._id
-        ? `/profile/${user._id}`
+      ? user?.user_id
+        ? `/profile/${user.user_id}`
         : "/sign-in"
       : item.href;
 

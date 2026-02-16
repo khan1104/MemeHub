@@ -1,6 +1,6 @@
 from fastapi import APIRouter,status,Depends,UploadFile,File
 from dependency.auth_dependency import get_current_user
-from models.response.user import UserResponse,SearchUserResponse
+from models.response.user import UserResponse,SearchUserResponse,FollowDataResponse
 from services.user import UserService
 from models.request.user import UserReport,UserUpdate
 
@@ -50,13 +50,15 @@ async def follow(user_id: str, current_user=Depends(get_current_user)):
     data =await service.follow(user_id, current_user["_id"])
     return data
 
-@route.get("/followers/{user_id}")
+@route.get("/followers/{user_id}",status_code=status.HTTP_200_OK,response_model=list[FollowDataResponse])
 async def get_followers(user_id:str,cursor: str|None = None,limit: int = 10):
-    pass
+    return await service.get_followers(user_id=user_id)
+    
 
-@route.get("/followings/{user_id}")
+@route.get("/followings/{user_id}",status_code=status.HTTP_200_OK,response_model=list[FollowDataResponse])
 async def get_followings(user_id:str,cursor: str|None = None,limit: int = 10):
-    pass
+    return await service.get_followings(user_id=user_id)
+   
 
 
 @route.post("/report{user_id}", status_code=status.HTTP_201_CREATED)

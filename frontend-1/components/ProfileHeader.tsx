@@ -20,7 +20,7 @@ interface ProfileHeaderProps {
   onFollow: () => Promise<void>;
   activeTab: string;
   setActiveTab: (
-    tab: "latest" | "top" | "oldest" | "friends" | "saved" | "liked",
+    tab: "latest" | "top" | "oldest" | "saved" | "liked",
   ) => void;
 }
 
@@ -120,7 +120,7 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() => router.push(`/profile/${user?._id}/followers`)}
+                  onClick={() => router.push(`/profile/${user?.user_id}/followers`)}
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">{user?.total_followers}</span>
@@ -129,7 +129,7 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() => router.push(`/profile/${user?._id}/following`)}
+                  onClick={() => router.push(`/profile/${user?.user_id}/following`)}
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">{user?.total_following}</span>
@@ -184,7 +184,8 @@ export default function ProfileHeader({
                 <span className="font-semibold">{user?.total_posts}</span> Posts
               </div>
 
-              <button className="flex items-center gap-2 hover:text-purple-600">
+              <button className="flex items-center gap-2 hover:text-purple-600"
+              onClick={()=>router.push(`/profile/${user?.user_id}/friends`)}>
                 <Users size={16} />
                 <span className="font-semibold">{user?.total_friends}</span>
                 Friends
@@ -250,19 +251,13 @@ export default function ProfileHeader({
           New
         </button>
         <button className={tabClass("top")} onClick={() => setActiveTab("top")}>
-          Top
+          Most Liked
         </button>
         <button
           className={tabClass("oldest")}
           onClick={() => setActiveTab("oldest")}
         >
           Oldest
-        </button>
-        <button
-          className={tabClass("friends")}
-          onClick={() => setActiveTab("friends")}
-        >
-          Friends
         </button>
 
         {isOwnProfile && (

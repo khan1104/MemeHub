@@ -2,13 +2,13 @@
 
 
 export interface User {
-  _id:string
+  user_id:string
   user_name: string
   profile_pic: string
 }
 
 export interface Comment {
-  _id: string
+  comment_id: string
   comment: string
   created_at: string
   like_count: number

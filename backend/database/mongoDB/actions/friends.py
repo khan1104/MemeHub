@@ -14,8 +14,8 @@ class FriendsAction(BaseActions):
         cursor: str | None = None,
         limit: int = 12
     ):
-        current_user_oid = ObjectId(user_id)
-        logged_in_user_oid = ObjectId(logged_in_user_id)
+        current_user_oid = self.validate_object_id(user_id)
+        logged_in_user_oid = self.validate_object_id(logged_in_user_id)
 
         pipeline = []
 
@@ -164,9 +164,8 @@ class FriendsAction(BaseActions):
         # 🔟 projection
         pipeline.append({
             "$project": {
-                "_id": 1,
                 "created_at": 1,
-                "friend_id": 1,
+                "friend_id":{"$toString": "$friend_info._id"},
                 "user_name": "$friend_info.user_name",
                 "profile_pic": "$friend_info.profile_pic",
                 "email": "$friend_info.email",
@@ -357,12 +356,11 @@ class FriendsAction(BaseActions):
         # 1️⃣3️⃣ Final projection
         pipeline.append({
             "$project": {
-                "_id": 1,
                 "created_at": 1,
-                "user_id": "$user_info._id",
+                "friend_id":{"$toString": "$user_info._id"},
                 "user_name": "$user_info.user_name",
+                "email":"$user_info.email",
                 "profile_pic": "$user_info.profile_pic",
-                "isFollowing": 1
             }
         })
 

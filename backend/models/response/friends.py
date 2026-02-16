@@ -20,11 +20,7 @@ class FriendsResponse(BaseModel):
     email:str
     isFollowing:bool=False
     isFriend:bool=False
-
-    @field_validator("friend_id", mode="before")
-    @classmethod
-    def convert_objectid(cls, v):
-        return str(v)
+    created_at:datetime
     
 class PaginatedFriendsResponse(BaseModel):
     items: List[FriendsResponse]

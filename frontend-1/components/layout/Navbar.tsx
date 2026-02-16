@@ -177,7 +177,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                             <button
                               onClick={() => {
                                 setOpenMenu(false);
-                                router.push(`/profile/${user?._id}`);
+                                router.push(`/profile/${user?.user_id}`);
                               }}
                               className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
                             >

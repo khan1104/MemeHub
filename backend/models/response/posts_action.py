@@ -1,9 +1,10 @@
 from models.response.base import MongoBaseModel
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from datetime import datetime
 from typing import Optional,List
 
-class CreatedByUser(MongoBaseModel):
+class CreatedByUser(BaseModel):
+    user_id:str
     user_name: str
     profile_pic: str
 
@@ -11,7 +12,8 @@ class CommentResponse(MongoBaseModel):
     created_at:datetime
  
 
-class Comments(MongoBaseModel):
+class Comments(BaseModel):
+    comment_id:str
     comment: str
     created_at: datetime
     like_count:int

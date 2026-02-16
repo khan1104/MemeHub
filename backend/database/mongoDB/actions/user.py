@@ -188,13 +188,18 @@ class UserActions(BaseActions):
             # 🔐 Secure projection
             {
                 "$project": {
-                    "password": 0,
-                    "posts": 0,
-                    "followers": 0,
-                    "following": 0,
-                    "friends": 0,
-                    "is_following_doc": 0,
-                    "is_friend_doc":0
+                    "user_id": {"$toString": "$_id"},
+                    "user_name": 1,
+                    "profile_pic": 1,
+                    "email": 1,
+                    "bio":1,
+                    "created_at":1,
+                    "total_posts": 1,
+                    "total_followers": 1,
+                    "total_following": 1,
+                    "total_friends": 1,
+                    "isFollowing": 1,
+                    "isFriend": 1,
                 }
             }
         ]
@@ -233,7 +238,60 @@ class FollowActions(BaseActions):
                 "created_at": datetime.now()
             })
             return {"message": "following"}
-        
+
+    async def get_follow_data(
+        self,
+        user_id: str,
+        type: str = "following"  # "following" | "followers"
+    ):
+        user_id = self.validate_object_id(user_id)
+
+        if type == "following":
+            match_stage = {"follower_id": user_id}
+            local_field = "following_id"
+        else:  # followers
+            match_stage = {"following_id": user_id}
+            local_field = "follower_id"
+
+        pipeline = [
+
+            # 1️⃣ Match
+            {
+                "$match": match_stage
+            },
+
+            # 2️⃣ Lookup user details
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": local_field,
+                    "foreignField": "_id",
+                    "as": "user_doc"
+                }
+            },
+
+            # 3️⃣ Unwind
+            {
+                "$unwind": "$user_doc"
+            },
+
+            # 4️⃣ Project
+            {
+                "$project": {
+                    "_id": 0,
+                    "user_id": {"$toString":"$user_doc._id"},
+                    "user_name": "$user_doc.user_name",
+                    "profile_pic": "$user_doc.profile_pic",
+                    "email": "$user_doc.email",
+                    "created_at": 1
+                }
+            }
+        ]
+
+        cursor_db = self.collection.aggregate(pipeline)
+        docs = [doc async for doc in cursor_db]
+
+        return docs
 
 class ReportActions(BaseActions):
     def __init__(self):

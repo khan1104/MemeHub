@@ -21,7 +21,7 @@ export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
   const { user,isLoggedIn } = useUser();
   const router = useRouter();
   const {deletePost}=usePost()
-  const isOwnPost = user?._id === post.created_by._id;
+  const isOwnPost = user?.user_id === post.created_by.user_id;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -51,16 +51,16 @@ export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
         setMenuOpen(false);
 
         // optimistic remove
-        onDelete(post._id);
+        onDelete(post.post_id);
 
-        await deletePost(post._id);
+        await deletePost(post.post_id);
       });
     };
 
 
   return (
     <div
-      onClick={() => router.push(`/posts/${post._id}`)}
+      onClick={() => router.push(`/posts/${post.post_id}`)}
       className="relative cursor-pointer rounded-xl overflow-hidden bg-gray-200 group border border-purple-200"
     >
       <LoginRequiredModal
@@ -113,7 +113,7 @@ export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
                 onClick={(e) => {
                   e.stopPropagation();
                   navigator.clipboard.writeText(
-                    `${window.location.origin}/posts/${post._id}`,
+                    `${window.location.origin}/posts/${post.post_id}`,
                   );
                   setMenuOpen(false);
                 }}

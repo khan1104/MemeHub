@@ -272,6 +272,7 @@ class PostAction(BaseActions):
 
         pipeline.append({
             "$project": {
+                "post_id":{"$toString": "$_id"},
                 "caption": 1,
                 "tags": 1,
                 "media_url": 1,
@@ -283,7 +284,12 @@ class PostAction(BaseActions):
                 "is_liked": 1,
                 "is_disliked": 1,
                 "is_saved": 1,
-                "created_by": "$user_info"
+                "created_by": {
+                    "user_id":{"$toString": "$user_info._id"},
+                    "user_name":"$user_info.user_name",
+                    "email":"$user_info.email",
+                    "profile_pic":"$user_info.profile_pic"
+                }
             }
         })
 

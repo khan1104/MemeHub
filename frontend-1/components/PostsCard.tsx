@@ -42,7 +42,7 @@ export default function PostCard({ post}: PostCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const isOwnProfile = currentUser?._id === post.created_by._id
+  const isOwnProfile = currentUser?.user_id === post.created_by.user_id
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -86,7 +86,7 @@ export default function PostCard({ post}: PostCardProps) {
           setIsDisliked(false);
         }
       }
-      await like(post._id);
+      await like(post.post_id);
     });
   };
 
@@ -106,7 +106,7 @@ export default function PostCard({ post}: PostCardProps) {
           setIsLiked(false);
         }
       }
-      await dislike(post._id);
+      await dislike(post.post_id);
     });
   };
 
@@ -116,7 +116,7 @@ export default function PostCard({ post}: PostCardProps) {
       if (loading) return;
 
       setIsSaved((prev) => !prev); // optimistic
-      await save(post._id);
+      await save(post.post_id);
     });
   };
 
@@ -130,7 +130,7 @@ export default function PostCard({ post}: PostCardProps) {
 
   // handleUserProfile function (already done by you)
   const handleUserProfile = () => {
-      router.push(`/profile/${post.created_by._id}`);
+      router.push(`/profile/${post.created_by.user_id}`);
   };
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
@@ -180,7 +180,7 @@ export default function PostCard({ post}: PostCardProps) {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(
-                      `${window.location.origin}/posts/${post._id}`,
+                      `${window.location.origin}/posts/${post.post_id}`,
                     );
                     setMenuOpen(false);
                   }}
@@ -203,7 +203,7 @@ export default function PostCard({ post}: PostCardProps) {
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
               targetType="Post"
-              id={post._id}
+              id={post.post_id}
             />
           </div>
         )}
@@ -277,7 +277,7 @@ export default function PostCard({ post}: PostCardProps) {
 
           {/* comment */}
           <button
-            onClick={() => router.push(`/posts/${post._id}`)}
+            onClick={() => router.push(`/posts/${post.post_id}`)}
             className="flex items-center gap-1 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
           >
             <MessageCircle size={20} />

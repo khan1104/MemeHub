@@ -5,13 +5,15 @@ from models.response.base import MongoBaseModel
 from typing import Optional,List
 
 
-class CreatedByUser(MongoBaseModel):
+class CreatedByUser(BaseModel):
+    user_id:str
     user_name: str
     profile_pic: Optional[str] = None
     email: Optional[str] = None
 
 
-class MemeResponse(MongoBaseModel):
+class MemeResponse(BaseModel):
+    post_id:str
     caption: str
     media_url: str
     media_type: str

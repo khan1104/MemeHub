@@ -12,7 +12,7 @@ export const useUsers = () => {
     setError(null);
     try{
       setLoading(true)
-      const data=await handleGetUserById(user_id,user?._id);
+      const data=await handleGetUserById(user_id,user?.user_id);
       return data;
     }
     catch(error:any){
