@@ -23,7 +23,7 @@ export default function Profile() {
 
   /* ================= TABS ================= */
   const [activeTab, setActiveTab] = useState<
-    "latest" | "top" | "oldest" |"saved" | "liked"
+    "latest" | "top" | "oldest" | "saved" | "liked"
   >("latest");
 
   /* ================= HOOKS ================= */
@@ -51,9 +51,6 @@ export default function Profile() {
   const [hasNext, setHasNext] = useState(true);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
-
-
-
 
   /* ================= LOAD POSTS ================= */
   const loadPosts = useCallback(
@@ -147,49 +144,92 @@ export default function Profile() {
         : prev,
     );
   };
+  const tabClass = (tab: string) =>
+    `pb-2 border-b-2 cursor-pointer whitespace-nowrap transition ${
+      activeTab === tab
+        ? "border-primary text-primary"
+        : "border-transparent text-gray-500 hover:text-primary"
+    }`;
 
   /* -------------------- UI -------------------- */
   return (
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-6">
       <div className="flex-1 flex flex-col">
         {/* ================= PROFILE HEADER ================= */}
-        <ProfileHeader
-          user={user}
-          isOwnProfile={isOwnProfile}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onFollow={handleFollow}
-          onChangeProfilePic={async (file) => {
-            const res = await updateProfilePic(file);
-            if (res) {
-              const updatedUser = await getUserById(user_id);
-              if (updatedUser) setUser(updatedUser);
-              await loadUser();
-            }
-          }}
-        />
-            {/* ================= POSTS GRID ================= */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {posts.map((post) => (
-                <UserPostCard
-                  key={post.post_id}
-                  post={post}
-                  onDelete={handleDeleteLocal}
-                />
-              ))}
-            </div>
+        <div className="sticky top-0 left-0 z-10 -mt-6 bg-white">
+          <ProfileHeader
+            user={user}
+            isOwnProfile={isOwnProfile}
+            onFollow={handleFollow}
+            onChangeProfilePic={async (file) => {
+              const res = await updateProfilePic(file);
+              if (res) {
+                const updatedUser = await getUserById(user_id);
+                if (updatedUser) setUser(updatedUser);
+                await loadUser();
+              }
+            }}
+          />
+          <div className="mt-6 flex gap-4 border-b text-sm font-medium overflow-x-auto">
+            <button
+              className={tabClass("latest")}
+              onClick={() => setActiveTab("latest")}
+            >
+              New
+            </button>
+            <button
+              className={tabClass("top")}
+              onClick={() => setActiveTab("top")}
+            >
+              Most Liked
+            </button>
+            <button
+              className={tabClass("oldest")}
+              onClick={() => setActiveTab("oldest")}
+            >
+              Oldest
+            </button>
 
-            {postLoading && (
-              <p className="text-center py-6 text-gray-500">
-                Loading more posts...
-              </p>
+            {isOwnProfile && (
+              <>
+                <button
+                  className={tabClass("saved")}
+                  onClick={() => setActiveTab("saved")}
+                >
+                  Saved
+                </button>
+                <button
+                  className={tabClass("liked")}
+                  onClick={() => setActiveTab("liked")}
+                >
+                  Liked Posts
+                </button>
+              </>
             )}
+          </div>
+        </div>
+        {/* ================= POSTS GRID ================= */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+          {posts.map((post) => (
+            <UserPostCard
+              key={post.post_id}
+              post={post}
+              onDelete={handleDeleteLocal}
+            />
+          ))}
+        </div>
 
-            {!hasNext && posts.length > 0 && (
-              <p className="text-center py-6 text-gray-400 text-sm">
-                No more posts
-              </p>
-            )}
+        {postLoading && (
+          <p className="text-center py-6 text-gray-500">
+            Loading more posts...
+          </p>
+        )}
+
+        {!hasNext && posts.length > 0 && (
+          <p className="text-center py-6 text-gray-400 text-sm">
+            No more posts
+          </p>
+        )}
       </div>
     </div>
   );

@@ -18,10 +18,6 @@ interface ProfileHeaderProps {
   isOwnProfile: boolean;
   onChangeProfilePic: (file: File) => Promise<void>;
   onFollow: () => Promise<void>;
-  activeTab: string;
-  setActiveTab: (
-    tab: "latest" | "top" | "oldest" | "saved" | "liked",
-  ) => void;
 }
 
 export default function ProfileHeader({
@@ -29,24 +25,16 @@ export default function ProfileHeader({
   isOwnProfile,
   onChangeProfilePic,
   onFollow,
-  activeTab,
-  setActiveTab,
 }: ProfileHeaderProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const tabClass = (tab: string) =>
-    `pb-2 border-b-2 cursor-pointer whitespace-nowrap transition ${
-      activeTab === tab
-        ? "border-primary text-primary"
-        : "border-transparent text-gray-500 hover:text-primary"
-    }`;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     await onChangeProfilePic(file);
   };
+  
 
   return (
     <div className="sticky top-0 left-0 z-10 py-6 -mt-6 bg-white">
@@ -120,7 +108,9 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() => router.push(`/profile/${user?.user_id}/followers`)}
+                  onClick={() =>
+                    router.push(`/profile/${user?.user_id}/followers`)
+                  }
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">{user?.total_followers}</span>
@@ -129,7 +119,9 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() => router.push(`/profile/${user?.user_id}/following`)}
+                  onClick={() =>
+                    router.push(`/profile/${user?.user_id}/following`)
+                  }
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">{user?.total_following}</span>
@@ -184,8 +176,10 @@ export default function ProfileHeader({
                 <span className="font-semibold">{user?.total_posts}</span> Posts
               </div>
 
-              <button className="flex items-center gap-2 hover:text-purple-600"
-              onClick={()=>router.push(`/profile/${user?.user_id}/friends`)}>
+              <button
+                className="flex items-center gap-2 hover:text-purple-600"
+                onClick={() => router.push(`/profile/${user?.user_id}/friends`)}
+              >
                 <Users size={16} />
                 <span className="font-semibold">{user?.total_friends}</span>
                 Friends
@@ -240,42 +234,6 @@ export default function ProfileHeader({
             </>
           )}
         </div>
-      </div>
-
-      {/* ---------- TABS ---------- */}
-      <div className="mt-6 flex gap-4 border-b text-sm font-medium overflow-x-auto">
-        <button
-          className={tabClass("latest")}
-          onClick={() => setActiveTab("latest")}
-        >
-          New
-        </button>
-        <button className={tabClass("top")} onClick={() => setActiveTab("top")}>
-          Most Liked
-        </button>
-        <button
-          className={tabClass("oldest")}
-          onClick={() => setActiveTab("oldest")}
-        >
-          Oldest
-        </button>
-
-        {isOwnProfile && (
-          <>
-            <button
-              className={tabClass("saved")}
-              onClick={() => setActiveTab("saved")}
-            >
-              Saved
-            </button>
-            <button
-              className={tabClass("liked")}
-              onClick={() => setActiveTab("liked")}
-            >
-              Liked Posts
-            </button>
-          </>
-        )}
       </div>
     </div>
   );
