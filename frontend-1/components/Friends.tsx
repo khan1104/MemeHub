@@ -2,7 +2,15 @@
 import React, { useEffect, useState } from "react";
 import { useFriends } from "@/hooks/friends";
 
-const Tabs = ["Friends", "Recently Added","Mutual Friends", "Followers", "Following"];
+const Tabs = [
+  "Friends",
+  "Recently Added",
+  "Mutual Friends",
+  "Followers",
+  "Following",
+  "Requests",
+  "Sent Requests",
+];
 
 interface FriendProps {
   user_id: string;
@@ -13,14 +21,9 @@ function Friends({ user_id }: FriendProps) {
   const { getFriends } = useFriends();
   
   return (
-    <div className="flex flex-col gap-4">
-      {/* Title */}
-      <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-        Friends
-      </h1>
-
+    <div className="grid grid-cols-1 gap-2 mt-5">
       {/* Tabs */}
-      <div className="flex gap-3 overflow-x-auto no-scrollbar">
+      <div className="flex overflow-x-auto scrollbar-hide sticky">
         {Tabs.map((item, index) => (
           <button
             key={index}
@@ -39,14 +42,15 @@ function Friends({ user_id }: FriendProps) {
 
       {/* Tab Content */}
       <div className="mt-4">
-        {activeTab === "Friends" && <div>Friends List</div>}
-        {activeTab === "Recently Added" && <div>Recently Added List</div>}
-        {activeTab === "Mutual Friends" && <div>Mutual Friends</div>}
-        {activeTab === "Followers" && <div>Followers List</div>}
-        {activeTab === "Following" && <div>Following List</div>}
+        <div>
+        <button className="h-100 w-20">hello</button>
+        </div>
       </div>
+      
     </div>
   );
 }
 
 export default Friends;
+
+

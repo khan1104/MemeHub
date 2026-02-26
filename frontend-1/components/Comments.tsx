@@ -45,6 +45,7 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment.comment);
+  console.log(comment)
 
   const checkAuth = (action: () => void) => {
     if (isLoggedIn) {

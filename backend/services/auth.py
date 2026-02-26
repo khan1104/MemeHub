@@ -22,17 +22,22 @@ class AuthService:
             {"_id": 1}
         )
         if existing:
-            await self.TokenActions.hard_delete(existing["_id"])
+            await self.TokenActions.hard_delete(id=existing["_id"])
 
         access_token = create_token({"sub": str(user_id)})
         refresh_token = create_refresh_token({"sub": str(user_id)})
-
-        await self.TokenActions.store_refresh_token({
+        data={
             "user_id": user_id,
             "refresh_token": refresh_token,
-            "created_at": datetime.now(timezone.utc),
             "expires_at": datetime.now(timezone.utc) + timedelta(days=5)
-        })
+        }
+        await self.TokenActions.create(data)
+        # await self.TokenActions.store_refresh_token({
+        #     "user_id": user_id,
+        #     "refresh_token": refresh_token,
+        #     "created_at": datetime.now(timezone.utc),
+        #     "expires_at": datetime.now(timezone.utc) + timedelta(days=5)
+        # })
 
         return access_token, refresh_token
     
@@ -96,6 +101,7 @@ class AuthService:
     async def loginUser(self,loginData:dict):
 
         user=await self.AuthActions.get_by_filter({"email":loginData.get("email"),"is_verified":True},{"password":1,"provider":1})
+        print(user["_id"])
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
         
@@ -109,7 +115,7 @@ class AuthService:
     
     async def refreshToken(self,refresh_token):
         user_id= verify_token(refresh_token,is_refresh=True)
-        stored_token=await self.TokenActions.get_by_filter({"user_id":ObjectId(user_id)},{"refresh_token": 1})
+        stored_token=await self.TokenActions.get_by_filter({"user_id":ObjectId(user_id),"refresh_token":refresh_token},{"refresh_token": 1})
         if stored_token is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid refresh token")
         if refresh_token!=stored_token["refresh_token"]:

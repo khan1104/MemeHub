@@ -24,6 +24,7 @@ export interface Post {
   created_by: User
 }
 
+
 export interface PaginatedPostResponse {
   items: Post[];
   next_cursor: string | null;

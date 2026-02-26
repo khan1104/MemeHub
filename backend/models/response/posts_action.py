@@ -29,5 +29,25 @@ class PaginatedCommentResponse(BaseModel):
     has_next: bool
 
 
+class SavedPostsResponse(BaseModel):
+    post_id:str
+    caption:str
+    media_url:str
+    media_type:str
+    like_count:int
+    created_at:datetime
+
+
+class LikedPostsResponse(BaseModel):
+    post_id:str
+    caption:str
+    media_url:str
+    media_type:str
+    like_count:int
+    created_at:datetime
+
+
+
+
 
 

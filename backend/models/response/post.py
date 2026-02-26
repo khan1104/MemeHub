@@ -9,7 +9,6 @@ class CreatedByUser(BaseModel):
     user_id:str
     user_name: str
     profile_pic: Optional[str] = None
-    email: Optional[str] = None
 
 
 class MemeResponse(BaseModel):

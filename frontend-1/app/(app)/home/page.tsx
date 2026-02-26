@@ -1,30 +1,31 @@
-"use client"
+"use client";
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import RightSidebar from '@/components/layout/RightSidebar'
-import PostCard from '@/components/PostsCard' 
-import { usePost } from '@/hooks/post'
-import { Post } from '@/types/posts.type'
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import RightSidebar from "@/components/layout/RightSidebar";
+import PostCard from "@/components/PostsCard";
+import { usePost } from "@/hooks/post";
+import { Post } from "@/types/posts.type";
 
-import { useFeed } from '@/context/FeedContext'
+import { useFeed } from "@/context/FeedContext";
+import { useUser } from "@/context/UserContext";
 
 export default function Home() {
+  const { user: currentUser, isLoading, isLoggedIn } = useUser();
   const { fetchPosts, loading, error } = usePost();
-  const { feed} = useFeed();
+  const { feed } = useFeed();
 
-  
   // Feed State
-  const [posts, setPosts] = useState<Post[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasNext, setHasNext] = useState(true)
-  
-  // Refs
-  const loaderRef = useRef<HTMLDivElement | null>(null)
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasNext, setHasNext] = useState(true);
 
+  // Refs
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
   // 1. Fetch Logic
   const loadPosts = useCallback(
     async (isInitial = false) => {
+      if (isLoading) return;
       if (loading || (!hasNext && !isInitial)) return;
 
       const currentCursor = isInitial ? null : cursor;
@@ -41,47 +42,51 @@ export default function Home() {
       setCursor(data.next_cursor);
       setHasNext(data.has_next);
     },
-    [cursor, hasNext, loading, fetchPosts],
+    [cursor, hasNext, loading, fetchPosts, isLoading],
   );
 
   // 2. Reset feed when Category changes
-    useEffect(() => {
-      setPosts([]);
-      setCursor(null);
-      setHasNext(true);
-      loadPosts(true);
-    }, [feed]);
+  useEffect(() => {
+    if (isLoading) return;
+    setPosts([]);
+    setCursor(null);
+    setHasNext(true);
+    loadPosts(true);
+  }, [feed, isLoading]);
 
   // 3. Infinite Scroll (Intersection Observer)
   useEffect(() => {
     const observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         if (entries[0].isIntersecting && hasNext && !loading) {
-          loadPosts()
+          loadPosts();
         }
       },
-      { threshold: 0.1 }
-    )
+      { threshold: 0.1 },
+    );
 
     if (loaderRef.current) {
-      observer.observe(loaderRef.current)
+      observer.observe(loaderRef.current);
     }
 
-    return () => observer.disconnect()
-  }, [loadPosts, hasNext, loading])
-
+    return () => observer.disconnect();
+  }, [loadPosts, hasNext, loading]);
 
   return (
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-10">
       {/* MAIN FEED */}
       <main className="w-full max-w-170 mx-auto flex flex-col gap-5">
-
         {/* POSTS LIST */}
         <div className="flex flex-col gap-2">
           {posts.length > 0 ? (
             <>
               {posts.map((post) => (
-                <PostCard key={post.post_id} post={post} />
+                <PostCard
+                  key={post.post_id}
+                  post={post}
+                  currentUser={currentUser}
+                  isLoggedIn={isLoggedIn}
+                />
               ))}
 
               {/* SENTINEL ELEMENT FOR INFINITE SCROLL */}
@@ -104,6 +109,11 @@ export default function Home() {
 
           {/* Loading Skeleton/State if first load and no posts yet */}
           {loading && posts.length === 0 && (
+            <div className="text-center py-10 text-gray-400">
+              Loading feed...
+            </div>
+          )}
+          {isLoading && posts.length === 0 && (
             <div className="text-center py-10 text-gray-400">
               Loading feed...
             </div>

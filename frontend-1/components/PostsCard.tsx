@@ -20,29 +20,30 @@ import ReportModal from "@/components/modals/ReportModal";
 import { formatCount } from "@/lib/formatCount"
 import { timeAgo } from "@/lib/timeAgo"
 import LoginRequiredModal from "./modals/LoginRequiredModal"
+import { User } from "@/types/user.type"
 
 interface PostCardProps {
-  post: Post
+  post: Post,
+  currentUser:User,
+  isLoggedIn:boolean
 }
 
-export default function PostCard({ post}: PostCardProps) {
-  const router = useRouter()
-  const { like, dislike,save, loading, error } = usePostAction();
-  const { user: currentUser,isLoggedIn } = useUser()
+export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProps) {
+  const router = useRouter();
+  const { like, dislike, save, loading, error } = usePostAction();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.like_count);
+  const [dislikeCount, setDislikeCount] = useState(post.dislike_count);
 
-  const [likeCount, setLikeCount] = useState(post.like_count)
-  const [dislikeCount, setDislikeCount] = useState(post.dislike_count)
+  const [isLiked, setIsLiked] = useState(post.is_liked);
+  const [isDisliked, setIsDisliked] = useState(post.is_disliked);
 
-  const [isLiked, setIsLiked] = useState(post.is_liked)
-  const [isDisliked, setIsDisliked] = useState(post.is_disliked)
-
-  const [animateLike, setAnimateLike] = useState(false)
+  const [animateLike, setAnimateLike] = useState(false);
   const [isSaved, setIsSaved] = useState(post.is_saved);
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const isOwnProfile = currentUser?.user_id === post.created_by.user_id
+  const isOwnProfile = currentUser?.user_id === post.created_by.user_id;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -50,12 +51,12 @@ export default function PostCard({ post}: PostCardProps) {
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!menuRef.current?.contains(e.target as Node)) {
-        setMenuOpen(false)
+        setMenuOpen(false);
       }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [])
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // ================= LIKE =================
   const checkAuth = (action: () => void) => {
@@ -121,7 +122,7 @@ export default function PostCard({ post}: PostCardProps) {
   };
 
   // ================= REPORT =================
-  const handleReportClick =() => {
+  const handleReportClick = () => {
     checkAuth(() => {
       setIsModalOpen(true);
       setMenuOpen(false);
@@ -130,7 +131,7 @@ export default function PostCard({ post}: PostCardProps) {
 
   // handleUserProfile function (already done by you)
   const handleUserProfile = () => {
-      router.push(`/profile/${post.created_by.user_id}`);
+    router.push(`/profile/${post.created_by.user_id}`);
   };
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">

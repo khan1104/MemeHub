@@ -23,7 +23,7 @@ export default function PostPage() {
 
   const { fetchSinglePost, loading, error } = usePost();
   const { getComments, addComment,loading:commentLoading } = usePostAction();
-  const { user } = useUser();
+  const { user,isLoading } = useUser();
 
   // ---------------- STATE ----------------
   const [post, setPost] = useState<Post | null>(null);
@@ -41,16 +41,16 @@ export default function PostPage() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
   // ---------------- FETCH POST (ONLY ONCE) ----------------
-  useEffect(() => {
-    console.log("post load")
-    if (!post_id) return;
+useEffect(() => {
+  if (!post_id || isLoading) return; // ⛔ IMPORTANT
 
-    fetchSinglePost(post_id).then(setPost);
-  }, [post_id]);
+  fetchSinglePost(post_id).then(setPost);
+}, [post_id, isLoading, user]);
 
   // ---------------- FETCH COMMENTS ----------------
   const loadComments = useCallback(
     async (isInitial = false) => {
+      if (isLoading) return;
       if (commentLoading || (!hasNext && !isInitial)) return;
 
       const currentCursor = isInitial ? null : cursor;
@@ -65,16 +65,18 @@ export default function PostPage() {
       setCursor(data.next_cursor);
       setHasNext(data.has_next);
     },
-    [cursor, hasNext, sortBy, post_id, commentLoading,getComments],
+    [cursor, hasNext, sortBy, post_id, commentLoading, getComments, isLoading],
   );
 
   // ---------------- SORT CHANGE RESET ----------------
-  useEffect(() => {
-    setComments([]);
-    setCursor(null);
-    setHasNext(true);
-    loadComments(true);
-  }, [sortBy]);
+useEffect(() => {
+  if (isLoading) return; // ⛔ wait for user
+
+  setComments([]);
+  setCursor(null);
+  setHasNext(true);
+  loadComments(true);
+}, [sortBy, isLoading]);
 
   // ---------------- INFINITE SCROLL ----------------
   useEffect(() => {

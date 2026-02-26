@@ -23,13 +23,14 @@ class PostActionService:
 
         return await self.LikeAction.react(user_id, post_id, "like")
     
-    async def get_likedPosts(self,liked_by):
-        liked_post_doc=await self.LikeAction.get_all({"user_id":liked_by,"type":"like"})
-        list_post=[]
-        for doc in liked_post_doc:
-            post_id=doc["post_id"]
-            list_post.append(post_id)
-        return await self.PostAction.get_all_with_user(query_filter={"_id": {"$in": list_post}})
+    async def get_likedPosts(self,**kwargs):
+        # liked_post_doc=await self.LikeAction.get_all({"user_id":liked_by,"type":"like"})
+        # list_post=[]
+        # for doc in liked_post_doc:
+        #     post_id=doc["post_id"]
+        #     list_post.append(post_id)
+        # return await self.PostAction.get_all_with_user(query_filter={"_id": {"$in": list_post}})
+        return await self.LikeAction.get_liked_post(**kwargs)
 
 
     async def dislike(self,post_id: str, user_id: str):
@@ -85,13 +86,15 @@ class PostActionService:
         await self.Savedaction.create(data)
         return {"message":"post is saved"}
     
-    async def get_saved_posts(self,saved_by:str):
-        saved_post_doc=await self.Savedaction.get_all({"saved_by":saved_by})
-        list_post=[]
-        for doc in saved_post_doc:
-            post_id=doc["post_id"]
-            list_post.append(post_id)
-        return await self.PostAction.get_all_with_user(query_filter={"_id": {"$in": list_post}})
+    async def get_saved_posts(self,**kwargs):
+        # saved_post_doc=await self.Savedaction.get_all({"saved_by":saved_by})
+        # list_post=[]
+        # for doc in saved_post_doc:
+        #     post_id=doc["post_id"]
+        #     list_post.append(post_id)
+        # return await self.PostAction.get_all_with_user(query_filter={"_id": {"$in": list_post}})
+        return await self.Savedaction.get_saved_post(**kwargs)
+      
         
         
 

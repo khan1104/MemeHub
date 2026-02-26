@@ -12,6 +12,7 @@ import ProfileHeader from "@/components/ProfileHeader";
 
 import { Post } from "@/types/posts.type";
 import { User } from "@/types/user.type";
+import Friends from "@/components/Friends";
 
 export default function Profile() {
   /* ================= ROUTE ================= */
@@ -23,7 +24,7 @@ export default function Profile() {
 
   /* ================= TABS ================= */
   const [activeTab, setActiveTab] = useState<
-    "latest" | "top" | "oldest" | "saved" | "liked"
+    "latest" | "top" | "oldest" | "friends"| "saved" | "liked"
   >("latest");
 
   /* ================= HOOKS ================= */
@@ -181,13 +182,19 @@ export default function Profile() {
               className={tabClass("top")}
               onClick={() => setActiveTab("top")}
             >
-              Most Liked
+              Top
             </button>
             <button
               className={tabClass("oldest")}
               onClick={() => setActiveTab("oldest")}
             >
               Oldest
+            </button>
+            <button
+              className={tabClass("friends")}
+              onClick={() => setActiveTab("friends")}
+            >
+              friends
             </button>
 
             {isOwnProfile && (
@@ -209,6 +216,13 @@ export default function Profile() {
           </div>
         </div>
         {/* ================= POSTS GRID ================= */}
+        {
+          activeTab=="friends" &&(
+            <div>
+              <Friends user_id={user?.user_id}/>
+            </div>
+          )
+        }
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
           {posts.map((post) => (
             <UserPostCard

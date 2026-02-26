@@ -13,6 +13,7 @@ export default function Page() {
       }, 1200);
       return () => clearTimeout(timer);
   }, [router]);
+  console.log("main main page hu ")
 
   return (
     
