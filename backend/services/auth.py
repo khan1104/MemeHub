@@ -101,7 +101,6 @@ class AuthService:
     async def loginUser(self,loginData:dict):
 
         user=await self.AuthActions.get_by_filter({"email":loginData.get("email"),"is_verified":True},{"password":1,"provider":1})
-        print(user["_id"])
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
         

@@ -1,7 +1,7 @@
 from fastapi import APIRouter,Form,Depends,status,UploadFile,File,Request,Query
 from models.request.post import UpdateMeme
 from constants.meme_tags import Memetags
-from dependency.auth_dependency import get_current_user
+from dependency.auth_dependency import get_current_user,get_current_user_optional
 from services.post import PostService
 from models.response.post import PostResponse,MemeResponse,PaginatedPostResponse
 from typing import List,Optional
@@ -9,11 +9,22 @@ from typing import List,Optional
 route=APIRouter()
 service=PostService()
 
-@route.get("/",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
-async def getPosts(sort_by:Optional[str]="latest",
-                   cursor: Optional[str] = None,user_id: Optional[str] = None,limit: int = 10):
-    data=await service.get_all_posts(sort_by=sort_by,cursor=cursor,limit=limit,user_id=user_id)
-    print(user_id)
+@route.get("/", status_code=status.HTTP_200_OK, response_model=PaginatedPostResponse)
+async def getPosts(
+    sort_by: Optional[str] = "latest",
+    cursor: Optional[str] = None,
+    current_user = Depends(get_current_user_optional),  # 👈 important
+    limit: int = 10
+):
+    user_id = str(current_user["_id"]) if current_user else None
+
+    data = await service.get_all_posts(
+        sort_by=sort_by,
+        cursor=cursor,
+        limit=limit,
+        user_id=user_id
+    )
+
     return data
 
 

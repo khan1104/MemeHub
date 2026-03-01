@@ -1,8 +1,8 @@
 from fastapi import APIRouter,Depends,status,Query
 from services.posts_action import PostActionService
-from dependency.auth_dependency import get_current_user
+from dependency.auth_dependency import get_current_user,get_current_user_optional
 from models.request.posts_action import Comment,PostReport
-from models.response.posts_action import CommentResponse,Comments,PaginatedCommentResponse,SavedPostsResponse,LikedPostsResponse
+from models.response.posts_action import CommentResponse,Comments,PaginatedCommentResponse,PaginatedSavedResponse,PaginatedLikedResponse
 from models.response.post import PaginatedPostResponse
 from services.comment_actions import CommentService
 from typing import Optional
@@ -18,7 +18,7 @@ comment_service=CommentService()
 async def like(post_id: str, current_user=Depends(get_current_user)):
     return await reaction_service.like(post_id,current_user["_id"])
 
-@route.get("/liked",status_code=status.HTTP_200_OK,response_model=list[LikedPostsResponse])
+@route.get("/liked",status_code=status.HTTP_200_OK,response_model=PaginatedLikedResponse)
 async def get_liked_posts(current_user=Depends(get_current_user),cursor:str|None=None,limit:int=10):
     return await reaction_service.get_likedPosts(user_id=current_user["_id"],cursor=cursor,limit=limit)
 
@@ -33,7 +33,7 @@ async def report(post_id: str, data: PostReport, current_user=Depends(get_curren
     await reaction_service.report(post_id,current_user["_id"],data.model_dump())
     return {"message": "Post reported successfully"}
 
-@route.get("/save",status_code=status.HTTP_200_OK,response_model=list[SavedPostsResponse])
+@route.get("/save",status_code=status.HTTP_200_OK,response_model=PaginatedSavedResponse)
 async def get_saved_posts(current_user=Depends(get_current_user),cursor:str|None=None,limit:int=10):
     data=await reaction_service.get_saved_posts(user_id=current_user["_id"],cursor=cursor,limit=limit)
     return data
@@ -46,7 +46,8 @@ async def save(post_id:str,current_user=Depends(get_current_user)):
 
 
 @route.get("/comments/{post_id}", status_code=status.HTTP_200_OK, response_model=PaginatedCommentResponse)
-async def get_comments(post_id: str,user_id: Optional[str] = None, sort_by: str = Query("latest", enum=["latest", "top"]),cursor: Optional[str] = None,limit: int = 1):
+async def get_comments(post_id: str,current_user = Depends(get_current_user_optional), sort_by: str = Query("latest", enum=["latest", "top"]),cursor: Optional[str] = None,limit: int = 1):
+    user_id = str(current_user["_id"]) if current_user else None
     data =await comment_service.get_comments(post_id=post_id,user_id=user_id, sort_by=sort_by,cursor=cursor,limit=limit)
     return data
 

@@ -31,6 +31,7 @@ class PostActionService:
         #     list_post.append(post_id)
         # return await self.PostAction.get_all_with_user(query_filter={"_id": {"$in": list_post}})
         return await self.LikeAction.get_liked_post(**kwargs)
+        
 
 
     async def dislike(self,post_id: str, user_id: str):

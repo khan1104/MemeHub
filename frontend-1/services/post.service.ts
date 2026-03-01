@@ -14,16 +14,14 @@ export const handlePostUpload = async (formData: FormData) => {
 export const getPosts = async (
   sort_by?:string,
   cursor?: string,
-  user_id?:string,
   limit: number = 10
 ) => {
   try{
-  const res = await public_api.get("/posts/", {
+  const res = await protected_api.get("/posts/", {
     params: {
       sort_by,
       cursor,
-      limit,
-      user_id
+      limit
     }
   })
 

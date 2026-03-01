@@ -1,5 +1,5 @@
 from fastapi import APIRouter,status,Depends,UploadFile,File
-from dependency.auth_dependency import get_current_user
+from dependency.auth_dependency import get_current_user,get_current_user_optional
 from models.response.user import UserResponse,SearchUserResponse,FollowDataResponse
 from services.user import UserService
 from models.request.user import UserReport,UserUpdate
@@ -26,7 +26,8 @@ async def get_current_user(current_user=Depends(get_current_user)):
 
 
 @route.get("/{user_id}",status_code=status.HTTP_200_OK,response_model=UserResponse)
-async def get_user_by_id(user_id:str,current_user_id:str|None = None):
+async def get_user_by_id(user_id:str,current_user = Depends(get_current_user_optional)):
+    current_user_id = str(current_user["_id"]) if current_user else None
     data=await service.get_user_by_id(user_id,current_user_id)
     return data
 

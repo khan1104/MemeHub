@@ -66,7 +66,7 @@ export const handleGetComments=async(
   limit: number = 3
 )=>{
   try{
-    const res = await public_api.get(`/posts_actions/comments/${post_id}`, {
+    const res = await protected_api.get(`/posts_actions/comments/${post_id}`, {
         params: {
           user_id,
           sort_by,

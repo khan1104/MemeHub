@@ -14,9 +14,10 @@ const Tabs = [
 
 interface FriendProps {
   user_id: string;
+  isOwnProfile:boolean
 }
 
-function Friends({ user_id }: FriendProps) {
+function Friends({ user_id,isOwnProfile }: FriendProps) {
   const [activeTab, setActiveTab] = useState("Friends");
   const { getFriends } = useFriends();
   

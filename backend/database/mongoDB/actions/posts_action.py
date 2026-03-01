@@ -39,17 +39,25 @@ class PostReactionAction(BaseActions):
         self,
         user_id: str,
         cursor: str|None = None,
-        limit: int = 10
+        limit: int = 1
     ):
         user_id = self.validate_object_id(user_id)
-
+        filter={
+                "user_id": user_id
+        }
+        if cursor:
+            c = self.decode_cursor(cursor)
+            filter["_id"] = {"$lt": c["_id"]}
+            print(c)
         pipeline = [
             # 1️⃣ Match saved posts
             {
-                "$match": {
-                    "user_id": user_id
-                }
+                "$match": filter
             },
+            {"$sort": {"_id": -1}},
+
+        # ✅ LIMIT + 1
+            {"$limit": limit + 1},
 
             # 2️⃣ Get post details
             {
@@ -60,12 +68,28 @@ class PostReactionAction(BaseActions):
                     "as": "post_doc"
                 }
             },
+
             {
                 "$unwind": {
                     "path": "$post_doc",
                     "preserveNullAndEmptyArrays": False
                 }
             },
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "post_doc.created_by",  # ✅ FIX
+                    "foreignField": "_id",
+                    "as": "user_doc"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$user_doc",
+                    "preserveNullAndEmptyArrays": False
+                }
+            },
+
 
             # 3️⃣ Get like count (FIXED pid reference)
             {
@@ -104,21 +128,32 @@ class PostReactionAction(BaseActions):
             # 5️⃣ Final projection
             {
                 "$project": {
-                    "_id": 0,
+                    "_id": 1,
                     "post_id": {"$toString": "$post_doc._id"},
                     "caption": "$post_doc.caption",
                     "media_url": "$post_doc.media_url",
                     "media_type": "$post_doc.media_type",
                     "created_at": "$post_doc.created_at",
-                    "like_count": 1
+                    "like_count": 1,
+                    "created_by": {
+                        "user_id":{"$toString": "$user_doc._id"},
+                        "user_name":"$user_doc.user_name",
+                        "profile_pic":"$user_doc.profile_pic"
+                }
                 }
             }
         ]
-
         cursor_db = self.collection.aggregate(pipeline)
         docs = [doc async for doc in cursor_db]
 
-        return docs
+        has_next = len(docs) > limit
+        docs = docs[:limit]
+
+        return {
+            "items": docs,
+            "next_cursor": self.encode_cursor(docs[-1]) if has_next else None,
+            "has_next": has_next
+        }
         
 class ReportActions(BaseActions):
     def __init__(self):
@@ -144,6 +179,8 @@ class SavedActions(BaseActions):
                     "saved_by": user_id
                 }
             },
+            {"$sort": {"_id": -1}},
+            {"$limit": limit + 1},
 
             # 2️⃣ Get post details
             {
@@ -157,6 +194,20 @@ class SavedActions(BaseActions):
             {
                 "$unwind": {
                     "path": "$post_doc",
+                    "preserveNullAndEmptyArrays": False
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "post_doc.created_by",  # ✅ FIX
+                    "foreignField": "_id",
+                    "as": "user_doc"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$user_doc",
                     "preserveNullAndEmptyArrays": False
                 }
             },
@@ -204,7 +255,12 @@ class SavedActions(BaseActions):
                     "media_url": "$post_doc.media_url",
                     "media_type": "$post_doc.media_type",
                     "created_at": "$post_doc.created_at",
-                    "like_count": 1
+                    "like_count": 1,
+                    "created_by": {
+                        "user_id":{"$toString": "$user_doc._id"},
+                        "user_name":"$user_doc.user_name",
+                        "profile_pic":"$user_doc.profile_pic"
+                }
                 }
             }
         ]
@@ -212,7 +268,14 @@ class SavedActions(BaseActions):
         cursor_db = self.collection.aggregate(pipeline)
         docs = [doc async for doc in cursor_db]
 
-        return docs
+        has_next = len(docs) > limit
+        docs = docs[:limit]
+
+        return {
+            "items": docs,
+            "next_cursor": self.encode_cursor(docs[-1]) if has_next else None,
+            "has_next": has_next
+        }
 
 
 

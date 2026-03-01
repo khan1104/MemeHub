@@ -36,16 +36,28 @@ class SavedPostsResponse(BaseModel):
     media_type:str
     like_count:int
     created_at:datetime
+    created_by:CreatedByUser
 
 
-class LikedPostsResponse(BaseModel):
+class PaginatedSavedResponse(BaseModel):
+    items: List[SavedPostsResponse]
+    next_cursor: Optional[str]
+    has_next: bool
+
+
+class LikedPostsResponse(MongoBaseModel):
     post_id:str
     caption:str
     media_url:str
     media_type:str
     like_count:int
     created_at:datetime
+    created_by:CreatedByUser
 
+class PaginatedLikedResponse(BaseModel):
+    items: List[LikedPostsResponse]
+    next_cursor: Optional[str]
+    has_next: bool
 
 
 

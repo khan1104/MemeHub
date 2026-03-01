@@ -14,7 +14,7 @@ export const handleGetCurrentUser= async () => {
 
 export const handleGetUserById=async(user_id:string,current_user_id:string)=>{
   try {
-    const res = await public_api.get(`/users/${user_id}`,
+    const res = await protected_api.get(`/users/${user_id}`,
       {
         params: {
           current_user_id

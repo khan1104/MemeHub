@@ -19,7 +19,7 @@ export default function Profile() {
   const params = useParams();
   const user_id = params.user_id as string;
 
-  const { user: currentUser, loadUser } = useUser();
+  const { user: currentUser, loadUser,isLoading } = useUser();
   const isOwnProfile = currentUser?.user_id === user_id;
 
   /* ================= TABS ================= */
@@ -56,6 +56,7 @@ export default function Profile() {
   /* ================= LOAD POSTS ================= */
   const loadPosts = useCallback(
     async (isInitial = false) => {
+      if (isLoading) return;
       if (postLoading || (!hasNext && !isInitial)) return;
       if (activeTab === "friends") return;
 
@@ -86,12 +87,14 @@ export default function Profile() {
       fetchUserPosts,
       fetchSavedPosts,
       fetchLikedPosts,
+      isLoading
     ],
   );
 
   /* ================= LOAD PROFILE ================= */
   useEffect(() => {
     if (!user_id) return;
+    if (isLoading) return;
 
     const loadProfile = async () => {
       const user = await getUserById(user_id);
@@ -105,7 +108,7 @@ export default function Profile() {
     };
 
     loadProfile();
-  }, [user_id, activeTab]);
+  }, [user_id, activeTab,isLoading]);
 
   /* ================= INFINITE SCROLL ================= */
   useEffect(() => {
@@ -216,13 +219,11 @@ export default function Profile() {
           </div>
         </div>
         {/* ================= POSTS GRID ================= */}
-        {
-          activeTab=="friends" &&(
-            <div>
-              <Friends user_id={user?.user_id}/>
-            </div>
-          )
-        }
+        {activeTab == "friends" && (
+          <div className="sticky top-5 py-3 -mt-6">
+            <Friends user_id={user?.user_id} isOwnProfile={isOwnProfile} />
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
           {posts.map((post) => (
             <UserPostCard

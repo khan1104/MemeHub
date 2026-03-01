@@ -23,7 +23,7 @@ export default function PostPage() {
 
   const { fetchSinglePost, loading, error } = usePost();
   const { getComments, addComment,loading:commentLoading } = usePostAction();
-  const { user,isLoading } = useUser();
+  const { user,isLoading,isLoggedIn } = useUser();
 
   // ---------------- STATE ----------------
   const [post, setPost] = useState<Post | null>(null);
@@ -140,7 +140,7 @@ const handleDeleteLocal = (id: string) => {
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-6">
       {/* MAIN */}
       <main className="w-full max-w-170 mx-auto flex flex-col gap-3">
-        <PostCard post={post} />
+        <PostCard post={post} currentUser={user} isLoggedIn={isLoggedIn}/>
 
         {/* COMMENTS HEADER */}
         <div className="flex items-center gap-5 mt-2.5">
