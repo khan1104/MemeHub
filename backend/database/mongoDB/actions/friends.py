@@ -1,5 +1,6 @@
 from database.mongoDB.actions.base import BaseActions
 from database.mongoDB.collections.collection import friends,friend_requests
+from constants.requestStatus import FriendRequestStatus
 from bson import ObjectId
 
 class FriendsAction(BaseActions):
@@ -165,10 +166,9 @@ class FriendsAction(BaseActions):
         pipeline.append({
             "$project": {
                 "created_at": 1,
-                "friend_id":{"$toString": "$friend_info._id"},
+                "user_id":{"$toString": "$friend_info._id"},
                 "user_name": "$friend_info.user_name",
                 "profile_pic": "$friend_info.profile_pic",
-                "email": "$friend_info.email",
                 "isFollowing": 1,
                 "isFriend": 1
             }
@@ -357,9 +357,8 @@ class FriendsAction(BaseActions):
         pipeline.append({
             "$project": {
                 "created_at": 1,
-                "friend_id":{"$toString": "$user_info._id"},
+                "user_id":{"$toString": "$user_info._id"},
                 "user_name": "$user_info.user_name",
-                "email":"$user_info.email",
                 "profile_pic": "$user_info.profile_pic",
             }
         })
@@ -378,10 +377,84 @@ class FriendsAction(BaseActions):
         }
 
 
-            
-
-
 class FriendRequestAction(BaseActions):
     def __init__(self):
         super().__init__(friend_requests)
+
+
+    async def get_requests(
+        self,
+        current_user_id:str,
+        type: str = "get",   #sent or get
+        cursor: str|None = None,
+        limit: int = 12):
+
+        current_user_oid = ObjectId(current_user_id)
+
+        match_stage={}
+        
+
+        # get all requests sent by other users
+        if type == "get":
+            match_stage["recipient_id"]= current_user_oid
+            match_stage["status"]=FriendRequestStatus.PENDING
+            local_field = "requester_id"
+        # get all request send to other users
+        else:  
+            match_stage["requester_id"]= current_user_oid
+            match_stage["status"]=FriendRequestStatus.PENDING
+            local_field = "recipient_id"
+        if cursor:
+            c = self.decode_cursor(cursor)
+            match_stage["_id"] = {"$lt": c["_id"]}
+
+        pipeline=[]
+
+
+        pipeline.append({
+            "$match":match_stage
+        })
+
+        pipeline.append({
+            "$sort":{"_id": -1}
+        })
+
+        pipeline.append({
+            "$limit": limit + 1
+        })
+        pipeline.append({
+            "$lookup": {
+                "from": "users",
+                "localField": local_field,
+                "foreignField": "_id",
+                "as": "user_info"
+            }
+        })
+
+        pipeline.append({
+            "$unwind": "$user_info"
+        })
+        
+        pipeline.append({
+            "$project": {
+                "id":{"$toString": "$_id"},
+                "user_id":{"$toString": "$user_info._id"},
+                "user_name": "$user_info.user_name",
+                "profile_pic": "$user_info.profile_pic",
+                "created_at": 1,
+            }
+        })
+
+
+        cursor_db = self.collection.aggregate(pipeline)
+        docs = [doc async for doc in cursor_db]
+
+        has_next = len(docs) > limit
+        docs = docs[:limit]
+
+        return {
+            "items": docs,
+            "next_cursor": self.encode_cursor(docs[-1]) if has_next else None,
+            "has_next": has_next
+        }
 

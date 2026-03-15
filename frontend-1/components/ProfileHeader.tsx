@@ -12,29 +12,36 @@ import {
 import { FaUserPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { User } from "@/types/user.type";
+import { useUsers } from "@/hooks/user";
+import { useUser } from "@/context/UserContext";
 
 interface ProfileHeaderProps {
   user: User | null;
   isOwnProfile: boolean;
-  onChangeProfilePic: (file: File) => Promise<void>;
   onFollow: () => Promise<void>;
 }
 
 export default function ProfileHeader({
   user,
   isOwnProfile,
-  onChangeProfilePic,
   onFollow,
 }: ProfileHeaderProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const {updateProfilePic}=useUsers()
+  const {loadUser}=useUser()
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    await onChangeProfilePic(file);
+    // await onChangeProfilePic(file);
+    const res = await updateProfilePic(file);
+    if (res){
+      await loadUser();
+    }
   };
   
+  console.log("i am aprofile header")
 
   return (
     <div className="sticky top-0 left-0 z-10 py-6 -mt-6 bg-white">
@@ -99,7 +106,9 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() => router.push("/friends")}
+                  onClick={() =>
+                    router.push(`/profile/${user?.user_id}/connections`)
+                  }
                 >
                   <Users size={16} />
                   <span className="font-semibold">{user?.total_friends}</span>
@@ -109,7 +118,7 @@ export default function ProfileHeader({
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
                   onClick={() =>
-                    router.push(`/profile/${user?.user_id}/followers`)
+                    router.push(`/profile/${user?.user_id}/connections`)
                   }
                 >
                   <UserPlus size={16} />
@@ -120,7 +129,7 @@ export default function ProfileHeader({
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
                   onClick={() =>
-                    router.push(`/profile/${user?.user_id}/following`)
+                    router.push(`/profile/${user?.user_id}/connections`)
                   }
                 >
                   <UserPlus size={16} />

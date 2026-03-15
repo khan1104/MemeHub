@@ -62,6 +62,8 @@ export default function Settings() {
     if (res) await loadUser();
   };
 
+  console.log("settings")
+
   return (
     <div className="w-full min-h-screen p-5 bg-slate-50/50">
       <div className="max-w-3xl md:ml-10">

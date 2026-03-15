@@ -57,7 +57,6 @@ export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
       });
     };
 
-
   return (
     <div
       onClick={() => router.push(`/posts/${post.post_id}`)}

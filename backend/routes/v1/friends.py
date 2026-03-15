@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Depends, Query
 from dependency.auth_dependency import get_current_user
 from services.friends import FriendService
-from models.response.friends import RequestResponse,FriendsResponse,PaginatedFriendsResponse
+from models.response.friends import PaginatedFriendsResponse,PaginatedRequestsResponse
 from constants.requestStatus import FriendRequestStatus
 from typing import Optional
 
@@ -23,9 +23,14 @@ async def handle_friend_request(
     await service.handle_friend_request(request_id, current_user["_id"], action)
     return {"message": f"Request {action}ed"}
 
-@route.get("/request",status_code=status.HTTP_200_OK,response_model=list[RequestResponse])
-async def get_requests(current_user=Depends(get_current_user)):
-    data =await service.get_requests(current_user["_id"])
+@route.get("/requests",status_code=status.HTTP_200_OK,response_model=PaginatedRequestsResponse)
+async def get_requests(current_user=Depends(get_current_user),cursor: Optional[str] = None,limit: int = 12):
+    data =await service.get_requests(current_user_id=current_user["_id"],type="get",cursor=cursor,limit=limit)
+    return data
+
+@route.get("/sent-requests",status_code=status.HTTP_200_OK,response_model=PaginatedRequestsResponse)
+async def get_sent_requets(current_user=Depends(get_current_user),cursor: Optional[str] = None,limit: int = 12):
+    data =await service.get_requests(current_user_id=current_user["_id"],type="sent",cursor=cursor,limit=limit)
     return data
 
 @route.delete("/requests/{user_id}",status_code=status.HTTP_204_NO_CONTENT)

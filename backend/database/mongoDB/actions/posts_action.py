@@ -43,12 +43,12 @@ class PostReactionAction(BaseActions):
     ):
         user_id = self.validate_object_id(user_id)
         filter={
-                "user_id": user_id
+                "user_id": user_id,
+                "type": "like"
         }
         if cursor:
             c = self.decode_cursor(cursor)
             filter["_id"] = {"$lt": c["_id"]}
-            print(c)
         pipeline = [
             # 1️⃣ Match saved posts
             {
@@ -171,13 +171,17 @@ class SavedActions(BaseActions):
         limit: int = 10
     ):
         user_id = self.validate_object_id(user_id)
+        filter={
+                "saved_by": user_id,
+        }
+        if cursor:
+            c = self.decode_cursor(cursor)
+            filter["_id"] = {"$lt": c["_id"]}
 
         pipeline = [
             # 1️⃣ Match saved posts
             {
-                "$match": {
-                    "saved_by": user_id
-                }
+                "$match":filter
             },
             {"$sort": {"_id": -1}},
             {"$limit": limit + 1},
@@ -249,7 +253,7 @@ class SavedActions(BaseActions):
             # 5️⃣ Final projection
             {
                 "$project": {
-                    "_id": 0,
+                    "_id": 1,
                     "post_id": {"$toString": "$post_doc._id"},
                     "caption": "$post_doc.caption",
                     "media_url": "$post_doc.media_url",

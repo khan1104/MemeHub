@@ -14,6 +14,7 @@
 // export default nextConfig;
 
 const nextConfig = {
+    reactStrictMode: false,
     images: {
         remotePatterns: [
             {

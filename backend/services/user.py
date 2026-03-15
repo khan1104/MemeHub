@@ -80,11 +80,11 @@ class UserService:
         action=await self.FollowAction.follow(to_follow,by_follow)
         return action
     
-    async def get_followers(self,user_id:str):
-        return await self.FollowAction.get_follow_data(user_id=user_id,type="followers")
+    async def get_followers(self,**kwargs):
+        return await self.FollowAction.get_follow_data(**kwargs)
 
-    async def get_followings(self,user_id:str):
-        return await self.FollowAction.get_follow_data(user_id=user_id,type="following")
+    async def get_followings(self,**kwargs):
+        return await self.FollowAction.get_follow_data(**kwargs)
     
     async def report(self, reported_user_id: str, reported_by: str, data: dict):
         if reported_user_id==str(reported_by):

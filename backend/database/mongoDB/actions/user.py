@@ -242,15 +242,24 @@ class FollowActions(BaseActions):
     async def get_follow_data(
         self,
         user_id: str,
-        type: str = "following"  # "following" | "followers"
+        logged_in_user_id: str|None=None,
+        type: str = "following",  # "following" | "followers"
+        cursor: str | None = None,
+        limit: int = 12
+
     ):
         user_id = self.validate_object_id(user_id)
-
+        # logged_in_user_oid = self.validate_object_id(logged_in_user_id)
+        logged_in_user_oid = self.validate_object_id(logged_in_user_id) if logged_in_user_id else None
+        match_stage={}
+        if cursor:
+            c = self.decode_cursor(cursor)
+            match_stage["_id"] = {"$lt": c["_id"]}
         if type == "following":
-            match_stage = {"follower_id": user_id}
+            match_stage["follower_id"]= user_id
             local_field = "following_id"
         else:  # followers
-            match_stage = {"following_id": user_id}
+            match_stage["following_id"]= user_id
             local_field = "follower_id"
 
         pipeline = [
@@ -259,6 +268,8 @@ class FollowActions(BaseActions):
             {
                 "$match": match_stage
             },
+            {"$sort": {"_id": -1}},
+            {"$limit": limit + 1},
 
             # 2️⃣ Lookup user details
             {
@@ -275,6 +286,72 @@ class FollowActions(BaseActions):
                 "$unwind": "$user_doc"
             },
 
+
+            # is following 
+            {
+                "$lookup": {
+                    "from": "followers",
+                    "let": {
+                        "profileUserId": f"${local_field}",
+                        "loggedInUserId": logged_in_user_oid
+                    },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$follower_id", "$$loggedInUserId"]},
+                                        {"$eq": ["$following_id", "$$profileUserId"]}
+                                    ]
+                                }
+                            }
+                        },
+                        {"$limit": 1}
+                    ],
+                    "as": "is_following_doc"
+                }
+            },
+            # is friend
+            {
+            "$lookup": {
+                "from": "friends",
+                "let": {
+                    "profileUserId": f"${local_field}",
+                    "loggedInUserId": logged_in_user_oid
+                },
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$or": [
+                                    {
+                                        "$and": [
+                                            {"$eq": ["$user_one", "$$loggedInUserId"]},
+                                            {"$eq": ["$user_two", "$$profileUserId"]}
+                                        ]
+                                    },
+                                    {
+                                        "$and": [
+                                            {"$eq": ["$user_one", "$$profileUserId"]},
+                                            {"$eq": ["$user_two", "$$loggedInUserId"]}
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {"$limit": 1}
+                ],
+                "as": "is_friend_doc"
+            }
+        },
+        {
+            "$addFields": {
+                "isFollowing": {"$gt": [{"$size": "$is_following_doc"}, 0]},
+                "isFriend": {"$gt": [{"$size": "$is_friend_doc"}, 0]}
+            }
+        },
+
             # 4️⃣ Project
             {
                 "$project": {
@@ -282,16 +359,24 @@ class FollowActions(BaseActions):
                     "user_id": {"$toString":"$user_doc._id"},
                     "user_name": "$user_doc.user_name",
                     "profile_pic": "$user_doc.profile_pic",
-                    "email": "$user_doc.email",
+                    "isFollowing":1,
+                    "isFriend":1,
                     "created_at": 1
                 }
             }
         ]
-
+    
         cursor_db = self.collection.aggregate(pipeline)
         docs = [doc async for doc in cursor_db]
 
-        return docs
+        has_next = len(docs) > limit
+        docs = docs[:limit]
+
+        return {
+            "items": docs,
+            "next_cursor": self.encode_cursor(docs[-1]) if has_next else None,
+            "has_next": has_next
+        }
 
 class ReportActions(BaseActions):
     def __init__(self):

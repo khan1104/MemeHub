@@ -1,7 +1,15 @@
 import { useState } from "react"
 import { upadateProfilePicSchema } from "@/schemas/user.schema";
-import {handleFollow, handleGetUserById, handleReport, handleUpadteProfilePic, handleUpadteUserInfo} from "@/services/user.service";
+import {handleFollow, 
+  handleGetUserById, 
+  handleReport, 
+  handleUpadteProfilePic, 
+  handleUpadteUserInfo,
+  handleGetFollowers,
+  handleGetFollowings
+} from "@/services/user.service";
 import { useUser } from "@/context/UserContext";
+import { PaginatedFollowDataResponse } from "@/types/user.type";
 
 export const useUsers = () => {
   const {user}=useUser()
@@ -76,7 +84,7 @@ export const useUsers = () => {
       setLoading(false)
     }
   }
-    const ReportUser=async(user_id:string,reason:string,description:string)=>{
+  const ReportUser=async(user_id:string,reason:string,description:string)=>{
     try{
         setLoading(true)
         await handleReport(user_id,reason,description);
@@ -90,9 +98,36 @@ export const useUsers = () => {
     }
   }
 
+  const getFollowings=async(user_id:string,cursor?: string):Promise<PaginatedFollowDataResponse  | null>=>{
+    try{
+        setLoading(true)
+        return await handleGetFollowings(user_id,cursor);
+    }
+    catch(error:any){
+      setError(error.message)
+      return null
+    }finally {
+      setLoading(false)
+    }
+  }
+
+  const getFollowers=async(user_id:string,cursor?: string):Promise<PaginatedFollowDataResponse  | null>=>{
+    try{
+        setLoading(true)
+        return await handleGetFollowers(user_id,cursor);
+    
+    }
+    catch(error:any){
+      setError(error.message)
+      return null
+    }finally {
+      setLoading(false)
+    }
+  }
+
 
   
 
-  return {getUserById,updateUserInfo, updateProfilePic,FollowUser,ReportUser, loading, error, setError };
+  return {getUserById,updateUserInfo, updateProfilePic,FollowUser,ReportUser,getFollowers,getFollowings, loading, error, setError };
 };
 

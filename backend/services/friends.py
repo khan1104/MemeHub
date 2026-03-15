@@ -100,12 +100,16 @@ class FriendService:
             return
         raise HTTPException(400, "Invalid action")
 
-    async def get_requests(self, current_user_id: str):
-        request=await self.FriendRequestAction.get_all({
-            "recipient_id": current_user_id,
-            "status": FriendRequestStatus.PENDING
-        })
+    async def get_requests(self, **kwargs):
+        request=await self.FriendRequestAction.get_requests(**kwargs)
         return request
+    
+    # async def get_sent_request(self,current_user_id:str):
+    #     request=await self.FriendRequestAction.get_all({
+    #         "requester_id": current_user_id,
+    #         "status": FriendRequestStatus.PENDING
+    #     })
+    #     return request
 
     async def cancel_request(self, user_id: str, current_user_id: str):
         self.FriendRequestAction.validate_object_id(user_id)

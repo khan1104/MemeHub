@@ -9,18 +9,28 @@ export const handlePostsSave=async(post_id:string)=>{
     apiError(error)
   }
 }
-export const handleGetSavedPosts=async()=>{
+export const handleGetSavedPosts=async(cursor?: string,limit: number = 6)=>{
   try {
-    const res = await protected_api.get(`/posts_actions/save`)
+    const res = await protected_api.get(`/posts_actions/save`,{
+    params: {
+      cursor,
+      limit
+    }
+  })
     return res.data
   } catch (error: any) {
     apiError(error)
   }
 }
 
-export const handleGetLikedPosts=async()=>{
+export const handleGetLikedPosts=async(cursor?: string,limit: number =6)=>{
   try {
-    const res = await protected_api.get(`/posts_actions/liked`)
+    const res = await protected_api.get(`/posts_actions/liked`,{
+    params: {
+      cursor,
+      limit
+    }
+  })
     return res.data
   } catch (error: any) {
     apiError(error)

@@ -31,11 +31,11 @@ export const usePostAction = () => {
     }
   }
 
-  const fetchSavedPosts=async()=>{
+  const fetchSavedPosts=async(cursor?: string)=>{
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetSavedPosts();
+      const posts = await handleGetSavedPosts(cursor);
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -45,11 +45,11 @@ export const usePostAction = () => {
     }
   }
 
-  const fetchLikedPosts=async()=>{
+  const fetchLikedPosts=async(cursor?: string)=>{
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetLikedPosts();
+      const posts = await handleGetLikedPosts(cursor);
       return posts
     } catch (err: any) {
       setError(err.message)

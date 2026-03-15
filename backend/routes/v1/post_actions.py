@@ -19,7 +19,7 @@ async def like(post_id: str, current_user=Depends(get_current_user)):
     return await reaction_service.like(post_id,current_user["_id"])
 
 @route.get("/liked",status_code=status.HTTP_200_OK,response_model=PaginatedLikedResponse)
-async def get_liked_posts(current_user=Depends(get_current_user),cursor:str|None=None,limit:int=10):
+async def get_liked_posts(current_user=Depends(get_current_user),cursor:str|None=None,limit:int=6):
     return await reaction_service.get_likedPosts(user_id=current_user["_id"],cursor=cursor,limit=limit)
 
 

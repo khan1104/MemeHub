@@ -1,6 +1,7 @@
 from pydantic import EmailStr,BaseModel
 from models.response.base import MongoBaseModel
 from datetime import datetime
+from typing import Optional,List
 
 
 class UserResponse(BaseModel):
@@ -27,6 +28,13 @@ class FollowDataResponse(BaseModel):
     user_id:str
     user_name:str
     profile_pic: str
-    email: EmailStr
+    isFollowing: bool=False
+    isFriend: bool=False
     created_at: datetime
+
+
+class PaginatedFollowDataResponse(BaseModel):
+    items: List[FollowDataResponse]
+    next_cursor: Optional[str]
+    has_next: bool
 

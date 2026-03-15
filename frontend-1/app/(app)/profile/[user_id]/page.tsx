@@ -19,7 +19,7 @@ export default function Profile() {
   const params = useParams();
   const user_id = params.user_id as string;
 
-  const { user: currentUser, loadUser,isLoading } = useUser();
+  const { user: currentUser,isLoading } = useUser();
   const isOwnProfile = currentUser?.user_id === user_id;
 
   /* ================= TABS ================= */
@@ -30,13 +30,12 @@ export default function Profile() {
   /* ================= HOOKS ================= */
   const {
     getUserById,
-    updateProfilePic,
     FollowUser,
     loading: userLoading,
     error: userError,
   } = useUsers();
 
-  const { fetchUserPosts, loading: postLoading, error: postError } = usePost();
+  const { fetchUserPosts, loading: usePostLoading, error: postError } = usePost();
 
   const {
     fetchSavedPosts,
@@ -44,6 +43,8 @@ export default function Profile() {
     loading: postActionLoading,
     error: postActionError,
   } = usePostAction();
+
+  const postLoading = usePostLoading || postActionLoading;
 
   /* ================= STATE ================= */
   const [user, setUser] = useState<User | null>(null);
@@ -91,41 +92,43 @@ export default function Profile() {
     ],
   );
 
-  /* ================= LOAD PROFILE ================= */
+
   useEffect(() => {
-    if (!user_id) return;
-    if (isLoading) return;
+    if (!user_id || isLoading) return;
 
     const loadProfile = async () => {
       const user = await getUserById(user_id);
       if (user) setUser(user);
+    };
+
+    loadProfile();
+  }, [user_id, isLoading]);
+
+  useEffect(() => {
+      if (!user_id || isLoading) return;
 
       setPosts([]);
       setCursor(null);
       setHasNext(true);
 
       loadPosts(true);
-    };
-
-    loadProfile();
-  }, [user_id, activeTab,isLoading]);
+    }, [activeTab, user_id, isLoading]);
 
   /* ================= INFINITE SCROLL ================= */
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !postLoading) {
-          loadPosts();
-        }
-      },
-      { threshold: 0.1 },
-    );
+    if (!loaderRef.current) return;
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasNext && !postLoading) {
+        loadPosts();
+      }
+    });
 
-    return () => observer.disconnect();
+    observerRef.current.observe(loaderRef.current);
+
+    return () => observerRef.current?.disconnect();
   }, [loadPosts, hasNext, postLoading]);
 
   /* ================= FOLLOW ================= */
@@ -148,16 +151,20 @@ export default function Profile() {
         : prev,
     );
   };
-  const tabClass = (tab: string) =>
-    `pb-2 border-b-2 cursor-pointer whitespace-nowrap transition ${
-      activeTab === tab
-        ? "border-primary text-primary"
-        : "border-transparent text-gray-500 hover:text-primary"
-    }`;
+  const tabClass = useCallback(
+    (tab: string) =>
+      `pb-2 border-b-2 cursor-pointer whitespace-nowrap transition ${
+        activeTab === tab
+          ? "border-primary text-primary"
+          : "border-transparent text-gray-500 hover:text-primary"
+      }`,
+    [activeTab],
+  );
 
+  console.log(posts)
   /* -------------------- UI -------------------- */
   return (
-    <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-6">
+    <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 pt-6">
       <div className="flex-1 flex flex-col">
         {/* ================= PROFILE HEADER ================= */}
         <div className="sticky top-0 left-0 z-10 -mt-6 bg-white">
@@ -165,14 +172,6 @@ export default function Profile() {
             user={user}
             isOwnProfile={isOwnProfile}
             onFollow={handleFollow}
-            onChangeProfilePic={async (file) => {
-              const res = await updateProfilePic(file);
-              if (res) {
-                const updatedUser = await getUserById(user_id);
-                if (updatedUser) setUser(updatedUser);
-                await loadUser();
-              }
-            }}
           />
           <div className="mt-6 flex gap-4 border-b text-sm font-medium overflow-x-auto">
             <button
@@ -219,31 +218,37 @@ export default function Profile() {
           </div>
         </div>
         {/* ================= POSTS GRID ================= */}
-        {activeTab == "friends" && (
-          <div className="sticky top-5 py-3 -mt-6">
-            <Friends user_id={user?.user_id} isOwnProfile={isOwnProfile} />
+
+        {activeTab !== "friends" && user && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+            {posts.map((post) => (
+              <UserPostCard
+                key={post.post_id}
+                post={post}
+                onDelete={handleDeleteLocal}
+              />
+            ))}
+            <div
+              ref={loaderRef}
+              className="h-10 flex items-center justify-center"
+            >
+              {postLoading && (
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
+              )}
+            </div>
           </div>
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-          {posts.map((post) => (
-            <UserPostCard
-              key={post.post_id}
-              post={post}
-              onDelete={handleDeleteLocal}
-            />
-          ))}
-        </div>
-
-        {postLoading && (
-          <p className="text-center py-6 text-gray-500">
-            Loading more posts...
-          </p>
-        )}
-
         {!hasNext && posts.length > 0 && (
           <p className="text-center py-6 text-gray-400 text-sm">
             No more posts
           </p>
+        )}
+        {activeTab === "friends" && user && (
+          <Friends
+            user_id={user.user_id}
+            isOwnProfile={isOwnProfile}
+            key={user_id}
+          />
         )}
       </div>
     </div>

@@ -72,6 +72,8 @@ export default function Home() {
     return () => observer.disconnect();
   }, [loadPosts, hasNext, loading]);
 
+  console.log("home")
+
   return (
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-10">
       {/* MAIN FEED */}
