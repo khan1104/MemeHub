@@ -17,6 +17,7 @@ class UserResponse(BaseModel):
     total_friends:int
     isFollowing:bool=False
     isFriend:bool=False
+    isRequestSent:bool=False
 
 
 

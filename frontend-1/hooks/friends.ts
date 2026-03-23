@@ -1,12 +1,12 @@
 import { useState } from "react"
-import { handleGetFriends,
-        handleGetMutualFriends,
-        handleGetRequests,
-        handleGetSentRequests,
+import { fetchFriends,
+        fetchMutualFriends,
+        fetchReciveRequests,
+        fetchSentRequests,
         handleFriendRequest,
-        handleCancelRequest,
-        handleRemovefriend,
-        handleSendRequest
+        cancelSentRequest,
+        removeFriend,
+        sendFriendRequest
  } from "@/services/friends.service";
 import { PaginatedFriendResponse,PaginatedRequestResponse } from "@/types/friends.type";
 
@@ -19,7 +19,7 @@ export const useFriends = () => {
     setError(null)
     try {
       setLoading(true)
-      return await handleGetFriends(user_id,sort_by,cursor);
+      return await fetchFriends(user_id,sort_by,cursor);
     } catch (err: any) {
       setError(err.message)
       return null
@@ -32,7 +32,7 @@ export const useFriends = () => {
     setError(null)
     try {
       setLoading(true)
-      return await handleGetMutualFriends(user_id,cursor);
+      return await fetchMutualFriends(user_id,cursor);
     } catch (err: any) {
       setError(err.message)
       return null
@@ -41,11 +41,11 @@ export const useFriends = () => {
     }
   }
 
-  const getRequests=async(cursor?: string): Promise<PaginatedRequestResponse | null>=>{
+  const getReciveRequests=async(cursor?: string): Promise<PaginatedRequestResponse | null>=>{
     setError(null)
     try {
       setLoading(true)
-      return await handleGetRequests(cursor);
+      return await fetchReciveRequests(cursor);
     } catch (err: any) {
       setError(err.message)
       return null
@@ -58,7 +58,7 @@ export const useFriends = () => {
     setError(null)
     try {
       setLoading(true)
-      return await handleGetSentRequests(cursor);
+      return await fetchSentRequests(cursor);
     } catch (err: any) {
       setError(err.message)
       return null
@@ -67,6 +67,35 @@ export const useFriends = () => {
     }
   }
 
+  const sendRequest=async(user_id:string)=>{
+    setError(null)
+    try {
+      setLoading(true)
+      return await sendFriendRequest(user_id);
+    } catch (err: any) {
+      setError(err.message)
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  return {getFriends,getMutualFriends,getRequests,getSentRequests,loading, error,setError};
+  const cancelRequest=async(user_id:string)=>{
+    setError(null)
+    try {
+      setLoading(true)
+      return await cancelSentRequest(user_id);
+    } catch (err: any) {
+      setError(err.message)
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  
+
+
+
+  return {getFriends,getMutualFriends,getReciveRequests,getSentRequests,sendRequest,cancelRequest,loading, error,setError};
 };

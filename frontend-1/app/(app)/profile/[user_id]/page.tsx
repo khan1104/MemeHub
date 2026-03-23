@@ -1,127 +1,138 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+
 import { useUser } from "@/context/UserContext";
 import { usePost } from "@/hooks/post";
 import { useUsers } from "@/hooks/user";
 import { usePostAction } from "@/hooks/postsAction";
 
 import UserPostCard from "@/components/UserPostsCrad";
-import ProfileHeader from "@/components/ProfileHeader";
+import ProfileHeader from "@/components/profile/ProfileHeader"
+import Friends from "@/components/Friends";
 
 import { Post } from "@/types/posts.type";
 import { User } from "@/types/user.type";
-import Friends from "@/components/Friends";
 
 export default function Profile() {
   /* ================= ROUTE ================= */
   const params = useParams();
   const user_id = params.user_id as string;
 
-  const { user: currentUser,isLoading } = useUser();
+  const { user: currentUser, isLoading } = useUser();
   const isOwnProfile = currentUser?.user_id === user_id;
 
-  /* ================= TABS ================= */
+  /* ================= TAB ================= */
+
   const [activeTab, setActiveTab] = useState<
-    "latest" | "top" | "oldest" | "friends"| "saved" | "liked"
+    "latest" | "top" | "oldest" | "friends" | "saved" | "liked"
   >("latest");
 
   /* ================= HOOKS ================= */
-  const {
-    getUserById,
-    FollowUser,
-    loading: userLoading,
-    error: userError,
-  } = useUsers();
 
-  const { fetchUserPosts, loading: usePostLoading, error: postError } = usePost();
+  const { getUserById} = useUsers();
 
-  const {
-    fetchSavedPosts,
-    fetchLikedPosts,
-    loading: postActionLoading,
-    error: postActionError,
-  } = usePostAction();
+  const { fetchUserPosts } = usePost();
 
-  const postLoading = usePostLoading || postActionLoading;
+  const { fetchSavedPosts, fetchLikedPosts } = usePostAction();
 
   /* ================= STATE ================= */
+
   const [user, setUser] = useState<User | null>(null);
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  /* ================= LOAD POSTS ================= */
-  const loadPosts = useCallback(
-    async (isInitial = false) => {
-      if (isLoading) return;
-      if (postLoading || (!hasNext && !isInitial)) return;
-      if (activeTab === "friends") return;
+  const requestIdRef = useRef(0);
 
-      const currentCursor = isInitial ? null : cursor;
-      let res;
-
-      if (activeTab === "saved") {
-        res = await fetchSavedPosts(currentCursor);
-      } else if (activeTab === "liked") {
-        res = await fetchLikedPosts(currentCursor);
-      } else {
-        res = await fetchUserPosts(user_id, activeTab, currentCursor);
-      }
-
-      if (!res) return;
-
-      setPosts((prev) => (isInitial ? res.items : [...prev, ...res.items]));
-
-      setCursor(res.next_cursor);
-      setHasNext(res.has_next);
-    },
-    [
-      activeTab,
-      cursor,
-      hasNext,
-      postLoading,
-      user_id,
-      fetchUserPosts,
-      fetchSavedPosts,
-      fetchLikedPosts,
-      isLoading
-    ],
-  );
-
+  /* ================= LOAD PROFILE ================= */
 
   useEffect(() => {
     if (!user_id || isLoading) return;
 
     const loadProfile = async () => {
-      const user = await getUserById(user_id);
-      if (user) setUser(user);
+      const data = await getUserById(user_id);
+      if (data) setUser(data);
     };
 
     loadProfile();
   }, [user_id, isLoading]);
 
+  /* ================= LOAD POSTS ================= */
+
+  const loadPosts = useCallback(
+    async (isInitial = false) => {
+      if (loadingPosts) return;
+      if (!hasNext && !isInitial) return;
+      if (activeTab === "friends") return;
+
+      const requestId = ++requestIdRef.current;
+
+      setLoadingPosts(true);
+
+      const currentCursor = isInitial ? null : cursor;
+
+      let res;
+
+      try {
+        if (activeTab === "saved") {
+          res = await fetchSavedPosts(currentCursor);
+        } else if (activeTab === "liked") {
+          res = await fetchLikedPosts(currentCursor);
+        } else {
+          res = await fetchUserPosts(user_id, activeTab, currentCursor);
+        }
+
+        if (!res) return;
+
+        /* ignore old responses */
+        if (requestId !== requestIdRef.current) return;
+
+        setPosts((prev) => {
+          if (isInitial) return res.items;
+
+          const ids = new Set(prev.map((p) => p.post_id));
+          const filtered = res.items.filter((p) => !ids.has(p.post_id));
+
+          return [...prev, ...filtered];
+        });
+
+        setCursor(res.next_cursor);
+        setHasNext(res.has_next);
+      } finally {
+        setLoadingPosts(false);
+      }
+    },
+    [activeTab, cursor, hasNext, user_id],
+  );
+
+  /* ================= TAB CHANGE ================= */
+
   useEffect(() => {
-      if (!user_id || isLoading) return;
+    if (!user_id || isLoading) return;
 
-      setPosts([]);
-      setCursor(null);
-      setHasNext(true);
+    setPosts([]);
+    setCursor(null);
+    setHasNext(true);
 
-      loadPosts(true);
-    }, [activeTab, user_id, isLoading]);
+    loadPosts(true);
+  }, [activeTab, user_id, isLoading]);
 
   /* ================= INFINITE SCROLL ================= */
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     if (!loaderRef.current) return;
 
+    observerRef.current?.disconnect();
+
     observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasNext && !postLoading) {
+      if (entries[0].isIntersecting) {
         loadPosts();
       }
     });
@@ -129,16 +140,9 @@ export default function Profile() {
     observerRef.current.observe(loaderRef.current);
 
     return () => observerRef.current?.disconnect();
-  }, [loadPosts, hasNext, postLoading]);
+  }, [hasNext, loadPosts]);
 
-  /* ================= FOLLOW ================= */
-  const handleFollow = async () => {
-    if (!user?.user_id) return;
 
-    await FollowUser(user.user_id);
-    const updated = await getUserById(user_id);
-    if (updated) setUser(updated);
-  };
   const handleDeleteLocal = (id: string) => {
     setPosts((prev) => prev.filter((post) => post.post_id !== id));
 
@@ -151,28 +155,30 @@ export default function Profile() {
         : prev,
     );
   };
-  const tabClass = useCallback(
-    (tab: string) =>
-      `pb-2 border-b-2 cursor-pointer whitespace-nowrap transition ${
-        activeTab === tab
-          ? "border-primary text-primary"
-          : "border-transparent text-gray-500 hover:text-primary"
-      }`,
-    [activeTab],
-  );
 
-  console.log(posts)
-  /* -------------------- UI -------------------- */
+  /* ================= TAB STYLE ================= */
+
+  const tabClass = (tab: string) =>
+    `pb-2 border-b-2 cursor-pointer whitespace-nowrap transition ${
+      activeTab === tab
+        ? "border-primary text-primary"
+        : "border-transparent text-gray-500 hover:text-primary"
+    }`;
+
+  /* ================= UI ================= */
+
   return (
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 pt-6">
       <div className="flex-1 flex flex-col">
-        {/* ================= PROFILE HEADER ================= */}
+        {/* PROFILE HEADER */}
+
         <div className="sticky top-0 left-0 z-10 -mt-6 bg-white">
-          <ProfileHeader
-            user={user}
-            isOwnProfile={isOwnProfile}
-            onFollow={handleFollow}
-          />
+          {!user ? (
+            <div className="p-6">Loading profile...</div>
+          ) : (
+            <ProfileHeader user={user} isOwnProfile={isOwnProfile} />
+          )}
+
           <div className="mt-6 flex gap-4 border-b text-sm font-medium overflow-x-auto">
             <button
               className={tabClass("latest")}
@@ -180,23 +186,26 @@ export default function Profile() {
             >
               New
             </button>
+
             <button
               className={tabClass("top")}
               onClick={() => setActiveTab("top")}
             >
               Top
             </button>
+
             <button
               className={tabClass("oldest")}
               onClick={() => setActiveTab("oldest")}
             >
               Oldest
             </button>
+
             <button
               className={tabClass("friends")}
               onClick={() => setActiveTab("friends")}
             >
-              friends
+              Friends
             </button>
 
             {isOwnProfile && (
@@ -207,17 +216,19 @@ export default function Profile() {
                 >
                   Saved
                 </button>
+
                 <button
                   className={tabClass("liked")}
                   onClick={() => setActiveTab("liked")}
                 >
-                  Liked Posts
+                  Liked
                 </button>
               </>
             )}
           </div>
         </div>
-        {/* ================= POSTS GRID ================= */}
+
+        {/* POSTS GRID */}
 
         {activeTab !== "friends" && user && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
@@ -228,31 +239,30 @@ export default function Profile() {
                 onDelete={handleDeleteLocal}
               />
             ))}
-            <div
-              ref={loaderRef}
-              className="h-10 flex items-center justify-center"
-            >
-              {postLoading && (
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
-              )}
-            </div>
+
+            {hasNext && (
+              <div
+                ref={loaderRef}
+                className="h-10 flex items-center justify-center"
+              >
+                {loadingPosts && (
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
+                )}
+              </div>
+            )}
           </div>
         )}
+
         {!hasNext && posts.length > 0 && (
           <p className="text-center py-6 text-gray-400 text-sm">
             No more posts
           </p>
         )}
+
         {activeTab === "friends" && user && (
-          <Friends
-            user_id={user.user_id}
-            isOwnProfile={isOwnProfile}
-            key={user_id}
-          />
+          <Friends user_id={user.user_id} isOwnProfile={isOwnProfile} />
         )}
       </div>
     </div>
   );
 }
-
-// check

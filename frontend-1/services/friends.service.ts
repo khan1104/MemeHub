@@ -4,7 +4,7 @@ import { apiError } from "@/lib/apiError"
 
 
 
-export const handleSendRequest=async(user_id:string)=>{
+export const sendFriendRequest=async(user_id:string)=>{
     try{
         const res=await protected_api.post(`/friends/request/${user_id}`,{
             params: {
@@ -32,7 +32,7 @@ export const handleFriendRequest=async(request_id:string,action:string)=>{
     }
 }
 
-export const handleCancelRequest=async(user_id:string)=>{
+export const cancelSentRequest=async(user_id:string)=>{
     try{
         const res=await protected_api.delete(`/friends/requests/${user_id}`)
         return res.data
@@ -42,7 +42,7 @@ export const handleCancelRequest=async(user_id:string)=>{
     }
 }
 
-export const handleRemovefriend=async(user_id:string)=>{
+export const removeFriend=async(user_id:string)=>{
     try{
         const res=await protected_api.delete(`/friends/friends/${user_id}`)
         return res.data
@@ -52,7 +52,7 @@ export const handleRemovefriend=async(user_id:string)=>{
     }
 }
 
-export const handleGetFriends=async(user_id:string,sort_by?:string,cursor?: string,limit: number = 12)=>{
+export const fetchFriends=async(user_id:string,sort_by?:string,cursor?: string,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/friends/${user_id}`,{
             params: {
@@ -70,7 +70,7 @@ export const handleGetFriends=async(user_id:string,sort_by?:string,cursor?: stri
 }
 
 
-export const handleGetMutualFriends=async(user_id:string,cursor?: string,limit: number = 12)=>{
+export const fetchMutualFriends=async(user_id:string,cursor?: string,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/mutual-friends/${user_id}`,{
             params: {
@@ -86,7 +86,7 @@ export const handleGetMutualFriends=async(user_id:string,cursor?: string,limit: 
     }
 }
 
-export const handleGetRequests=async(cursor?: string,limit: number = 12)=>{
+export const fetchReciveRequests=async(cursor?: string,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/requests`,{
             params: {
@@ -101,7 +101,7 @@ export const handleGetRequests=async(cursor?: string,limit: number = 12)=>{
     }
 }
 
-export const handleGetSentRequests=async(cursor?: string,limit: number = 12)=>{
+export const fetchSentRequests=async(cursor?: string,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/sent-requests`,{
             params: {

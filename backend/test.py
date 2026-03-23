@@ -263,10 +263,10 @@
 #     print(file.size)
 #     return {"filename": file.filename}
 
-from fastapi import FastAPI, File, UploadFile
-import uvicorn
+# from fastapi import FastAPI, File, UploadFile
+# import uvicorn
 
-app = FastAPI()
+# app = FastAPI()
 
 
 # @app.post("/files/")
@@ -297,15 +297,15 @@ app = FastAPI()
 #     file.file.seek(0)     # reset pointer
 #     print(size)
 
-@app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile=File()): # file is optional
-    # await handle_file(file)
-    size=file_size = (file.file.seek(0, 2), file.file.tell(), file.file.seek(0))[1]
-    print(size)
-    return {"filename": file.filename}
+# @app.post("/uploadfile/")
+# async def create_upload_file(file: UploadFile=File()): # file is optional
+#     # await handle_file(file)
+#     size=file_size = (file.file.seek(0, 2), file.file.tell(), file.file.seek(0))[1]
+#     print(size)
+#     return {"filename": file.filename}
 
-if __name__=="__main__":
-    uvicorn.run("test:app",reload=True)
+# if __name__=="__main__":
+#     uvicorn.run("test:app",reload=True)
 # # from fastapi import FastAPI
 
 # # import time
@@ -495,22 +495,23 @@ if __name__=="__main__":
 # def test(value: str = Header(None)): # Cookie ki jagah Header use karein
 #     return {"received_value": value}
 
-from fastapi import FastAPI, Query
-from typing import List, Dict
+# from fastapi import FastAPI, Query
+# from typing import List, Dict
 
-app = FastAPI()
+# app = FastAPI()
 
-# A simple in-memory list of data
-fake_db = [{"id": i, "name": f"Item {i}"} for i in range(1, 101)]
+# # A simple in-memory list of data
+# fake_db = [{"id": i, "name": f"Item {i}"} for i in range(1, 101)]
 
-@app.get("/items_manual", response_model=List[Dict])
-def get_items_manual(
-    limit: int = Query(10, ge=1, le=100), # Max 100 items per page
-    offset: int = Query(0, ge=0)
-) -> List[Dict]:
-    # Calculate the start and end of the slice
-    start = offset
-    end = offset + limit
+# @app.get("/items_manual", response_model=List[Dict])
+# def get_items_manual(
+#     limit: int = Query(10, ge=1, le=100), # Max 100 items per page
+#     offset: int = Query(0, ge=0)
+# ) -> List[Dict]:
+#     # Calculate the start and end of the slice
+#     start = offset
+#     end = offset + limit
     
-    # In a real application, you would pass limit and offset to your database query
-    return fake_db[start:end]
+#     # In a real application, you would pass limit and offset to your database query
+#     return fake_db[start:end]
+

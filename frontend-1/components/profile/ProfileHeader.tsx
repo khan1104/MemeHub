@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import {
   Edit,
@@ -11,40 +11,106 @@ import {
 } from "lucide-react";
 import { FaUserPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import LoginRequiredModal from "../modals/LoginRequiredModal";
 import { User } from "@/types/user.type";
 import { useUsers } from "@/hooks/user";
 import { useUser } from "@/context/UserContext";
+import { useFriends } from "@/hooks/friends";
 
 interface ProfileHeaderProps {
-  user: User | null;
+  user: User;
   isOwnProfile: boolean;
-  onFollow: () => Promise<void>;
 }
 
 export default function ProfileHeader({
   user,
   isOwnProfile,
-  onFollow,
 }: ProfileHeaderProps) {
   const router = useRouter();
+
+  const { isLoggedIn, loadUser ,isLoading} = useUser();
+  const {
+    updateProfilePic,
+    followUser
+  } = useUsers();
+  const {
+    sendRequest,
+    cancelRequest
+  } = useFriends();
+
+  
+  const [totalFollowers,setTotalFollowers]=useState(user.total_followers)
+
+  const [isFollowed, setIsFollowed] = useState(user.isFollowing);
+  const [isRequestSent, setIsRequestSent] = useState(user.isRequestSent);
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const {updateProfilePic}=useUsers()
-  const {loadUser}=useUser()
+  const checkAuth = (action: () => void) => {
+    if (isLoggedIn) {
+      action();
+    } else {
+      setShowLoginModal(true);
+    }
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // await onChangeProfilePic(file);
     const res = await updateProfilePic(file);
-    if (res){
+    if (res) {
       await loadUser();
     }
   };
-  
-  console.log("i am aprofile header")
+
+
+  const handleFollow = async () => {
+    checkAuth(async () => {
+      if (!user?.user_id || isLoading) return;
+      // optimistic UI
+      if (isFollowed) {
+        setTotalFollowers((prev) => prev - 1);
+        setIsFollowed(false);
+      } else {
+        setTotalFollowers((prev) => prev + 1);
+        setIsFollowed(true);
+      }
+      await followUser(user.user_id);
+    });
+  };
+
+  const handleAddFriend = async () => {
+    checkAuth(async () => {
+      if (!user?.user_id || isLoading) return;
+      if (isRequestSent) {
+        setIsRequestSent(false);
+      } else {
+        setIsRequestSent(true);
+      }
+      await sendRequest(user.user_id);
+    });
+  };
+  const handleCancelRequest = async () => {
+    checkAuth(async () => {
+      if (!user?.user_id || isLoading) return;
+      if (isRequestSent) {
+        setIsRequestSent(false);
+      } else {
+        setIsRequestSent(true);
+      }
+      await cancelRequest(user.user_id);
+    });
+  };
 
   return (
     <div className="sticky top-0 left-0 z-10 py-6 -mt-6 bg-white">
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
       <div className="flex flex-col md:flex-row md:items-center gap-4">
         {/* ---------- PROFILE IMAGE ---------- */}
         <div className="relative mx-auto md:mx-0">
@@ -100,8 +166,7 @@ export default function ProfileHeader({
 
               <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
                 <div>
-                  <span className="font-semibold">{user?.total_posts}</span>{" "}
-                  Posts
+                  <span className="font-semibold">{user?.total_posts}</span> Posts
                 </div>
 
                 <button
@@ -122,7 +187,7 @@ export default function ProfileHeader({
                   }
                 >
                   <UserPlus size={16} />
-                  <span className="font-semibold">{user?.total_followers}</span>
+                  <span className="font-semibold">{totalFollowers}</span>
                   Followers
                 </button>
 
@@ -147,26 +212,38 @@ export default function ProfileHeader({
                     Edit Profile
                   </button>
                 ) : (
-                  <div className="flex gap-2">
-                    {/* Message or Add Friend */}
-                    {user?.isFriend ? (
-                      <button className="flex-1 bg-gray-200 px-4 py-2 rounded-xl flex items-center justify-center gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {user?.isFriend && (
+                      <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
                         <MessageCircle size={16} />
                         Message
                       </button>
+                    )}
+                    {isRequestSent ? (
+                      <button
+                        className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded-xl flex items-center justify-center gap-2"
+                        
+                        onClick={handleCancelRequest}
+                      >
+                        Cancel Request
+                      </button>
                     ) : (
-                      <button className="flex-1 bg-gray-200 px-4 py-2 rounded-xl flex items-center justify-center gap-2">
+                      <button
+                        className="bg-gray-200 px-7 py-2 rounded-xl flex items-center gap-2"
+                        onClick={handleAddFriend}
+                        
+                      >
                         <FaUserPlus size={16} />
                         Add Friend
                       </button>
                     )}
 
-                    {/* Follow Button */}
                     <button
-                      onClick={onFollow}
-                      className="flex-1 bg-primary text-white px-4 py-2 rounded-xl"
+                      onClick={handleFollow}
+                      className="bg-primary text-white px-5 py-2 rounded-xl"
+                     
                     >
-                      {user?.isFollowing ? "Unfollow" : "Follow"}
+                      {isFollowed ? "Unfollow" : "Follow"}
                     </button>
                   </div>
                 )}
@@ -196,7 +273,7 @@ export default function ProfileHeader({
 
               <button className="flex items-center gap-2 hover:text-purple-600">
                 <UserPlus size={16} />
-                <span className="font-semibold">{user?.total_followers}</span>
+                <span className="font-semibold">{totalFollowers}</span>
                 Followers
               </button>
 
@@ -226,19 +303,31 @@ export default function ProfileHeader({
                   Message
                 </button>
               )}
-
-              {!user?.isFriend && (
-                <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
+              {isRequestSent ? (
+                <button
+                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded-xl flex items-center justify-center gap-2"
+                  onClick={handleCancelRequest}
+                  
+                >
+                  Cancel Request
+                </button>
+              ) : (
+                <button
+                  className="bg-gray-200 px-7 py-2 rounded-xl flex items-center gap-2"
+                  onClick={handleAddFriend}
+                  
+                >
                   <FaUserPlus size={16} />
                   Add Friend
                 </button>
               )}
 
               <button
-                onClick={onFollow}
+                onClick={handleFollow}
                 className="bg-primary text-white px-5 py-2 rounded-xl"
+                
               >
-                {user?.isFollowing ? "Unfollow" : "Follow"}
+                {isFollowed ? "Unfollow" : "Follow"}
               </button>
             </>
           )}
@@ -247,3 +336,4 @@ export default function ProfileHeader({
     </div>
   );
 }
+

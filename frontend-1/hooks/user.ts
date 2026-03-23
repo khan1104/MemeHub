@@ -71,7 +71,8 @@ export const useUsers = () => {
     }
   }
 
-  const FollowUser=async(user_id:string)=>{
+  const followUser=async(user_id:string)=>{
+    setError(null)
     try{
         setLoading(true)
         await handleFollow(user_id);
@@ -84,7 +85,8 @@ export const useUsers = () => {
       setLoading(false)
     }
   }
-  const ReportUser=async(user_id:string,reason:string,description:string)=>{
+  const reportUser=async(user_id:string,reason:string,description:string)=>{
+    setError(null)
     try{
         setLoading(true)
         await handleReport(user_id,reason,description);
@@ -99,6 +101,7 @@ export const useUsers = () => {
   }
 
   const getFollowings=async(user_id:string,cursor?: string):Promise<PaginatedFollowDataResponse  | null>=>{
+    setError(null)
     try{
         setLoading(true)
         return await handleGetFollowings(user_id,cursor);
@@ -112,6 +115,7 @@ export const useUsers = () => {
   }
 
   const getFollowers=async(user_id:string,cursor?: string):Promise<PaginatedFollowDataResponse  | null>=>{
+    setError(null)
     try{
         setLoading(true)
         return await handleGetFollowers(user_id,cursor);
@@ -128,6 +132,6 @@ export const useUsers = () => {
 
   
 
-  return {getUserById,updateUserInfo, updateProfilePic,FollowUser,ReportUser,getFollowers,getFollowings, loading, error, setError };
+  return {getUserById,updateUserInfo, updateProfilePic,followUser,reportUser,getFollowers,getFollowings, loading, error, setError };
 };
 

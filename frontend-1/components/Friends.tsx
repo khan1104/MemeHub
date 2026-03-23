@@ -1,220 +1,130 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
-import { useFriends } from "@/hooks/friends";
 import { FollowData } from "@/types/user.type";
-import { Friend, Request } from "@/types/friends.type";
+
 import { useUsers } from "@/hooks/user";
 import { useUser } from "@/context/UserContext";
-import { MoreHorizontal } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 
-const Tabs = [
-  "Friends",
-  "Recently Added",
-  "Mutual Friends",
-  "Followers",
-  "Following",
-  "Requests",
-  "Sent Requests",
-];
-
-interface FriendProps {
-  user_id: string;
-  isOwnProfile: boolean;
+interface ParentProps {
+  user: FollowData;
 }
 
-function FriendCard({ user }: { user: Friend }) {
+// for followers and followings
+function FollowCard({ user }: ParentProps) {
   return (
-    <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl border border-gray-50 hover:bg-gray-50 transition w-full">
+    <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl hover:shadow-sm transition">
+      {/* Left Section */}
       <div className="flex items-center gap-3">
-        <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg overflow-hidden">
+        {/* Profile Image */}
+        <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
           <Image
-            src={user.profile_pic}
+            src={user.profile_pic || "/default.png"}
             alt={user.user_name}
             fill
             className="object-cover"
           />
         </div>
 
-        <p className="font-medium text-gray-800 text-sm sm:text-base md:text-lg line-clamp-1">
-          {user.user_name}
-        </p>
+        {/* Name */}
+        <div>
+          <p className="text-sm sm:text-base md:text-lg font-medium text-gray-800">
+            {user.user_name}
+          </p>
+        </div>
       </div>
 
-      <button className="p-1 sm:p-2 rounded-full hover:bg-gray-200 transition">
-        <MoreHorizontal size={18} />
+      <div className="flex gap-2 mt-2 sm:hidden w-full justify-end">
+        {/* Follow Button */}
+        <button className="px-3 py-1 text-xs rounded-full bg-primary text-white">
+          {user.isFollowing ? "Unfollow" : "Follow"}
+        </button>
+
+        {/* Message Button */}
+        <button className="px-3 py-1 text-xs rounded-full border border-gray-300 text-gray-700">
+          Message
+        </button>
+      </div>
+
+      {/* ✅ DESKTOP MENU */}
+      <button className="hidden sm:block mt-2 p-1 rounded-full hover:bg-gray-100">
+        <MoreVertical size={16} />
       </button>
     </div>
   );
 }
 
-function FollowCard({ user }: { user: FollowData }) {
-  return (
-    <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-gray-50 hover:bg-gray-50 transition w-full">
-      <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg overflow-hidden">
-        <Image
-          src={user.profile_pic}
-          alt={user.user_name}
-          fill
-          className="object-cover"
-        />
-      </div>
+const Tabs = ["Followers", "Following"];
 
-      <p className="font-medium text-gray-800 text-sm sm:text-base md:text-lg line-clamp-1">
-        {user.user_name}
-      </p>
-    </div>
-  );
+interface FriendProps {
+  user_id: string;
+  isOwnProfile: boolean;
 }
 
-function RequestCard({ user }: { user: Request }) {
-  return (
-    <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-gray-50 hover:bg-gray-50 transition w-full">
-      <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg overflow-hidden">
-        <Image
-          src={user.profile_pic}
-          alt={user.user_name}
-          fill
-          className="object-cover"
-        />
-      </div>
+function Friends({ user_id, isOwnProfile }: FriendProps) {
+  const [activeTab, setActiveTab] = useState("Followers");
+  const { user, isLoggedIn, isLoading } = useUser();
+  const { getFollowers, getFollowings, loading, error } = useUsers();
 
-      <p className="font-medium text-gray-800 text-sm sm:text-base md:text-lg line-clamp-1">
-        {user.user_name}
-      </p>
-    </div>
-  );
-}
-
-export default function Friends({ user_id }: FriendProps) {
-  const { isLoading } = useUser();
-
-  const { getFriends, getMutualFriends, getRequests, getSentRequests } =
-    useFriends();
-
-  const { getFollowers, getFollowings } = useUsers();
-
-  const [activeTab, setActiveTab] = useState("Friends");
-
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [followData, setFollowData] = useState<FollowData[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
-
+  const [data, setData] = useState<FollowData[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(true);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const loadData = useCallback(
+  // 1. Fetch Logic
+  const loadPosts = useCallback(
     async (isInitial = false) => {
       if (isLoading) return;
-      if (!hasNext && !isInitial) return;
+      if (loading || (!hasNext && !isInitial)) return;
 
       const currentCursor = isInitial ? null : cursor;
 
       let data;
-
-      switch (activeTab) {
-        case "Friends":
-          data = await getFriends(user_id, "oldest", currentCursor);
-          break;
-
-        case "Recently Added":
-          data = await getFriends(user_id, "latest", currentCursor);
-          break;
-
-        case "Mutual Friends":
-          data = await getMutualFriends(user_id, currentCursor);
-          break;
-
-        case "Followers":
-          data = await getFollowers(user_id, currentCursor);
-          break;
-
-        case "Following":
-          data = await getFollowings(user_id, currentCursor);
-          break;
-
-        case "Requests":
-          data = await getRequests(currentCursor);
-          break;
-
-        case "Sent Requests":
-          data = await getSentRequests(currentCursor);
-          break;
+      if (activeTab === "Followers") {
+        data = await getFollowers(user_id, currentCursor); // Ensure your hook accepts 'active'
+      } else if (activeTab === "Followings") {
+        data = await getFollowings(user_id, currentCursor);
       }
-
       if (!data) return;
 
       if (isInitial) {
-        if (
-          activeTab === "Friends" ||
-          activeTab === "Recently Added" ||
-          activeTab === "Mutual Friends"
-        ) {
-          setFriends(data.items);
-        }
-
-        if (activeTab === "Followers" || activeTab === "Following") {
-          setFollowData(data.items);
-        }
-
-        if (activeTab === "Requests" || activeTab === "Sent Requests") {
-          setRequests(data.items);
-        }
+        setData(data.items);
       } else {
-        if (
-          activeTab === "Friends" ||
-          activeTab === "Recently Added" ||
-          activeTab === "Mutual Friends"
-        ) {
-          setFriends((prev) => [...prev, ...data.items]);
-        }
-
-        if (activeTab === "Followers" || activeTab === "Following") {
-          setFollowData((prev) => [...prev, ...data.items]);
-        }
-
-        if (activeTab === "Requests" || activeTab === "Sent Requests") {
-          setRequests((prev) => [...prev, ...data.items]);
-        }
+        setData((prev) => [...prev, ...data.items]);
       }
 
       setCursor(data.next_cursor);
       setHasNext(data.has_next);
     },
     [
-      activeTab,
       cursor,
       hasNext,
-      isLoading,
-      user_id,
-      getFriends,
-      getMutualFriends,
+      loading,
       getFollowers,
       getFollowings,
-      getRequests,
-      getSentRequests,
+      isLoading,
+      user_id,
+      activeTab,
     ],
   );
 
+  // 2. Reset feed when Category changes
   useEffect(() => {
     if (isLoading) return;
-
-    setFriends([]);
-    setFollowData([]);
-    setRequests([]);
+    setData([]);
     setCursor(null);
     setHasNext(true);
-
-    loadData(true);
+    loadPosts(true);
   }, [activeTab, isLoading]);
 
+  // 3. Infinite Scroll (Intersection Observer)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNext) {
-          loadData();
+        if (entries[0].isIntersecting && hasNext && !loading) {
+          loadPosts();
         }
       },
       { threshold: 0.1 },
@@ -225,18 +135,48 @@ export default function Friends({ user_id }: FriendProps) {
     }
 
     return () => observer.disconnect();
-  }, [loadData, hasNext]);
-  console.log("hello frienfd")
+  }, [loadPosts, hasNext, loading]);
+  console.log(data);
+
+  const tabClass = useCallback(
+    (tab: string) =>
+      `px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${
+        activeTab === tab
+          ? "bg-purple-100 text-purple-700"
+          : "hover:bg-gray-100 text-gray-500"
+      }`,
+    [activeTab],
+  );
 
   return (
-    <div className="grid grid-cols-1 gap-2 mt-4">
-  
-        {
-          friends.map((friend) => (
-            <FriendCard key={friend.user_id} user={friend} />
-          ))}
-
-        
+    <div className="grid grid-cols-1 gap-2 mt-5">
+      {/* ================= STICKY TABS ================= */}
+      <div className="sticky sm:top-35 top-55 z-10 bg-white pb-2">
+        <div className="flex overflow-x-auto scrollbar-hide gap-1">
+          <button
+            className={tabClass("Followers")}
+            onClick={() => setActiveTab("Followers")}
+          >
+            Followers
+          </button>
+          <button
+            className={tabClass("Followings")}
+            onClick={() => setActiveTab("Followings")}
+          >
+            Followings
+          </button>
+        </div>
       </div>
+
+      {/* ================= FRIENDS GRID ================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
+        {activeTab === "Followers" &&
+          data.map((user) => <FollowCard user={user} key={user.user_id} />)}
+        {activeTab === "Followings" &&
+          data.map((user) => <FollowCard user={user} key={user.user_id} />)}
+      </div>
+    </div>
   );
 }
+
+export default Friends;

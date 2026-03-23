@@ -2,8 +2,8 @@ export interface Friend {
   user_id: string
   user_name: string
   profile_pic:string
-  isFollowing?: boolean;
-  isFriend?: boolean;
+  isFollowing: boolean;
+  isFriend: boolean;
   created_at: string;
 }
 

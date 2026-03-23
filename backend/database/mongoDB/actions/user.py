@@ -153,6 +153,31 @@ class UserActions(BaseActions):
                 }
             },
 
+            {
+                "$lookup": {
+                    "from": "friend_requests",
+                    "let": {
+                    "currentUserId": current_user_oid,
+                    "targetUserId": "$_id"  
+                    },
+                    "pipeline": [
+                    {
+                        "$match": {
+                        "$expr": {
+                            "$and": [
+                            { "$eq": ["$requester_id", "$$currentUserId"] },
+                            { "$eq": ["$recipient_id", "$$targetUserId"] },
+                            { "$eq": ["$status", "pending"] }
+                            ]
+                        }
+                        }
+                    },
+                    { "$limit": 1 }
+                    ],
+                    "as": "is_request_doc"
+                }
+            },
+
             # 🎯 Computed fields
             {
                 "$addFields": {
@@ -181,6 +206,12 @@ class UserActions(BaseActions):
                             {"$size": "$is_friend_doc"},
                             0
                         ]
+                    },
+                    "isRequestSent": {
+                        "$gt": [
+                            {"$size": "$is_request_doc"},
+                            0
+                        ]
                     }
                 }
             },
@@ -199,6 +230,7 @@ class UserActions(BaseActions):
                     "total_following": 1,
                     "total_friends": 1,
                     "isFollowing": 1,
+                    "isRequestSent":1,
                     "isFriend": 1,
                 }
             }
@@ -242,20 +274,19 @@ class FollowActions(BaseActions):
     async def get_follow_data(
         self,
         user_id: str,
+        type: str,  # "followings" | "followers"
         logged_in_user_id: str|None=None,
-        type: str = "following",  # "following" | "followers"
         cursor: str | None = None,
-        limit: int = 12
+        limit: int = 2
 
     ):
         user_id = self.validate_object_id(user_id)
-        # logged_in_user_oid = self.validate_object_id(logged_in_user_id)
         logged_in_user_oid = self.validate_object_id(logged_in_user_id) if logged_in_user_id else None
         match_stage={}
         if cursor:
             c = self.decode_cursor(cursor)
             match_stage["_id"] = {"$lt": c["_id"]}
-        if type == "following":
+        if type == "followings":
             match_stage["follower_id"]= user_id
             local_field = "following_id"
         else:  # followers
@@ -355,7 +386,7 @@ class FollowActions(BaseActions):
             # 4️⃣ Project
             {
                 "$project": {
-                    "_id": 0,
+                    "_id": 1,
                     "user_id": {"$toString":"$user_doc._id"},
                     "user_name": "$user_doc.user_name",
                     "profile_pic": "$user_doc.profile_pic",
