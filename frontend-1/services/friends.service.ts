@@ -20,9 +20,9 @@ export const sendFriendRequest=async(user_id:string)=>{
 
 export const handleFriendRequest=async(request_id:string,action:string)=>{
     try{
-        const res=await protected_api.put(`/friends/request/${request_id}`,{
+        const res=await protected_api.put(`/friends/request/${request_id}`,{},{
             params: {
-            action
+                action,
             }
         })
         return res.data
@@ -56,7 +56,6 @@ export const fetchFriends=async(user_id:string,sort_by?:string,cursor?: string,l
     try{
         const res=await protected_api.get(`/friends/friends/${user_id}`,{
             params: {
-            user_id,
             sort_by,
             cursor,
             limit
@@ -74,7 +73,6 @@ export const fetchMutualFriends=async(user_id:string,cursor?: string,limit: numb
     try{
         const res=await protected_api.get(`/friends/mutual-friends/${user_id}`,{
             params: {
-            user_id,
             cursor,
             limit
             }

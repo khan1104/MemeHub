@@ -6,7 +6,8 @@ import {handleFollow,
   handleUpadteProfilePic, 
   handleUpadteUserInfo,
   handleGetFollowers,
-  handleGetFollowings
+  handleGetFollowings,
+  searchUsers
 } from "@/services/user.service";
 import { useUser } from "@/context/UserContext";
 import { PaginatedFollowDataResponse } from "@/types/user.type";
@@ -129,9 +130,24 @@ export const useUsers = () => {
     }
   }
 
+  const SearchUsers=async(query: string)=>{
+    setError(null)
+    try{
+        setLoading(true)
+        return await searchUsers(query);
+    
+    }
+    catch(error:any){
+      setError(error.message)
+      return null
+    }finally {
+      setLoading(false)
+    }
+  }
+
 
   
 
-  return {getUserById,updateUserInfo, updateProfilePic,followUser,reportUser,getFollowers,getFollowings, loading, error, setError };
+  return {getUserById,updateUserInfo, updateProfilePic,followUser,reportUser,getFollowers,getFollowings,SearchUsers, loading, error, setError };
 };
 

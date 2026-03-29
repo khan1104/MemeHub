@@ -7,6 +7,9 @@ db = client[settings.DATABASE_NAME]
 
 async def create_indexes():
 
+    await db["users"].create_index([("user_name",1)])
+    await db["users"].create_index([("email",1)])
+
     # 📌 POSTS
     await db["posts"].create_index([("created_at", DESCENDING)])
     await db["posts"].create_index([("created_by", ASCENDING)])

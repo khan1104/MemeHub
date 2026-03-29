@@ -20,6 +20,7 @@ async def handle_friend_request(
     action:FriendRequestStatus,
     current_user=Depends(get_current_user)
 ):
+
     await service.handle_friend_request(request_id, current_user["_id"], action)
     return {"message": f"Request {action}ed"}
 

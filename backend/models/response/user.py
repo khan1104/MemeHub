@@ -23,6 +23,7 @@ class UserResponse(BaseModel):
 
 class SearchUserResponse(MongoBaseModel):
     user_name:str
+    profile_pic:str
 
 
 class FollowDataResponse(BaseModel):

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import UploadModal from "@/components/modals/UploadPostsModal";
 import {
   Search,
@@ -16,7 +16,21 @@ import { useAuthActions } from "@/hooks/auth";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import { IoMdNotifications } from "react-icons/io";
+import { useUsers } from "@/hooks/user";
 
+const useDebounce = (value: string, delay: number = 500) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 type NavbarProps = {
   toggleSidebar: () => void;
@@ -24,37 +38,138 @@ type NavbarProps = {
 
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
-  const { user, isLoading} = useUser(); // Context se user data le rahe hain
-  const isLoggedIn=!!user;
-  const {logout}=useAuthActions();
+  const { user, isLoading } = useUser(); // Context se user data le rahe hain
+  const isLoggedIn = !!user;
+  const { logout } = useAuthActions();
   const [openUpload, setOpenUpload] = useState(false);
   const [openAppModal, setOpenAppModal] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const [mobileSearch, setMobileSearch] = useState(false);
-  const userInitial = user?.user_name ? user.user_name.charAt(0).toUpperCase() : "U";
-  const handleLogout = async() => {
+  const userInitial = user?.user_name
+    ? user.user_name.charAt(0).toUpperCase()
+    : "U";
+  const handleLogout = async () => {
     setOpenMenu(false);
-    const success=await logout();
-    if(success) router.replace("/sign-in")
+    const success = await logout();
+    if (success) router.replace("/sign-in");
   };
+
+  const [query, setQuery] = useState("");
+  const {SearchUsers}=useUsers()
+  const [users, setUsers] = useState<any[]>([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const debouncedQuery = useDebounce(query, 500);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+ useEffect(() => {
+   const fetchUsers = async () => {
+     if (!debouncedQuery.trim() || debouncedQuery.length < 2) {
+       setUsers([]);
+       setShowDropdown(false);
+       return;
+     }
+
+     setLoadingSearch(true);
+     setShowDropdown(true);
+
+     const res = await SearchUsers(debouncedQuery);
+     if (res) setUsers(res);
+
+     setLoadingSearch(false);
+   };
+
+   fetchUsers();
+ }, [debouncedQuery]);
+
+ useEffect(() => {
+   setSelectedIndex(-1);
+ }, [users]);
+
+  /* -------------------- Click Outside -------------------- */
+  useEffect(() => {
+    const handleClickOutside = (e: any) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!users.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev < users.length - 1 ? prev + 1 : 0));
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : users.length - 1));
+    }
+
+    if (e.key === "Enter") {
+      if (selectedIndex >= 0) {
+        const selectedUser = users[selectedIndex];
+        router.push(`/profile/${selectedUser._id}`);
+        setShowDropdown(false);
+        setQuery("");
+      }
+    }
+  };
+
   return (
     <nav className="sticky top-0 left-0 z-50 w-full border-b border-gray-300 bg-white px-4 py-3 sm:px-8">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6">
         {mobileSearch ? (
-          <div className="flex w-full items-center gap-3 md:hidden">
-            <input
-              autoFocus
-              type="text"
-              placeholder="Search for memers"
-              className="bg-[#F8F9FA] flex-1 rounded-full border border-gray-400 px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-[rgba(114,64,232,0.2)]"
-            />
-            <button
-              type="button"
-              aria-label="Close search"
-              onClick={() => setMobileSearch(false)}
-            >
-              <X size={24} />
-            </button>
+          <div className="w-full md:hidden relative" ref={dropdownRef}>
+            <div className="flex items-center gap-3">
+              <input
+                autoFocus
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                maxLength={15}
+                placeholder="Search users..."
+                className="bg-[#F8F9FA] flex-1 rounded-full border border-gray-400 px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-[rgba(114,64,232,0.2)]"
+              />
+              <button onClick={() => setMobileSearch(false)}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {showDropdown && query && (
+              <div className="absolute top-full left-0 w-80 bg-white border rounded-2xl mt-0.5 shadow-lg z-50 max-h-60 overflow-y-auto">
+                {loadingSearch ? (
+                  <p className="p-3 text-gray-500">Searching...</p>
+                ) : users.length > 0 ? (
+                  users.map((u) => (
+                    <div
+                      key={u._id}
+                      onClick={() => {
+                        setUsers([]);
+                        setQuery("");
+                        router.push(`/profile/${u._id}`);
+                      }}
+                      className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <img
+                        src={u.profile_pic || "/default.png"}
+                        className="w-8 h-8 rounded-full"
+                      />
+                      <span>{u.user_name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="p-3 text-gray-500">No users found</p>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -80,16 +195,57 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             </div>
 
             {/* Search Bar (Desktop) */}
-            <div className="relative hidden max-w-2xl flex-1 md:flex">
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                size={20}
-              />
+            <div
+              className="relative hidden max-w-2xl flex-1 md:flex"
+              ref={dropdownRef}
+            >
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+
               <input
                 type="text"
-                placeholder="Search for memers"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onKeyDown={handleKeyDown}
+                maxLength={15}
+                placeholder="Search users..."
                 className="bg-[#F8F9FA] w-full rounded-full border border-gray-400 py-2.5 pl-12 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-[rgba(114,64,232,0.2)]"
               />
+
+              {showDropdown && query && (
+                <div className="absolute top-full left-0 w-full bg-white border rounded-2xl mt-0.5 shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {loadingSearch ? (
+                    <p className="p-3 text-gray-500">Searching...</p>
+                  ) : users.length > 0 ? (
+                    users.map((u, index) => (
+                      <div
+                        key={u._id}
+                        onClick={() => {
+                          setUsers([]);
+                          setQuery("");
+                          setShowDropdown(false);
+                          router.push(`/profile/${u._id}`);
+                        }}
+                        className={`flex items-center gap-3 p-3 cursor-pointer ${
+                          index === selectedIndex
+                            ? "bg-gray-200"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <img
+                          src={u.profile_pic || "/default.png"}
+                          className="w-8 h-8 rounded-full"
+                        />
+                        <span>{u.user_name}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="p-3 text-gray-500">No users found</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Actions Section */}
@@ -106,7 +262,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               {isLoggedIn && (
                 <>
                   {/* Upload Button */}
-                  <IoMdNotifications size={27}/>
+                  <IoMdNotifications size={27} />
                   <button
                     type="button"
                     onClick={() => setOpenUpload(true)}
@@ -250,3 +406,5 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
     </nav>
   );
 }
+
+

@@ -22,7 +22,7 @@ class UserService:
 
         if not query:
             return []
-        projection = {"user_name": 1}
+        projection = {"user_name": 1,"profile_pic":1}
 
         users = await self.UserActions.get_all(
             {"user_name": {"$regex": query, "$options": "i"}},

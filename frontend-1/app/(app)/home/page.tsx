@@ -75,9 +75,9 @@ export default function Home() {
   console.log("home")
 
   return (
-    <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-10">
+    <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-8">
       {/* MAIN FEED */}
-      <main className="w-full max-w-170 mx-auto flex flex-col gap-5">
+      <main className="w-full max-w-170 flex flex-col gap-5">
         {/* POSTS LIST */}
         <div className="flex flex-col gap-2">
           {posts.length > 0 ? (
@@ -130,7 +130,7 @@ export default function Home() {
       </main>
 
       {/* SIDEBAR */}
-      <aside className="hidden lg:block w-[320px] shrink-0">
+      <aside className="hidden lg:block w-[320px] shrink-0 mx-auto">
         <div className="sticky top-5 py-3 -mt-6">
           <RightSidebar />
         </div>

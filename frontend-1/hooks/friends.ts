@@ -93,9 +93,22 @@ export const useFriends = () => {
     }
   }
 
+  const handleReciveRequest=async(request_id:string,action:string)=>{
+    setError(null)
+    try {
+      setLoading(true)
+      return await handleFriendRequest(request_id,action);
+    } catch (err: any) {
+      setError(err.message)
+      return null
+    } finally {
+      setLoading(false)
+    }
+  } 
+
   
 
 
 
-  return {getFriends,getMutualFriends,getReciveRequests,getSentRequests,sendRequest,cancelRequest,loading, error,setError};
+  return {getFriends,getMutualFriends,getReciveRequests,getSentRequests,sendRequest,cancelRequest,handleReciveRequest,loading, error,setError};
 };

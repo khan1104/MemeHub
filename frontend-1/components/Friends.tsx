@@ -2,17 +2,21 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { FollowData } from "@/types/user.type";
+import { Request } from "@/types/friends.type";
 
 import { useUsers } from "@/hooks/user";
 import { useUser } from "@/context/UserContext";
 import { MoreVertical } from "lucide-react";
+import { FaCheck } from "react-icons/fa6";
+import { X } from "lucide-react";
+import { useFriends } from "@/hooks/friends";
 
-interface ParentProps {
+interface FollowProps {
   user: FollowData;
 }
 
 // for followers and followings
-function FollowCard({ user }: ParentProps) {
+function FollowCard({ user }: FollowProps) {
   return (
     <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl hover:shadow-sm transition">
       {/* Left Section */}
@@ -55,7 +59,94 @@ function FollowCard({ user }: ParentProps) {
   );
 }
 
-const Tabs = ["Followers", "Following"];
+type Purpose = "Recived" | "Sent";
+interface RequestsProps {
+  request: Request;
+  purpose: Purpose;
+  handleFriendRequest: (
+    request_id: string,
+    action: "accepted" | "rejected",
+  ) => void;
+}
+
+function Requests({ request, purpose,handleFriendRequest }: RequestsProps) {
+  return (
+    <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl hover:shadow-sm transition">
+      {/* Left Section */}
+      <div className="flex items-center gap-3">
+        <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
+          <Image
+            src={request.profile_pic || "/default.png"}
+            alt={request.user_name}
+            fill
+            className="object-cover"
+          />
+        </div>
+
+        <p className="text-sm sm:text-base md:text-lg font-medium text-gray-800">
+          {request.user_name}
+        </p>
+      </div>
+
+      {/* RIGHT SECTION */}
+      {purpose === "Recived" ? (
+        <>
+          {/* ✅ MOBILE */}
+          <div className="flex gap-2 sm:hidden">
+            <button
+              className="px-4 py-1 text-sm rounded-2xl bg-primary text-white"
+              onClick={() => handleFriendRequest(request.id, "accepted")}
+            >
+              Accept
+            </button>
+
+            <button
+              className="px-4 py-1 text-sm rounded-2xl bg-gray-200"
+              onClick={() => handleFriendRequest(request.id, "rejected")}
+            >
+              Reject
+            </button>
+          </div>
+
+          {/* ✅ DESKTOP */}
+          <div className="hidden sm:flex gap-2">
+            <button
+              className="p-2 rounded-full bg-primary text-white hover:scale-105 transition"
+              onClick={() => handleFriendRequest(request.id, "accepted")}
+            >
+              <FaCheck size={18} />
+            </button>
+
+            <button
+              className="p-2 rounded-full bg-gray-200 hover:scale-105 transition"
+              onClick={() => handleFriendRequest(request.id, "rejected")}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* ✅ MOBILE */}
+          <div className="flex sm:hidden">
+            <button className="px-4 py-1 text-md rounded-md bg-gray-200">
+              Cancel
+            </button>
+          </div>
+
+          {/* ✅ DESKTOP */}
+          <div className="hidden sm:block">
+            <button className="px-4 py-1 text-md rounded-md bg-gray-200">
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+const Tabs = ["Followers", "Following", "Requests", "Sent Requests"];
 
 interface FriendProps {
   user_id: string;
@@ -65,13 +156,28 @@ interface FriendProps {
 function Friends({ user_id, isOwnProfile }: FriendProps) {
   const [activeTab, setActiveTab] = useState("Followers");
   const { user, isLoggedIn, isLoading } = useUser();
-  const { getFollowers, getFollowings, loading, error } = useUsers();
+  const {
+    getFollowers,
+    getFollowings,
+    loading: userLoading,
+    error: userError,
+  } = useUsers();
+  const {
+    getSentRequests,
+    getReciveRequests,
+    handleReciveRequest,
+    loading: friendLoading,
+    error: friendError,
+  } = useFriends();
 
   const [data, setData] = useState<FollowData[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(true);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  const loading = userLoading || friendLoading;
 
   // 1. Fetch Logic
   const loadPosts = useCallback(
@@ -81,22 +187,43 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
 
       const currentCursor = isInitial ? null : cursor;
 
-      let data;
+      let response;
       if (activeTab === "Followers") {
-        data = await getFollowers(user_id, currentCursor); // Ensure your hook accepts 'active'
+        response = await getFollowers(user_id, currentCursor); // Ensure your hook accepts 'active'
       } else if (activeTab === "Followings") {
-        data = await getFollowings(user_id, currentCursor);
+        response = await getFollowings(user_id, currentCursor);
+      } else if (activeTab === "Requests") {
+        response = await getReciveRequests(currentCursor);
+      } else if (activeTab === "Sent Requests") {
+        response = await getSentRequests(currentCursor);
       }
-      if (!data) return;
+      if (!response) return;
 
       if (isInitial) {
-        setData(data.items);
+        if (activeTab === "Followers") {
+          setData(response.items); 
+        } else if (activeTab === "Followings") {
+          setData(response.items);
+        } else if (activeTab === "Requests") {
+          setRequests(response.items);
+        } else if (activeTab === "Sent Requests") {
+          setRequests(response.items);
+        }
       } else {
-        setData((prev) => [...prev, ...data.items]);
+        if (activeTab === "Followers") {
+          setData((prev) => [...prev, ...response.items]);
+        } else if (activeTab === "Followings") {
+          setData((prev) => [...prev, ...response.items]);
+        } else if (activeTab === "Requests") {
+          setRequests((prev) => [...prev, ...response.items]);
+        } else if (activeTab === "Sent Requests") {
+          setRequests((prev) => [...prev, ...response.items]);
+        }
+
       }
 
-      setCursor(data.next_cursor);
-      setHasNext(data.has_next);
+      setCursor(response.next_cursor);
+      setHasNext(response.has_next);
     },
     [
       cursor,
@@ -104,6 +231,8 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
       loading,
       getFollowers,
       getFollowings,
+      getReciveRequests,
+      getSentRequests,
       isLoading,
       user_id,
       activeTab,
@@ -114,6 +243,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
   useEffect(() => {
     if (isLoading) return;
     setData([]);
+    setRequests([]);
     setCursor(null);
     setHasNext(true);
     loadPosts(true);
@@ -148,6 +278,13 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     [activeTab],
   );
 
+  const handleRequest=async(request_id:string,action:string)=>{
+    const res=await handleReciveRequest(request_id,action);
+    console.log("mai call huwa")
+    console.log(res)
+  }
+
+
   return (
     <div className="grid grid-cols-1 gap-2 mt-5">
       {/* ================= STICKY TABS ================= */}
@@ -165,6 +302,22 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
           >
             Followings
           </button>
+          {isOwnProfile && (
+            <>
+              <button
+                className={tabClass("Requests")}
+                onClick={() => setActiveTab("Requests")}
+              >
+                Requests
+              </button>
+              <button
+                className={tabClass("Sent Requests")}
+                onClick={() => setActiveTab("Sent Requests")}
+              >
+                Sent Requests
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -174,6 +327,26 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
           data.map((user) => <FollowCard user={user} key={user.user_id} />)}
         {activeTab === "Followings" &&
           data.map((user) => <FollowCard user={user} key={user.user_id} />)}
+        {isOwnProfile &&
+          activeTab === "Requests" &&
+          requests.map((request) => (
+            <Requests
+              request={request}
+              key={request.user_id}
+              purpose="Recived"
+              handleFriendRequest={handleRequest}
+            />
+          ))}
+        {isOwnProfile &&
+          activeTab === "Sent Requests" &&
+          requests.map((request) => (
+            <Requests
+              request={request}
+              key={request.user_id}
+              purpose="Sent"
+              handleFriendRequest={handleRequest}
+            />
+          ))}
       </div>
     </div>
   );

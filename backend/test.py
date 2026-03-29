@@ -515,3 +515,17 @@
 #     # In a real application, you would pass limit and offset to your database query
 #     return fake_db[start:end]
 
+
+from enum import Enum
+class FriendRequestStatus(str, Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
+
+data=FriendRequestStatus.ACCEPTED
+data1='accepted'
+
+if data==data1:
+    print("hello")
+

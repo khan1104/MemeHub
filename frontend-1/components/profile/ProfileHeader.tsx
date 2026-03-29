@@ -166,7 +166,8 @@ export default function ProfileHeader({
 
               <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
                 <div>
-                  <span className="font-semibold">{user?.total_posts}</span> Posts
+                  <span className="font-semibold">{user?.total_posts}</span>{" "}
+                  Posts
                 </div>
 
                 <button
@@ -212,36 +213,37 @@ export default function ProfileHeader({
                     Edit Profile
                   </button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    {user?.isFriend && (
-                      <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
-                        <MessageCircle size={16} />
-                        Message
-                      </button>
-                    )}
-                    {isRequestSent ? (
-                      <button
-                        className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded-xl flex items-center justify-center gap-2"
-                        
-                        onClick={handleCancelRequest}
-                      >
-                        Cancel Request
-                      </button>
-                    ) : (
-                      <button
-                        className="bg-gray-200 px-7 py-2 rounded-xl flex items-center gap-2"
-                        onClick={handleAddFriend}
-                        
-                      >
-                        <FaUserPlus size={16} />
-                        Add Friend
-                      </button>
-                    )}
+                  <div className={`grid ${user.isFriend ? "grid-cols-3":"grid-cols-2"} gap-2`}>
+                    {user?.isFriend ? (
+                      <>
+                        <button className="bg-gray-200 px-2.5 py-2 rounded-xl flex items-center gap-1">
+                          <MessageCircle size={16} />
+                          Message
+                        </button>
+                        <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center">
+                          Unfriend
+                        </button>
+                      </>
+                    ):isRequestSent ? (
+                    <button
+                      className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded-xl flex items-center justify-center gap-2"
+                      onClick={handleCancelRequest}
+                    >
+                      Cancel Request
+                    </button>
+                  ) : (
+                    <button
+                      className="bg-gray-200 px-7 py-2 rounded-xl flex items-center gap-2"
+                      onClick={handleAddFriend}
+                    >
+                      <FaUserPlus size={16} />
+                      Add Friend
+                    </button>
+                  )}
 
                     <button
                       onClick={handleFollow}
                       className="bg-primary text-white px-5 py-2 rounded-xl"
-                     
                     >
                       {isFollowed ? "Unfollow" : "Follow"}
                     </button>
@@ -297,17 +299,20 @@ export default function ProfileHeader({
             </button>
           ) : (
             <>
-              {user?.isFriend && (
-                <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
-                  <MessageCircle size={16} />
-                  Message
-                </button>
-              )}
-              {isRequestSent ? (
+              {user?.isFriend ? (
+                <>
+                  <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
+                    <MessageCircle size={16} />
+                    Message
+                  </button>
+                  <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
+                    Unfriend
+                  </button>
+                </>
+              ) : isRequestSent ? (
                 <button
                   className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded-xl flex items-center justify-center gap-2"
                   onClick={handleCancelRequest}
-                  
                 >
                   Cancel Request
                 </button>
@@ -315,7 +320,6 @@ export default function ProfileHeader({
                 <button
                   className="bg-gray-200 px-7 py-2 rounded-xl flex items-center gap-2"
                   onClick={handleAddFriend}
-                  
                 >
                   <FaUserPlus size={16} />
                   Add Friend
@@ -325,7 +329,6 @@ export default function ProfileHeader({
               <button
                 onClick={handleFollow}
                 className="bg-primary text-white px-5 py-2 rounded-xl"
-                
               >
                 {isFollowed ? "Unfollow" : "Follow"}
               </button>

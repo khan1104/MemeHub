@@ -74,7 +74,6 @@ export const handleGetFollowers=async(user_id:string,cursor?: string,limit: numb
    try {
   const res = await protected_api.get(`/users/followers/${user_id}`,{
       params: {
-            user_id,
             cursor,
             limit
             }
@@ -90,7 +89,6 @@ export const handleGetFollowings=async(user_id:string,cursor?: string,limit: num
    try {
     const res = await protected_api.get(`/users/followings/${user_id}`,{
       params: {
-            user_id,
             cursor,
             limit
           }
@@ -100,5 +98,17 @@ export const handleGetFollowings=async(user_id:string,cursor?: string,limit: num
     apiError(error)
   }
 }
+
+export const searchUsers = async (query: string) => {
+  try {
+    const res = await protected_api.get(`/users/search`, {
+      params: { q: query },
+    });
+    return res.data;
+  } catch (error: any) {
+    apiError(error);
+    return [];
+  }
+};
 
 
