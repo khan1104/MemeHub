@@ -10,6 +10,7 @@ import { usePostAction } from "@/hooks/postsAction";
 
 import UserPostCard from "@/components/UserPostsCrad";
 import ProfileHeader from "@/components/profile/ProfileHeader"
+import ProfileHeaderSkeleton from "@/components/skeletons/ProfileHeader";
 import Friends from "@/components/Friends";
 
 import { Post } from "@/types/posts.type";
@@ -174,7 +175,7 @@ export default function Profile() {
 
         <div className="sticky top-0 left-0 z-10 -mt-6 bg-white">
           {!user ? (
-            <div className="p-6">Loading profile...</div>
+            <ProfileHeaderSkeleton/>
           ) : (
             <ProfileHeader user={user} isOwnProfile={isOwnProfile} />
           )}

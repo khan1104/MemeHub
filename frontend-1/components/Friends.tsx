@@ -67,9 +67,17 @@ interface RequestsProps {
     request_id: string,
     action: "accepted" | "rejected",
   ) => void;
+  handleCancelRequest: (
+    user_id: string
+  ) => void;
 }
 
-function Requests({ request, purpose,handleFriendRequest }: RequestsProps) {
+function Requests({
+  request,
+  purpose,
+  handleFriendRequest,
+  handleCancelRequest,
+}: RequestsProps) {
   return (
     <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl hover:shadow-sm transition">
       {/* Left Section */}
@@ -129,14 +137,24 @@ function Requests({ request, purpose,handleFriendRequest }: RequestsProps) {
         <>
           {/* ✅ MOBILE */}
           <div className="flex sm:hidden">
-            <button className="px-4 py-1 text-md rounded-md bg-gray-200">
+            <button
+              className="px-4 py-1 text-md rounded-md bg-gray-200"
+              onClick={() => {
+                handleCancelRequest(request.user_id);
+              }}
+            >
               Cancel
             </button>
           </div>
 
           {/* ✅ DESKTOP */}
           <div className="hidden sm:block">
-            <button className="px-4 py-1 text-md rounded-md bg-gray-200">
+            <button
+              className="px-4 py-1 text-md rounded-md bg-gray-200"
+              onClick={() => {
+                handleCancelRequest(request.user_id);
+              }}
+            >
               Cancel
             </button>
           </div>
@@ -166,6 +184,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     getSentRequests,
     getReciveRequests,
     handleReciveRequest,
+    cancelRequest,
     loading: friendLoading,
     error: friendError,
   } = useFriends();
@@ -335,6 +354,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
               key={request.user_id}
               purpose="Recived"
               handleFriendRequest={handleRequest}
+              handleCancelRequest={cancelRequest}
             />
           ))}
         {isOwnProfile &&
@@ -345,6 +365,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
               key={request.user_id}
               purpose="Sent"
               handleFriendRequest={handleRequest}
+              handleCancelRequest={cancelRequest}
             />
           ))}
       </div>

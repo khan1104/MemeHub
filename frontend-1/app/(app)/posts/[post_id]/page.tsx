@@ -9,6 +9,7 @@ import EmojiPicker from "emoji-picker-react";
 import PostCard from "@/components/PostsCard";
 import RightSidebar from "@/components/layout/RightSidebar";
 import Comments from "@/components/Comments";
+import PostCardSkeleton from "@/components/skeletons/PostCard";
 
 import { formatCount } from "@/lib/formatCount";
 import { usePost } from "@/hooks/post";
@@ -130,9 +131,7 @@ const handleDeleteLocal = (id: string) => {
     );
   };
 
-  // ---------------- UI STATES ----------------
-  if (loading && !post)
-    return <div className="text-center py-10">Loading post...</div>;
+
   if (error) return <div className="text-center text-red-500">{error}</div>;
   if (!post) return <div className="text-center py-10">Post not found</div>;
 
@@ -140,7 +139,11 @@ const handleDeleteLocal = (id: string) => {
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-6">
       {/* MAIN */}
       <main className="w-full max-w-170 mx-auto flex flex-col gap-3">
-        <PostCard post={post} currentUser={user} isLoggedIn={isLoggedIn}/>
+        {loading && !post ? (
+          <PostCardSkeleton />
+        ) : (
+          <PostCard post={post} currentUser={user} isLoggedIn={isLoggedIn} />
+        )}
 
         {/* COMMENTS HEADER */}
         <div className="flex items-center gap-5 mt-2.5">
