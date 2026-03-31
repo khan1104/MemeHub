@@ -4,7 +4,7 @@ import { LoginInput,RegisterInput } from "@/schemas/auth.schema";
 import {apiError} from "@/lib/apiError";
 
 
-export const handleLogin = async (loginData: LoginInput) => {
+export const loginUser = async (loginData: LoginInput) => {
   try {
     const res = await public_api.post("/auth/login", loginData);
     return res.data;
@@ -13,7 +13,7 @@ export const handleLogin = async (loginData: LoginInput) => {
   }
 };
 
-export const handleGoogleLogin = async (token_id: string) => {
+export const gooleLoginUser = async (token_id: string) => {
   try {
     const res = await public_api.post("/auth/google", {
       token_id,
@@ -24,7 +24,7 @@ export const handleGoogleLogin = async (token_id: string) => {
   }
 };
 
-export const handleRegister=async(registerData:RegisterInput)=>{
+export const registerUser=async(registerData:RegisterInput)=>{
   try {
     const res = await public_api.post("/auth/register",registerData);
     return res.data;
@@ -33,7 +33,7 @@ export const handleRegister=async(registerData:RegisterInput)=>{
   }
 }
 
-export const handleLogout=async()=>{
+export const logoutUser=async()=>{
   try {
     const res = await protected_api.delete("/auth/logout");
     return res.data;
@@ -42,7 +42,7 @@ export const handleLogout=async()=>{
   }
 }
 
-export const handleVerifyOtp = async (email: string, otp: string) => {
+export const verifyOtpCode = async (email: string, otp: string) => {
   try {
     const res = await public_api.post("/auth/verify-otp", { email, otp });
     return res.data;
@@ -51,7 +51,7 @@ export const handleVerifyOtp = async (email: string, otp: string) => {
   }
 };
 
-export const handleSendOtp = async (email: string) => {
+export const sendOtpToEmail = async (email: string) => {
   try {
     const res = await public_api.post("/auth/send-otp", { email });
     return res.data;

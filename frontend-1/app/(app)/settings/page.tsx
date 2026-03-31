@@ -14,14 +14,14 @@ import {
   Pencil
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
-import { useAuthActions } from "@/hooks/auth";
+import { useAuth } from "@/hooks/auth";
 import { useUsers } from "@/hooks/user";
 
 export default function Settings() {
   const router = useRouter();
 
   const { user,loadUser } = useUser();
-  const { logout } = useAuthActions();
+  const { logout } = useAuth();
   const { updateUserInfo ,loading,error} = useUsers();
 
   // ===== STATES =====

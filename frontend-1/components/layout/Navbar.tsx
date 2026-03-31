@@ -12,7 +12,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useAuthActions } from "@/hooks/auth";
+import { useAuth } from "@/hooks/auth";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import { IoMdNotifications } from "react-icons/io";
@@ -40,7 +40,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
   const { user, isLoading } = useUser(); // Context se user data le rahe hain
   const isLoggedIn = !!user;
-  const { logout } = useAuthActions();
+  const { logout } = useAuth();
   const [openUpload, setOpenUpload] = useState(false);
   const [openAppModal, setOpenAppModal] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);

@@ -34,9 +34,9 @@ export default function Profile() {
 
   const { getUserById} = useUsers();
 
-  const { fetchUserPosts } = usePost();
+  const { getUserPosts } = usePost();
 
-  const { fetchSavedPosts, fetchLikedPosts } = usePostAction();
+  const { getSavedPosts, getLikedPosts } = usePostAction();
 
   /* ================= STATE ================= */
 
@@ -83,11 +83,11 @@ export default function Profile() {
 
       try {
         if (activeTab === "saved") {
-          res = await fetchSavedPosts(currentCursor);
+          res = await getSavedPosts(currentCursor);
         } else if (activeTab === "liked") {
-          res = await fetchLikedPosts(currentCursor);
+          res = await getLikedPosts(currentCursor);
         } else {
-          res = await fetchUserPosts(user_id, activeTab, currentCursor);
+          res = await getUserPosts(user_id, activeTab, currentCursor);
         }
 
         if (!res) return;

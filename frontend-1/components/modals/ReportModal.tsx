@@ -22,11 +22,11 @@ type ReportModalProps = {
 
 const ReportModal = ({ isOpen, onClose, targetType, id }: ReportModalProps) => {
   const {
-    postReport,
+    reportPost,
     error: postError,
     loading: postLoading,
   } = usePostAction();
-  const { ReportUser, error: userError, loading: userLoading } = useUsers();
+  const { reportUser, error: userError, loading: userLoading } = useUsers();
   const {reportComment,error:commentError}=useCommentAction();
 
   const [step, setStep] = useState(1);
@@ -74,7 +74,7 @@ const ReportModal = ({ isOpen, onClose, targetType, id }: ReportModalProps) => {
 
   const handleSubmit = async () => {
     if (targetType === "Post") {
-      await postReport(id, selectedReason, description);
+      await reportPost(id, selectedReason, description);
     } 
     else if(targetType==="Comment"){
       await reportComment(id,selectedReason,description);

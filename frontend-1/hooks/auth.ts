@@ -3,18 +3,18 @@
 import { useState } from "react";
 import { loginSchema, registerSchema } from "@/schemas/auth.schema";
 import {
-  handleLogin,
-  handleGoogleLogin,
-  handleRegister,
-  handleSendOtp,
-  handleVerifyOtp,
-  handleLogout,
+  loginUser,
+  gooleLoginUser,
+  registerUser,
+  sendOtpToEmail,
+  verifyOtpCode,
+  logoutUser,
 } from "@/services/auth.service.";
 import { setAccessToken } from "@/lib/api";
 import { useUser } from "@/context/UserContext";
 import { clearAccessToken } from "@/lib/api";
 
-export const useAuthActions = () => {
+export const useAuth = () => {
   const {loadUser}=useUser()
 
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ export const useAuthActions = () => {
 
     try {
       setLoading(true);
-      const data = await handleLogin({ email, password });
+      const data = await loginUser({ email, password });
       setAccessToken(data.access_token);
       await loadUser();
       return true;
@@ -45,7 +45,7 @@ export const useAuthActions = () => {
   const googleLogin = async (tokenId: string) => {
     try {
       setLoading(true);
-      const data = await handleGoogleLogin(tokenId);
+      const data = await gooleLoginUser(tokenId);
       setAccessToken(data.access_token);
       await loadUser();
       return true;
@@ -65,7 +65,7 @@ export const useAuthActions = () => {
 
     try {
       setLoading(true);
-      await handleRegister({ user_name, email, password });
+      await registerUser({ user_name, email, password });
       localStorage.setItem("verify_email", email);
       return true;
     } catch (err: any) {
@@ -81,7 +81,7 @@ export const useAuthActions = () => {
 
     try {
       setLoading(true);
-      await handleSendOtp(email);
+      await sendOtpToEmail(email);
       return true;
     } catch (err: any) {
       setError(err.message || "Failed to send OTP");
@@ -97,7 +97,7 @@ export const useAuthActions = () => {
 
     try {
       setLoading(true);
-      await handleVerifyOtp(email, otp);
+      await verifyOtpCode(email, otp);
       localStorage.removeItem("verify_email");
       return true
     } catch (err: any) {
@@ -110,7 +110,7 @@ export const useAuthActions = () => {
   const logout = async () => {
     try {
       setLoading(true);
-      await handleLogout();
+      await logoutUser();
       clearAccessToken();
       return true;
     } finally {

@@ -1,11 +1,12 @@
 // hooks/usePost.ts
 import { useState } from "react"
 import { uploadPostSchema } from "@/schemas/post.schema"
-import { handlePostUpload,
-  getPosts,
-  getSinglePost,  
-  handleGetUserPosts,
-  handleDeletePost} from "@/services/post.service"
+import { uploadPost as uploadPostService,
+  fetchPosts,
+  fetchSinglePost,  
+  fetchUserPosts,
+  deletePost as deletePostService
+} from "@/services/post.service"
 import { Post,PaginatedPostResponse } from "@/types/posts.type"
 import { useUser } from "@/context/UserContext"
 import { useFeed } from "@/context/FeedContext"
@@ -41,7 +42,7 @@ export const usePost = () => {
 
     try {
       setLoading(true)
-      await handlePostUpload(formData)
+      await uploadPostService(formData)
       return true
     } catch (err: any) {
       setError(err.message)
@@ -51,11 +52,11 @@ export const usePost = () => {
     }
   }
 
-  const fetchPosts = async (cursor?: string): Promise<PaginatedPostResponse | null> => {
+  const getPosts = async (cursor?: string): Promise<PaginatedPostResponse | null> => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await getPosts(feed,cursor)
+      const posts = await fetchPosts(feed,cursor)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -65,11 +66,11 @@ export const usePost = () => {
     }
   }
 
-  const fetchUserPosts=async(user_id:string,sort_by?:string,cursor?: string):Promise<PaginatedPostResponse|null>=>{
+  const getUserPosts=async(user_id:string,sort_by?:string,cursor?: string):Promise<PaginatedPostResponse|null>=>{
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetUserPosts(user_id,sort_by,cursor)
+      const posts = await fetchUserPosts(user_id,sort_by,cursor)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -78,11 +79,11 @@ export const usePost = () => {
       setLoading(false)
     }
   }
-  const fetchSinglePost = async (post_id:string): Promise<Post|null> => {
+  const getSinglePost = async (post_id:string): Promise<Post|null> => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await getSinglePost(post_id,user?.user_id)
+      const posts = await fetchSinglePost(post_id,user?.user_id)
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -96,7 +97,7 @@ export const usePost = () => {
     setError(null)
     try {
       setLoading(true)
-      await handleDeletePost(post_id)
+      await deletePostService(post_id)
     } catch (err: any) {
       setError(err.message)
       return null
@@ -105,5 +106,5 @@ export const usePost = () => {
     }
   }
 
-  return { uploadPost,fetchPosts,fetchUserPosts,fetchSinglePost,deletePost,loading, error,setError }
+  return { uploadPost,getPosts,getUserPosts,getSinglePost,deletePost,loading, error,setError }
 }

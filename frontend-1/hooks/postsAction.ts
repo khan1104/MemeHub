@@ -1,12 +1,14 @@
 import { useState } from "react"
-import { handlePostLike,
-  handlePostDislike,
-  handleGetLikedPosts,
-  handleGetSavedPosts,
-  handlePostsSave,
-  handlePostReport,
-handleGetComments,
-handleAddComment } from "@/services/postAction.service";
+import { 
+  likePost,
+  dislikePost,
+  fetchLikedPosts,
+  fetchSavedPosts,
+  savePost,
+  reportPost as reportPostService,
+  fetchComments,
+  addComment as addCommentService
+ } from "@/services/postAction.service";
 import { PaginatedCommentResponse } from "@/types/comments.type";
 import { useUser } from "@/context/UserContext";
 
@@ -21,7 +23,7 @@ export const usePostAction = () => {
     setError(null)
     try {
       setLoading(true)
-      const posts = await handlePostsSave(post_id);
+      const posts = await savePost(post_id);
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -31,11 +33,11 @@ export const usePostAction = () => {
     }
   }
 
-  const fetchSavedPosts=async(cursor?: string)=>{
+  const getSavedPosts=async(cursor?: string)=>{
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetSavedPosts(cursor);
+      const posts = await fetchSavedPosts(cursor);
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -45,11 +47,11 @@ export const usePostAction = () => {
     }
   }
 
-  const fetchLikedPosts=async(cursor?: string)=>{
+  const getLikedPosts=async(cursor?: string)=>{
     setError(null)
     try {
       setLoading(true)
-      const posts = await handleGetLikedPosts(cursor);
+      const posts = await fetchLikedPosts(cursor);
       return posts
     } catch (err: any) {
       setError(err.message)
@@ -63,7 +65,7 @@ export const usePostAction = () => {
       setError(null);
       try {
         setLoading(true);
-        await handlePostLike(post_id);
+        await likePost(post_id);
   
   
       } catch (err: any) {
@@ -77,7 +79,7 @@ export const usePostAction = () => {
       setError(null);
       try {
         setLoading(true);
-        await handlePostDislike(post_id);
+        await dislikePost(post_id);
   
   
       } catch (err: any) {
@@ -87,11 +89,11 @@ export const usePostAction = () => {
         setLoading(false);
       }
     };
-    const postReport = async (post_id:string,reason:string,description:string) => {
+    const reportPost = async (post_id:string,reason:string,description:string) => {
       setError(null);
       try {
         setLoading(true);
-        await handlePostReport(post_id,reason,description);
+        await reportPostService(post_id,reason,description);
       } catch (err: any) {
         setError(err.message || "Action failed");
   
@@ -104,7 +106,7 @@ export const usePostAction = () => {
       setError(null);
       try{
         setLoading(true);
-        await handleAddComment(post_id,comment);
+        await addCommentService(post_id,comment);
         return true;
       }
       catch(err:any){
@@ -119,7 +121,7 @@ export const usePostAction = () => {
       setError(null)
       try {
         setLoading(true)
-        const comments = await handleGetComments(post_id,cursor,user?.user_id,sort_by)
+        const comments = await fetchComments(post_id,cursor,user?.user_id,sort_by)
         return comments
       } catch (err: any) {
         setError(err.message)
@@ -128,5 +130,5 @@ export const usePostAction = () => {
         setLoading(false)
       }
     }
-  return {save,fetchSavedPosts, fetchLikedPosts,like,dislike,postReport,addComment,getComments,loading, error,setError};
+  return {save,getSavedPosts, getLikedPosts,like,dislike,reportPost,addComment,getComments,loading, error,setError};
 };

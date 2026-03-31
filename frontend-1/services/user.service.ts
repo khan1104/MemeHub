@@ -3,7 +3,7 @@ import { protected_api,public_api } from "@/lib/api";
 import {apiError} from "@/lib/apiError";
 
 
-export const handleGetCurrentUser= async () => {
+export const fetchCurrentUser= async () => {
   try {
     const res = await protected_api.get("/users/me");
     return res.data;
@@ -12,7 +12,7 @@ export const handleGetCurrentUser= async () => {
   }
 };
 
-export const handleGetUserById=async(user_id:string,current_user_id:string)=>{
+export const fetchUserById=async(user_id:string,current_user_id:string)=>{
   try {
     const res = await protected_api.get(`/users/${user_id}`,
       {
@@ -27,7 +27,7 @@ export const handleGetUserById=async(user_id:string,current_user_id:string)=>{
   }
 }
 
-export const handleUpadteUserInfo=async(user_name?:string,bio?:string)=>{
+export const upadteUserInfo=async(user_name?:string,bio?:string)=>{
   try {
     const res = await protected_api.patch("/users/me/info",{
       user_name,
@@ -39,7 +39,7 @@ export const handleUpadteUserInfo=async(user_name?:string,bio?:string)=>{
   }
 }
 
-export const handleUpadteProfilePic=async(formData: FormData)=>{
+export const upadteProfilePic=async(formData: FormData)=>{
   try {
     const res = await protected_api.patch("/users/me/profile-pic", formData)
     return res.data
@@ -48,7 +48,7 @@ export const handleUpadteProfilePic=async(formData: FormData)=>{
   }
 }
 
-export const handleFollow=async(user_id:string)=>{
+export const followUser=async(user_id:string)=>{
   try {
     const res = await protected_api.post(`/users/follow/${user_id}`)
     return res.data
@@ -57,7 +57,7 @@ export const handleFollow=async(user_id:string)=>{
   }
 }
 
-export const handleReport=async(user_id:string,reason:string,description:string)=>{
+export const reportUser=async(user_id:string,reason:string,description:string)=>{
    try {
     const res = await protected_api.post(`/users/report/${user_id}`,{
       reason:reason,
@@ -70,7 +70,7 @@ export const handleReport=async(user_id:string,reason:string,description:string)
 }
 
 
-export const handleGetFollowers=async(user_id:string,cursor?: string,limit: number = 12)=>{
+export const fetchFollowers=async(user_id:string,cursor?: string,limit: number = 12)=>{
    try {
   const res = await protected_api.get(`/users/followers/${user_id}`,{
       params: {
@@ -85,7 +85,7 @@ export const handleGetFollowers=async(user_id:string,cursor?: string,limit: numb
   }
 }
 
-export const handleGetFollowings=async(user_id:string,cursor?: string,limit: number = 12)=>{
+export const fetchFollowings=async(user_id:string,cursor?: string,limit: number = 12)=>{
    try {
     const res = await protected_api.get(`/users/followings/${user_id}`,{
       params: {

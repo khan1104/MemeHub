@@ -22,7 +22,7 @@ import { Comment } from "@/types/comments.type";
 export default function PostPage() {
   const { post_id } = useParams<{ post_id: string }>();
 
-  const { fetchSinglePost, loading, error } = usePost();
+  const { getSinglePost, loading, error } = usePost();
   const { getComments, addComment,loading:commentLoading } = usePostAction();
   const { user,isLoading,isLoggedIn } = useUser();
 
@@ -45,7 +45,7 @@ export default function PostPage() {
 useEffect(() => {
   if (!post_id || isLoading) return; // ⛔ IMPORTANT
 
-  fetchSinglePost(post_id).then(setPost);
+  getSinglePost(post_id).then(setPost);
 }, [post_id, isLoading, user]);
 
   // ---------------- FETCH COMMENTS ----------------

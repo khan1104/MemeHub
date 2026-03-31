@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { 
-    handleCommentEdit,
-    handleCommentDelete,
-    handleCommentLike,
-    handleCommentDislike,
-    handleCommentReport
+    upadteComment as updateCommentService,
+    deleteComment as deleteCommentService,
+    likeComment as likeCommentService,
+    dislikeComment as dislikeCommentService,
+    reportComment as reportCommentService
 
  } from "@/services/commentsAction.service";
 
@@ -18,7 +18,7 @@ export const useCommentAction = () => {
     setError(null)
     try {
       setLoading(true)
-      await handleCommentEdit(comment_id,updatedComment);
+      await updateCommentService(comment_id,updatedComment);
     } catch (err: any) {
       setError(err.message)
       return null
@@ -31,7 +31,7 @@ export const useCommentAction = () => {
     setError(null)
     try {
       setLoading(true)
-      await handleCommentDelete(comment_id);
+      await deleteCommentService(comment_id);
     } catch (err: any) {
       setError(err.message)
       return null
@@ -44,7 +44,7 @@ export const useCommentAction = () => {
     setError(null)
     try {
       setLoading(true)
-      await handleCommentLike(comment_id);
+      await likeCommentService(comment_id);
     } catch (err: any) {
       setError(err.message)
       return null
@@ -57,7 +57,7 @@ export const useCommentAction = () => {
         setError(null);
         try {
         setLoading(true);
-        await handleCommentDislike(comment_id);
+        await dislikeCommentService(comment_id);
         } catch (err: any) {
         setError(err.message || "Action failed");
 
@@ -69,7 +69,7 @@ export const useCommentAction = () => {
       setError(null);
       try {
         setLoading(true);
-        await handleCommentReport(comment_id,reason,description);
+        await reportCommentService(comment_id,reason,description);
       } catch (err: any) {
         setError(err.message || "Action failed");
   

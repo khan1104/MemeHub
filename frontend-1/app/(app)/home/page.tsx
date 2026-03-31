@@ -12,7 +12,7 @@ import { useUser } from "@/context/UserContext";
 
 export default function Home() {
   const { user: currentUser, isLoading, isLoggedIn } = useUser();
-  const { fetchPosts, loading, error } = usePost();
+  const { getPosts, loading, error } = usePost();
   const { feed } = useFeed();
 
 
@@ -37,7 +37,7 @@ export default function Home() {
       fetchingRef.current = true;
 
       const currentCursor = isInitial ? null : cursor;
-      const data = await fetchPosts(currentCursor);
+      const data = await getPosts(currentCursor);
 
       if (data) {
         if (isInitial) {
@@ -52,7 +52,7 @@ export default function Home() {
 
       fetchingRef.current = false;
     },
-    [cursor, hasNext, fetchPosts, isLoading],
+    [cursor, hasNext, getPosts, isLoading],
   );
 
   // 2. Reset feed when Category changes

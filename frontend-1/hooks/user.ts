@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { upadateProfilePicSchema } from "@/schemas/user.schema";
-import {handleFollow, 
-  handleGetUserById, 
-  handleReport, 
-  handleUpadteProfilePic, 
-  handleUpadteUserInfo,
-  handleGetFollowers,
-  handleGetFollowings,
+import {
+  followUser as followUserService, 
+  fetchUserById, 
+  reportUser as reportUserService, 
+  upadteProfilePic as updateProfilePicService, 
+  upadteUserInfo as updateUserInfoService,
+  fetchFollowers,
+  fetchFollowings,
   searchUsers,
   fetchMonthlyTopUsers
 } from "@/services/user.service";
@@ -22,7 +23,7 @@ export const useUsers = () => {
     setError(null);
     try{
       setLoading(true)
-      const data=await handleGetUserById(user_id,user?.user_id);
+      const data=await fetchUserById(user_id,user?.user_id);
       return data;
     }
     catch(error:any){
@@ -37,7 +38,7 @@ export const useUsers = () => {
       setError(null)
       try{
           setLoading(true)
-          await handleUpadteUserInfo(user_name,bio);
+          await updateUserInfoService(user_name,bio);
           return true
       }
       catch(error:any){
@@ -62,7 +63,7 @@ export const useUsers = () => {
     formData.append("profile_pic", file)
     try{
         setLoading(true)
-        await handleUpadteProfilePic(formData);
+        await updateProfilePicService(formData);
         return true
     }
     catch(error:any){
@@ -77,7 +78,7 @@ export const useUsers = () => {
     setError(null)
     try{
         setLoading(true)
-        await handleFollow(user_id);
+        await followUserService(user_id);
         return true
     }
     catch(error:any){
@@ -91,7 +92,7 @@ export const useUsers = () => {
     setError(null)
     try{
         setLoading(true)
-        await handleReport(user_id,reason,description);
+        await reportUserService(user_id,reason,description);
         return true
     }
     catch(error:any){
@@ -106,7 +107,7 @@ export const useUsers = () => {
     setError(null)
     try{
         setLoading(true)
-        return await handleGetFollowings(user_id,cursor);
+        return await fetchFollowings(user_id,cursor);
     }
     catch(error:any){
       setError(error.message)
@@ -120,7 +121,7 @@ export const useUsers = () => {
     setError(null)
     try{
         setLoading(true)
-        return await handleGetFollowers(user_id,cursor);
+        return await fetchFollowers(user_id,cursor);
     
     }
     catch(error:any){

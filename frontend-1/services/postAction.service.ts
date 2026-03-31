@@ -1,7 +1,7 @@
-import { protected_api,public_api} from "@/lib/api"
+import { protected_api} from "@/lib/api"
 import { apiError } from "@/lib/apiError"
 
-export const handlePostsSave=async(post_id:string)=>{
+export const savePost=async(post_id:string)=>{
   try {
     const res = await protected_api.post(`/posts_actions/save/${post_id}`)
     return res.data
@@ -9,7 +9,7 @@ export const handlePostsSave=async(post_id:string)=>{
     apiError(error)
   }
 }
-export const handleGetSavedPosts=async(cursor?: string,limit: number = 6)=>{
+export const fetchSavedPosts=async(cursor?: string,limit: number = 6)=>{
   try {
     const res = await protected_api.get(`/posts_actions/save`,{
     params: {
@@ -23,7 +23,7 @@ export const handleGetSavedPosts=async(cursor?: string,limit: number = 6)=>{
   }
 }
 
-export const handleGetLikedPosts=async(cursor?: string,limit: number =6)=>{
+export const fetchLikedPosts=async(cursor?: string,limit: number =6)=>{
   try {
     const res = await protected_api.get(`/posts_actions/liked`,{
     params: {
@@ -37,7 +37,7 @@ export const handleGetLikedPosts=async(cursor?: string,limit: number =6)=>{
   }
 }
 
-export const handlePostLike= async (post_id:string) => {
+export const likePost= async (post_id:string) => {
   try {
     const res = await protected_api.post(`/posts_actions/like/${post_id}`)
     return res.data
@@ -46,7 +46,7 @@ export const handlePostLike= async (post_id:string) => {
   }
 }
 
-export const handlePostDislike=async(post_id:string)=>{
+export const dislikePost=async(post_id:string)=>{
   try {
     const res = await protected_api.post(`/posts_actions/dislike/${post_id}`)
     return res.data
@@ -55,7 +55,7 @@ export const handlePostDislike=async(post_id:string)=>{
   }
 }
 
-export const handlePostReport=async(post_id:string,reason:string,description:string)=>{
+export const reportPost=async(post_id:string,reason:string,description:string)=>{
  try {
     const res = await protected_api.post(`/posts_actions/report/${post_id}`,{
       reason:reason,
@@ -68,7 +68,7 @@ export const handlePostReport=async(post_id:string,reason:string,description:str
   }
 }
 
-export const handleGetComments=async(
+export const fetchComments=async(
   post_id:string,
   cursor?: string,
   user_id?:string,
@@ -93,7 +93,7 @@ export const handleGetComments=async(
 }
 
 
-export const handleAddComment=async(post_id:string,comment:string)=>{
+export const addComment=async(post_id:string,comment:string)=>{
   try{
     const res = await protected_api.post(`/posts_actions/comment/${post_id}`, {comment:comment})
     return res.data

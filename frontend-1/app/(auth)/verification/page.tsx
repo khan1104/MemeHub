@@ -7,14 +7,14 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { AlertCircle } from "lucide-react";
-import { useAuthActions } from "@/hooks/auth";
+import { useAuth } from "@/hooks/auth";
 import { useRouter } from "next/navigation";
 
 const RESEND_TIME = 45;
 
 export default function VerificationPage() {
   const router=useRouter();
-  const { sendOtp, verifyOtp, loading, error } =useAuthActions();
+  const { sendOtp, verifyOtp, loading, error } =useAuth();
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(RESEND_TIME);
 

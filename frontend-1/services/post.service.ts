@@ -2,7 +2,7 @@ import { protected_api, public_api } from "@/lib/api"
 import { apiError } from "@/lib/apiError"
 
 
-export const handlePostUpload = async (formData: FormData) => {
+export const uploadPost = async (formData: FormData) => {
   try {
     const res = await protected_api.post("/posts/", formData)
     return res.data
@@ -11,7 +11,7 @@ export const handlePostUpload = async (formData: FormData) => {
   }
 }
 
-export const getPosts = async (
+export const fetchPosts = async (
   sort_by?:string,
   cursor?: string,
   limit: number = 10
@@ -33,7 +33,7 @@ catch (error: any) {
 }
 
 
-export const getSinglePost=async(post_id:string,user_id?:string)=>{
+export const fetchSinglePost=async(post_id:string,user_id?:string)=>{
   try{
     const res=await public_api.get(`/posts/${post_id}`,{
     params: {
@@ -47,7 +47,7 @@ export const getSinglePost=async(post_id:string,user_id?:string)=>{
   }
 }
 
-export const handleGetUserPosts=async(
+export const fetchUserPosts=async(
   user_id:string,
   sort_by?:string,
   cursor?: string,
@@ -67,7 +67,7 @@ export const handleGetUserPosts=async(
   }
 }
 
-export const handleDeletePost=async(post_id:string)=>{
+export const deletePost=async(post_id:string)=>{
   try{
     const res=await protected_api.delete(`/posts/${post_id}`);
     return res.data

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Eye, EyeOff,AlertCircle } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
-import { useAuthActions } from "@/hooks/auth";
+import { useAuth } from "@/hooks/auth";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const router=useRouter()
-  const {register,googleLogin,loading,error,setError}=useAuthActions();
+  const {register,googleLogin,loading,error,setError}=useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
