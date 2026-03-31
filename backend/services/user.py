@@ -3,7 +3,7 @@ from datetime import datetime
 from pymongo.errors import DuplicateKeyError
 from database.mongoDB.actions.user import UserActions
 from fastapi import HTTPException,status
-from database.mongoDB.actions.user import FollowActions,ReportActions
+from database.mongoDB.actions.user import FollowActions,ReportActions,TopUsers
 from database.mongoDB.collections.collection import posts_collection,posts_reaction_collection,comments_reaction_collection,followers_collection,refresh_tokens_collection
 from utils.upload_to_bucket import upload_to_bucket
 from core.config import settings
@@ -12,6 +12,7 @@ class UserService:
         self.UserActions=UserActions()
         self.FollowAction=FollowActions()
         self.ReportAction=ReportActions()
+        self.TopUsers=TopUsers()
 
     async def getAllUsers(self):
         data=await self.UserActions.get_user_with_details()
@@ -108,6 +109,6 @@ class UserService:
             )
         
     async def get_monthly_top_users(self):
-        return await self.UserActions.getMonthlyTopUser()
+        return await self.TopUsers.getMonthlyTopUser()
 
             

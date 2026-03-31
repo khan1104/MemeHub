@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { FollowData } from "@/types/user.type";
 import { Request } from "@/types/friends.type";
+import { Friend } from "@/types/friends.type";
 
 import { useUsers } from "@/hooks/user";
 import { useUser } from "@/context/UserContext";
@@ -164,7 +165,7 @@ function Requests({
   );
 }
 
-const Tabs = ["Followers", "Following", "Requests", "Sent Requests"];
+const Tabs = ["Followers", "Following", "Requests", "Sent Requests","Friends","Recently added","Mutual Friends"];
 
 interface FriendProps {
   user_id: string;
@@ -185,12 +186,15 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     getReciveRequests,
     handleReciveRequest,
     cancelRequest,
+    getFriends,
+    getMutualFriends,
     loading: friendLoading,
     error: friendError,
   } = useFriends();
 
   const [data, setData] = useState<FollowData[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
+  const [friends,setFriends]=useState<Friend[]>([])
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(true);
 
@@ -206,7 +210,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
 
       const currentCursor = isInitial ? null : cursor;
 
-      let response;
+      let response:any;
       if (activeTab === "Followers") {
         response = await getFollowers(user_id, currentCursor); // Ensure your hook accepts 'active'
       } else if (activeTab === "Followings") {
@@ -215,6 +219,15 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
         response = await getReciveRequests(currentCursor);
       } else if (activeTab === "Sent Requests") {
         response = await getSentRequests(currentCursor);
+      }
+      else if (activeTab === "Friends") {
+        response = await getFriends(user_id,"oldest",currentCursor);
+      }
+      else if (activeTab === "Recently added") {
+        response = await getFriends(user_id,"latest",currentCursor);
+      }
+      else if (activeTab === "Mutual Friends") {
+        response = await getMutualFriends(user_id,currentCursor);
       }
       if (!response) return;
 
@@ -228,6 +241,15 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
         } else if (activeTab === "Sent Requests") {
           setRequests(response.items);
         }
+        else if (activeTab === "Friends") {
+        setFriends(response.items);
+        }
+        else if (activeTab === "Recently added") {
+          setFriends(response.items);
+        }
+        else if (activeTab === "Mutual Friends") {
+          setFriends(response.items);
+        }
       } else {
         if (activeTab === "Followers") {
           setData((prev) => [...prev, ...response.items]);
@@ -237,6 +259,12 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
           setRequests((prev) => [...prev, ...response.items]);
         } else if (activeTab === "Sent Requests") {
           setRequests((prev) => [...prev, ...response.items]);
+        } else if (activeTab === "Friends") {
+          setFriends((prev) => [...prev, ...response.items]);
+        } else if (activeTab === "Recently added") {
+          setFriends((prev) => [...prev, ...response.items]);
+        } else if (activeTab === "Mutual Friends") {
+          setFriends((prev) => [...prev, ...response.items]);
         }
 
       }
@@ -252,6 +280,8 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
       getFollowings,
       getReciveRequests,
       getSentRequests,
+      getFriends,
+      getMutualFriends,
       isLoading,
       user_id,
       activeTab,
@@ -263,6 +293,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     if (isLoading) return;
     setData([]);
     setRequests([]);
+    setFriends([]);
     setCursor(null);
     setHasNext(true);
     loadPosts(true);
@@ -321,6 +352,24 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
           >
             Followings
           </button>
+          <button
+            className={tabClass("Friends")}
+            onClick={() => setActiveTab("Friends")}
+          >
+            Friends
+          </button>
+          <button
+            className={tabClass("Recently added")}
+            onClick={() => setActiveTab("Recently added")}
+          >
+            Recently added
+          </button>
+          <button
+            className={tabClass("Mutual Friends")}
+            onClick={() => setActiveTab("Mutual Friends")}
+          >
+            Mutual Friends
+          </button>
           {isOwnProfile && (
             <>
               <button
@@ -346,6 +395,13 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
           data.map((user) => <FollowCard user={user} key={user.user_id} />)}
         {activeTab === "Followings" &&
           data.map((user) => <FollowCard user={user} key={user.user_id} />)}
+        {activeTab === "Friends" &&
+          friends.map((user) => <FollowCard user={user} key={user.user_id} />)}
+        {activeTab === "Recently added" &&
+          friends.map((user) => <FollowCard user={user} key={user.user_id} />)}
+        {activeTab === "Mutual Friends" &&
+          friends.map((user) => <FollowCard user={user} key={user.user_id} />)}
+
         {isOwnProfile &&
           activeTab === "Requests" &&
           requests.map((request) => (

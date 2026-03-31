@@ -1,6 +1,6 @@
 from fastapi import APIRouter,status,Depends,UploadFile,File
 from dependency.auth_dependency import get_current_user,get_current_user_optional
-from models.response.user import UserResponse,SearchUserResponse,PaginatedFollowDataResponse
+from models.response.user import UserResponse,SearchUserResponse,PaginatedFollowDataResponse,MonthlyTopUsers
 from services.user import UserService
 from models.request.user import UserReport,UserUpdate
 
@@ -23,6 +23,10 @@ async def get_current_user(current_user=Depends(get_current_user)):
     data=await service.getCurrentUser(current_user["_id"])
     return data
 
+@route.get("/top",status_code=status.HTTP_200_OK,response_model=list[MonthlyTopUsers])
+async def get_monthly_top_users():
+    data=await service.get_monthly_top_users()
+    return data
 
 
 @route.get("/{user_id}",status_code=status.HTTP_200_OK,response_model=UserResponse)
@@ -68,10 +72,6 @@ async def report(user_id: str, data: UserReport, current_user=Depends(get_curren
     await service.report(user_id,current_user["_id"],data.model_dump())
     return {"message": "user reported successfully"}
 
-@route.post("/top")
-async def get_monthly_top_users():
-    data=await  service.get_monthly_top_users()
-    print(data)
 
 
 

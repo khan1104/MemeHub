@@ -40,3 +40,10 @@ class PaginatedFollowDataResponse(BaseModel):
     next_cursor: Optional[str]
     has_next: bool
 
+
+class MonthlyTopUsers(BaseModel):
+    user_id:str
+    user_name:str
+    profile_pic:str
+    total_likes:int
+

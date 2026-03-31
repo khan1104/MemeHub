@@ -7,7 +7,8 @@ import {handleFollow,
   handleUpadteUserInfo,
   handleGetFollowers,
   handleGetFollowings,
-  searchUsers
+  searchUsers,
+  fetchMonthlyTopUsers
 } from "@/services/user.service";
 import { useUser } from "@/context/UserContext";
 import { PaginatedFollowDataResponse } from "@/types/user.type";
@@ -146,8 +147,23 @@ export const useUsers = () => {
   }
 
 
+  const getMonthlyTopUsers=async()=>{
+    setError(null)
+    try{
+        setLoading(true)
+        return await fetchMonthlyTopUsers();
+    }
+    catch(error:any){
+      setError(error.message)
+      return null
+    }finally {
+      setLoading(false)
+    }
+  }
+
+
   
 
-  return {getUserById,updateUserInfo, updateProfilePic,followUser,reportUser,getFollowers,getFollowings,SearchUsers, loading, error, setError };
+  return {getUserById,updateUserInfo, updateProfilePic,followUser,reportUser,getFollowers,getFollowings,SearchUsers,getMonthlyTopUsers, loading, error, setError };
 };
 

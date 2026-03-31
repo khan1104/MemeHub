@@ -107,7 +107,15 @@ export const searchUsers = async (query: string) => {
     return res.data;
   } catch (error: any) {
     apiError(error);
-    return [];
+  }
+};
+
+export const fetchMonthlyTopUsers = async () => {
+  try {
+    const res = await public_api.get('users/top');
+    return res.data;
+  } catch (error: any) {
+    apiError(error);
   }
 };
 

@@ -30,3 +30,11 @@ export interface PaginatedFollowDataResponse {
   next_cursor: string | null;
   has_next: boolean;
 }
+
+export interface MonthlyTopUsers{
+    user_id:string
+    user_name:string
+    profile_pic:string
+    total_likes:number
+
+}
