@@ -3,7 +3,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
 import { FeedProvider } from "@/context/FeedContext";
-
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "MemeHub",
@@ -25,6 +25,7 @@ export default function RootLayout({
           <UserProvider>
             <FeedProvider>
               {children}
+              <Toaster position="top-center"/>
             </FeedProvider>
           </UserProvider>
         </GoogleOAuthProvider>

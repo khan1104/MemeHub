@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { handleGetCurrentUser } from "@/services/user.service";
+import { fetchCurrentUser } from "@/services/user.service";
 import { User } from "@/types/user.type";
 
 type UserContextType = {
@@ -21,7 +21,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const loadUser = async () => {
     try {
       setIsLoading(true);
-      const data = await handleGetCurrentUser();
+      const data = await fetchCurrentUser();
       setUser(data ?? null);
     } catch {
       setUser(null);

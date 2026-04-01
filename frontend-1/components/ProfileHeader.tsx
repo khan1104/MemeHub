@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { FaUserPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import LoginRequiredModal from "../modals/LoginRequiredModal";
+import LoginRequiredModal from "./modals/LoginRequiredModal";
 import { User } from "@/types/user.type";
 import { useUsers } from "@/hooks/user";
 import { useUser } from "@/context/UserContext";

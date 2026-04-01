@@ -156,7 +156,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                         setQuery("");
                         router.push(`/profile/${u._id}`);
                       }}
-                      className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer"
+                      className="flex items-center gap-3 p-3 hover:bg-gray-100"
                     >
                       <img
                         src={u.profile_pic || "/default.png"}
@@ -266,7 +266,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                   <button
                     type="button"
                     onClick={() => setOpenUpload(true)}
-                    className="bg-primary hidden items-center gap-1 rounded-full px-5 py-2.5 text-[15px] font-bold text-white hover:bg-[#6D28D9] sm:flex"
+                    className="bg-primary hidden items-center gap-1 rounded-full px-5 py-2.5 text-[15px] font-bold text-white hover:bg-[#6D28D9] sm:flex cursor-pointer"
                   >
                     <Plus size={20} />
                     Upload
@@ -275,7 +275,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                   <button
                     type="button"
                     onClick={() => setOpenUpload(true)}
-                    className="flex items-center justify-center sm:hidden"
+                    className="flex items-center justify-center sm:hidden cursor-pointer"
                     aria-label="Upload"
                   >
                     <Plus size={24} />
@@ -286,7 +286,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               <button
                 type="button"
                 onClick={() => setOpenAppModal(true)}
-                className="hidden items-center gap-2 rounded-full bg-gray-200 px-4 py-2.5 text-[15px] font-semibold sm:flex"
+                className="hidden items-center gap-2 rounded-full bg-gray-200 px-4 py-2.5 text-[15px] font-semibold sm:flex cursor-pointer"
               >
                 <Download size={20} />
                 Get App
@@ -300,7 +300,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                       <button
                         type="button"
                         onClick={() => setOpenMenu((p) => !p)}
-                        className="bg-primary flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white border-2 border-transparent hover:border-purple-200 transition-all"
+                        className="bg-primary flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white border-2 border-transparent hover:border-purple-200 transition-all cursor-pointer"
                       >
                         {user?.profile_pic ? (
                           <img

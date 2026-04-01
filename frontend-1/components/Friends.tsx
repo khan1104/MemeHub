@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
 import { FollowData } from "@/types/user.type";
 import { Request } from "@/types/friends.type";
 import { Friend } from "@/types/friends.type";
@@ -328,11 +329,29 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     [activeTab],
   );
 
-  const handleRequest=async(request_id:string,action:string)=>{
-    const res=await handleReciveRequest(request_id,action);
-    console.log("mai call huwa")
-    console.log(res)
-  }
+  const handleRequest = async (request_id: string, action: string) => {
+    try {
+      await handleReciveRequest(request_id, action);
+      toast.success(`Request ${action}`);
+      setRequests((prev) => prev.filter((req) => req.id !== request_id));
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
+  };
+
+  const handleCancel = async (user_id: string) => {
+    try {
+      await cancelRequest(user_id);
+
+      // ✅ Alert
+      toast.success("Request cancelled");
+
+      // ✅ UI update
+      setRequests((prev) => prev.filter((req) => req.user_id !== user_id));
+    } catch (err) {
+       toast.error("Something went wrong");
+    }
+  };
 
 
   return (
@@ -364,12 +383,15 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
           >
             Recently added
           </button>
-          <button
-            className={tabClass("Mutual Friends")}
-            onClick={() => setActiveTab("Mutual Friends")}
-          >
-            Mutual Friends
-          </button>
+
+          {!isOwnProfile && (
+            <button
+              className={tabClass("Mutual Friends")}
+              onClick={() => setActiveTab("Mutual Friends")}
+            >
+              Mutual Friends
+            </button>
+          )}
           {isOwnProfile && (
             <>
               <button
@@ -410,7 +432,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
               key={request.user_id}
               purpose="Recived"
               handleFriendRequest={handleRequest}
-              handleCancelRequest={cancelRequest}
+              handleCancelRequest={handleCancel}
             />
           ))}
         {isOwnProfile &&
@@ -421,7 +443,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
               key={request.user_id}
               purpose="Sent"
               handleFriendRequest={handleRequest}
-              handleCancelRequest={cancelRequest}
+              handleCancelRequest={handleCancel}
             />
           ))}
       </div>

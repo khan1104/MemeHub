@@ -9,7 +9,7 @@ import { useUsers } from "@/hooks/user";
 import { usePostAction } from "@/hooks/postsAction";
 
 import UserPostCard from "@/components/UserPostsCrad";
-import ProfileHeader from "@/components/profile/ProfileHeader"
+import ProfileHeader from "@/components/ProfileHeader"
 import ProfileHeaderSkeleton from "@/components/skeletons/ProfileHeader";
 import Friends from "@/components/Friends";
 
