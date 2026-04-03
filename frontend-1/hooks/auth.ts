@@ -15,8 +15,8 @@ import { useUser } from "@/context/UserContext";
 import { clearAccessToken } from "@/lib/api";
 
 export const useAuth = () => {
-  const {loadUser}=useUser()
-
+  const {loadUser,isLoggedIn}=useUser()
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,6 +117,13 @@ export const useAuth = () => {
       setLoading(false);
     }
   };
+  const checkAuth = (action: () => void) => {
+    if (isLoggedIn) {
+      action();
+    } else {
+      setShowLoginModal(true);
+    }
+  };
 
   return {
     login,
@@ -125,6 +132,9 @@ export const useAuth = () => {
     sendOtp,
     verifyOtp,
     logout,
+    checkAuth,
+    showLoginModal,
+    setShowLoginModal,
     loading,
     error,
     setError,

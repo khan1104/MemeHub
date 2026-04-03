@@ -172,9 +172,6 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() =>
-                    router.push(`/profile/${user?.user_id}/connections`)
-                  }
                 >
                   <Users size={16} />
                   <span className="font-semibold">{user?.total_friends}</span>
@@ -183,9 +180,6 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() =>
-                    router.push(`/profile/${user?.user_id}/connections`)
-                  }
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">{totalFollowers}</span>
@@ -194,9 +188,6 @@ export default function ProfileHeader({
 
                 <button
                   className="flex items-center gap-2 hover:text-purple-600"
-                  onClick={() =>
-                    router.push(`/profile/${user?.user_id}/connections`)
-                  }
                 >
                   <UserPlus size={16} />
                   <span className="font-semibold">{user?.total_following}</span>
@@ -266,7 +257,6 @@ export default function ProfileHeader({
 
               <button
                 className="flex items-center gap-2 hover:text-purple-600"
-                onClick={() => router.push(`/profile/${user?.user_id}/friends`)}
               >
                 <Users size={16} />
                 <span className="font-semibold">{user?.total_friends}</span>

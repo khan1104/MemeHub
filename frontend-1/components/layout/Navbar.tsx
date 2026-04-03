@@ -15,7 +15,7 @@ import {
 import { useAuth } from "@/hooks/auth";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-import { IoMdNotifications } from "react-icons/io";
+// import { IoMdNotifications } from "react-icons/io";
 import { useUsers } from "@/hooks/user";
 
 const useDebounce = (value: string, delay: number = 500) => {
@@ -38,31 +38,39 @@ type NavbarProps = {
 
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
-  const { user, isLoading } = useUser(); // Context se user data le rahe hain
+  const { user, isLoading } = useUser();
   const isLoggedIn = !!user;
-  const { logout } = useAuth();
+  const { logout,loading:authLogin,error:authError } = useAuth();
   const [openUpload, setOpenUpload] = useState(false);
   const [openAppModal, setOpenAppModal] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const [mobileSearch, setMobileSearch] = useState(false);
+  const [query, setQuery] = useState("");
+  const {
+    SearchUsers,
+    loading: searchLaoding,
+    error: searchError,
+  } = useUsers();
+  const [users, setUsers] = useState<any[]>([]);
+  // const [loadingSearch, setLoadingSearch] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const debouncedQuery = useDebounce(query, 500);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const loading=authLogin || searchLaoding;
   const userInitial = user?.user_name
     ? user.user_name.charAt(0).toUpperCase()
     : "U";
+
   const handleLogout = async () => {
     setOpenMenu(false);
     const success = await logout();
     if (success) router.replace("/sign-in");
   };
 
-  const [query, setQuery] = useState("");
-  const {SearchUsers}=useUsers()
-  const [users, setUsers] = useState<any[]>([]);
-  const [loadingSearch, setLoadingSearch] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const debouncedQuery = useDebounce(query, 500);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  
 
  useEffect(() => {
    const fetchUsers = async () => {
@@ -72,13 +80,13 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
        return;
      }
 
-     setLoadingSearch(true);
+     ;
      setShowDropdown(true);
 
      const res = await SearchUsers(debouncedQuery);
      if (res) setUsers(res);
 
-     setLoadingSearch(false);
+     
    };
 
    fetchUsers();
@@ -123,6 +131,14 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
     }
   };
 
+  useEffect(() => {
+    if (authError) alert(authError);
+  }, [authError]);
+
+  useEffect(() => {
+    if (searchError) alert(searchError);
+  }, [searchError]);
+
   return (
     <nav className="sticky top-0 left-0 z-50 w-full border-b border-gray-300 bg-white px-4 py-3 sm:px-8">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6">
@@ -145,7 +161,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
 
             {showDropdown && query && (
               <div className="absolute top-full left-0 w-80 bg-white border rounded-2xl mt-0.5 shadow-lg z-50 max-h-60 overflow-y-auto">
-                {loadingSearch ? (
+                {searchLaoding ? (
                   <p className="p-3 text-gray-500">Searching...</p>
                 ) : users.length > 0 ? (
                   users.map((u) => (
@@ -216,7 +232,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
 
               {showDropdown && query && (
                 <div className="absolute top-full left-0 w-full bg-white border rounded-2xl mt-0.5 shadow-lg z-50 max-h-60 overflow-y-auto">
-                  {loadingSearch ? (
+                  {searchLaoding ? (
                     <p className="p-3 text-gray-500">Searching...</p>
                   ) : users.length > 0 ? (
                     users.map((u, index) => (
@@ -262,7 +278,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               {isLoggedIn && (
                 <>
                   {/* Upload Button */}
-                  <IoMdNotifications size={27} />
+                  {/* <IoMdNotifications size={27} /> */}
                   <button
                     type="button"
                     onClick={() => setOpenUpload(true)}

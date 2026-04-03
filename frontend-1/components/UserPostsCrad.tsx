@@ -120,6 +120,7 @@ export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
                 <Link2 size={14} />
                 Copy link
               </button>
+              
 
               {isOwnPost && (
                 <button

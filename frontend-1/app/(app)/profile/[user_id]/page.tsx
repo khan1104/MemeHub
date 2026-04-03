@@ -9,6 +9,7 @@ import { useUsers } from "@/hooks/user";
 import { usePostAction } from "@/hooks/postsAction";
 
 import UserPostCard from "@/components/UserPostsCrad";
+import UserPostCardSkeleton from "@/components/skeletons/UserPostCard";
 import ProfileHeader from "@/components/ProfileHeader"
 import ProfileHeaderSkeleton from "@/components/skeletons/ProfileHeader";
 import Friends from "@/components/Friends";
@@ -34,9 +35,12 @@ export default function Profile() {
 
   const { getUserById} = useUsers();
 
-  const { getUserPosts } = usePost();
+  const { getUserPosts ,loading:usersPostLoading,error:userPostError} = usePost();
 
-  const { getSavedPosts, getLikedPosts } = usePostAction();
+  const { getSavedPosts, getLikedPosts,loading:postsLoading,error:postError } = usePostAction();
+
+  const loading=usersPostLoading || postsLoading;
+  const error=userPostError || postError
 
   /* ================= STATE ================= */
 
@@ -45,16 +49,16 @@ export default function Profile() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(true);
-  const [loadingPosts, setLoadingPosts] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const requestIdRef = useRef(0);
+  // const requestIdRef = useRef(0);
+  const fetchingRef = useRef(false);
 
   /* ================= LOAD PROFILE ================= */
 
   useEffect(() => {
+
     if (!user_id || isLoading) return;
 
     const loadProfile = async () => {
@@ -69,19 +73,19 @@ export default function Profile() {
 
   const loadPosts = useCallback(
     async (isInitial = false) => {
-      if (loadingPosts) return;
+      if (fetchingRef.current) return;
+      if (isLoading) return;
+      if (loading) return;
       if (!hasNext && !isInitial) return;
       if (activeTab === "friends") return;
 
-      const requestId = ++requestIdRef.current;
-
-      setLoadingPosts(true);
+      fetchingRef.current = true;
 
       const currentCursor = isInitial ? null : cursor;
 
       let res;
 
-      try {
+      
         if (activeTab === "saved") {
           res = await getSavedPosts(currentCursor);
         } else if (activeTab === "liked") {
@@ -90,58 +94,65 @@ export default function Profile() {
           res = await getUserPosts(user_id, activeTab, currentCursor);
         }
 
-        if (!res) return;
+        if (!res) {
+          setHasNext(false);
+          fetchingRef.current = false;
+          return;
+        }
 
-        /* ignore old responses */
-        if (requestId !== requestIdRef.current) return;
+        if (res) {
+          if (isInitial) {
+            setPosts(res.items);
+          } else {
+            setPosts((prev) => [...prev, ...res.items]);
+          }
 
-        setPosts((prev) => {
-          if (isInitial) return res.items;
+          setCursor(res.next_cursor);
+          setHasNext(res.has_next);
+        }
 
-          const ids = new Set(prev.map((p) => p.post_id));
-          const filtered = res.items.filter((p) => !ids.has(p.post_id));
-
-          return [...prev, ...filtered];
-        });
-
-        setCursor(res.next_cursor);
-        setHasNext(res.has_next);
-      } finally {
-        setLoadingPosts(false);
-      }
+        fetchingRef.current = false;
+      
     },
-    [activeTab, cursor, hasNext, user_id],
+    [activeTab, cursor, hasNext, user_id,isLoading,loading,getLikedPosts,getSavedPosts,getUserPosts],
   );
 
   /* ================= TAB CHANGE ================= */
 
   useEffect(() => {
     if (!user_id || isLoading) return;
-
+    fetchingRef.current = false;
     setPosts([]);
     setCursor(null);
     setHasNext(true);
 
     loadPosts(true);
-  }, [activeTab, user_id, isLoading]);
+  }, [activeTab, user_id]);
 
   /* ================= INFINITE SCROLL ================= */
-
-  useEffect(() => {
-    if (!loaderRef.current) return;
-
-    observerRef.current?.disconnect();
-
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        loadPosts();
-      }
-    });
-
-    observerRef.current.observe(loaderRef.current);
-
-    return () => observerRef.current?.disconnect();
-  }, [hasNext, loadPosts]);
+   useEffect(() => {
+      const currentLoader = loaderRef.current;
+      if (!currentLoader) return;
+  
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const first = entries[0];
+          if (first.isIntersecting && hasNext && !fetchingRef.current) {
+            loadPosts();
+          }
+        },
+        {
+          rootMargin: "150px", // preload before reaching bottom
+          threshold: 0,
+        },
+      );
+  
+      observer.observe(currentLoader);
+  
+      return () => {
+        if (currentLoader) observer.disconnect();;
+      };
+    }, [hasNext, loadPosts]);
 
 
   const handleDeleteLocal = (id: string) => {
@@ -175,7 +186,7 @@ export default function Profile() {
 
         <div className="sticky top-0 left-0 z-10 -mt-6 bg-white">
           {!user ? (
-            <ProfileHeaderSkeleton/>
+            <ProfileHeaderSkeleton />
           ) : (
             <ProfileHeader user={user} isOwnProfile={isOwnProfile} />
           )}
@@ -229,24 +240,44 @@ export default function Profile() {
           </div>
         </div>
 
+        {activeTab !== "friends" && !error && !loading && posts.length === 0 && (
+          <div className="w-full flex justify-center items-center py-10">
+            <p className="text-gray-400 text-sm">
+              {activeTab === "liked"
+                ? "You haven’t liked any posts yet"
+                : activeTab === "saved"
+                  ? "You haven’t saved any posts yet"
+                  : isOwnProfile
+                    ? "You haven’t posted anything yet"
+                    : "This user doesn’t have any posts yet"}
+            </p>
+          </div>
+        )}
+        {error && !loading && (
+          <div className="text-center py-10 text-red-500">{error}.</div>
+        )}
         {/* POSTS GRID */}
 
         {activeTab !== "friends" && user && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-            {posts.map((post) => (
-              <UserPostCard
-                key={post.post_id}
-                post={post}
-                onDelete={handleDeleteLocal}
-              />
-            ))}
+            {loading && posts.length === 0
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <UserPostCardSkeleton key={i} />
+                ))
+              : posts.map((post) => (
+                  <UserPostCard
+                    key={post.post_id}
+                    post={post}
+                    onDelete={handleDeleteLocal}
+                  />
+                ))}
 
             {hasNext && (
               <div
                 ref={loaderRef}
                 className="h-10 flex items-center justify-center"
               >
-                {loadingPosts && (
+                {loading && (
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
                 )}
               </div>
@@ -254,13 +285,7 @@ export default function Profile() {
           </div>
         )}
 
-        {!hasNext && posts.length > 0 && (
-          <p className="text-center py-6 text-gray-400 text-sm">
-            No more posts
-          </p>
-        )}
-
-        {activeTab === "friends" && user && (
+        {activeTab === "friends" && user && !error &&  (
           <Friends user_id={user.user_id} isOwnProfile={isOwnProfile} />
         )}
       </div>

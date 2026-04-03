@@ -470,10 +470,10 @@ class TopUsers(BaseActions):
     async def getMonthlyTopUser(self):
         now = datetime.now(timezone.utc)
 
-        # ✅ Start = 10th of current month
+        # Start = 10th of current month
         start_of_period = datetime(now.year, now.month, 10, tzinfo=timezone.utc)
 
-        # ✅ End = 1st of next month
+        # End = 1st of next month
         if now.month == 12:
             end_of_period = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc)
         else:

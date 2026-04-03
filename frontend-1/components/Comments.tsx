@@ -13,6 +13,7 @@ import { formatCount } from "@/lib/formatCount";
 import {useCommentAction} from "@/hooks/commentActions"
 import ReportModal from "./modals/ReportModal";
 import LoginRequiredModal from "./modals/LoginRequiredModal";
+import { useAuth } from "@/hooks/auth";
 
 interface CommentProps {
   comment: Comment;
@@ -25,7 +26,8 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
   const { user, isLoggedIn } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  // const [showLoginModal, setShowLoginModal] = useState(false);
+  const { checkAuth, showLoginModal, setShowLoginModal } = useAuth()
   const {
     updateComment,
     deleteComment,
@@ -47,13 +49,13 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
   const [editText, setEditText] = useState(comment.comment);
   console.log(comment)
 
-  const checkAuth = (action: () => void) => {
-    if (isLoggedIn) {
-      action();
-    } else {
-      setShowLoginModal(true);
-    }
-  };
+  // const checkAuth = (action: () => void) => {
+  //   if (isLoggedIn) {
+  //     action();
+  //   } else {
+  //     setShowLoginModal(true);
+  //   }
+  // };
   const handleLike = async () => {
     checkAuth(async () => {
       if (loading) return;

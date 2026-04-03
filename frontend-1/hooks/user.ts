@@ -12,7 +12,6 @@ import {
   fetchMonthlyTopUsers
 } from "@/services/user.service";
 import { useUser } from "@/context/UserContext";
-import { PaginatedFollowDataResponse } from "@/types/user.type";
 
 export const useUsers = () => {
   const {user}=useUser()
@@ -103,7 +102,7 @@ export const useUsers = () => {
     }
   }
 
-  const getFollowings=async(user_id:string,cursor?: string):Promise<PaginatedFollowDataResponse  | null>=>{
+  const getFollowings=async(user_id:string,cursor?: string)=>{
     setError(null)
     try{
         setLoading(true)
@@ -117,7 +116,7 @@ export const useUsers = () => {
     }
   }
 
-  const getFollowers=async(user_id:string,cursor?: string):Promise<PaginatedFollowDataResponse  | null>=>{
+  const getFollowers=async(user_id:string,cursor?: string)=>{
     setError(null)
     try{
         setLoading(true)

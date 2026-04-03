@@ -75,9 +75,10 @@ const ReportModal = ({ isOpen, onClose, targetType, id }: ReportModalProps) => {
   const handleSubmit = async () => {
     if (targetType === "Post") {
       await reportPost(id, selectedReason, description);
-    } 
-    else if(targetType==="Comment"){
-      await reportComment(id,selectedReason,description);
+    } else if (targetType === "Comment") {
+      await reportComment(id, selectedReason, description);
+    } else if (targetType === "User") {
+      await reportUser(id, selectedReason, description);
     }
     // API call ke baad humesha Step 3 par bhejo
     setStep(3);

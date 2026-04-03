@@ -6,11 +6,7 @@ import { apiError } from "@/lib/apiError"
 
 export const sendFriendRequest=async(user_id:string)=>{
     try{
-        const res=await protected_api.post(`/friends/request/${user_id}`,{
-            params: {
-            user_id
-            }
-        })
+        const res=await protected_api.post(`/friends/request/${user_id}`)
         return res.data
     }
     catch(error:any){

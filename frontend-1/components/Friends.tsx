@@ -1,172 +1,12 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import Image from "next/image";
 import { toast } from "sonner";
-import { FollowData } from "@/types/user.type";
-import { Request } from "@/types/friends.type";
-import { Friend } from "@/types/friends.type";
-
+import ConnectionSkeleton from "./skeletons/Connections";
+import Connections from "./Connections";
+import Request from "./Requests";
 import { useUsers } from "@/hooks/user";
 import { useUser } from "@/context/UserContext";
-import { MoreVertical } from "lucide-react";
-import { FaCheck } from "react-icons/fa6";
-import { X } from "lucide-react";
 import { useFriends } from "@/hooks/friends";
-
-interface FollowProps {
-  user: FollowData;
-}
-
-// for followers and followings
-function FollowCard({ user }: FollowProps) {
-  return (
-    <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl hover:shadow-sm transition">
-      {/* Left Section */}
-      <div className="flex items-center gap-3">
-        {/* Profile Image */}
-        <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
-          <Image
-            src={user.profile_pic || "/default.png"}
-            alt={user.user_name}
-            fill
-            className="object-cover"
-          />
-        </div>
-
-        {/* Name */}
-        <div>
-          <p className="text-sm sm:text-base md:text-lg font-medium text-gray-800">
-            {user.user_name}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-2 mt-2 sm:hidden w-full justify-end">
-        {/* Follow Button */}
-        <button className="px-3 py-1 text-xs rounded-full bg-primary text-white">
-          {user.isFollowing ? "Unfollow" : "Follow"}
-        </button>
-
-        {/* Message Button */}
-        <button className="px-3 py-1 text-xs rounded-full border border-gray-300 text-gray-700">
-          Message
-        </button>
-      </div>
-
-      {/* ✅ DESKTOP MENU */}
-      <button className="hidden sm:block mt-2 p-1 rounded-full hover:bg-gray-100">
-        <MoreVertical size={16} />
-      </button>
-    </div>
-  );
-}
-
-type Purpose = "Recived" | "Sent";
-interface RequestsProps {
-  request: Request;
-  purpose: Purpose;
-  handleFriendRequest: (
-    request_id: string,
-    action: "accepted" | "rejected",
-  ) => void;
-  handleCancelRequest: (
-    user_id: string
-  ) => void;
-}
-
-function Requests({
-  request,
-  purpose,
-  handleFriendRequest,
-  handleCancelRequest,
-}: RequestsProps) {
-  return (
-    <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl hover:shadow-sm transition">
-      {/* Left Section */}
-      <div className="flex items-center gap-3">
-        <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
-          <Image
-            src={request.profile_pic || "/default.png"}
-            alt={request.user_name}
-            fill
-            className="object-cover"
-          />
-        </div>
-
-        <p className="text-sm sm:text-base md:text-lg font-medium text-gray-800">
-          {request.user_name}
-        </p>
-      </div>
-
-      {/* RIGHT SECTION */}
-      {purpose === "Recived" ? (
-        <>
-          {/* ✅ MOBILE */}
-          <div className="flex gap-2 sm:hidden">
-            <button
-              className="px-4 py-1 text-sm rounded-2xl bg-primary text-white"
-              onClick={() => handleFriendRequest(request.id, "accepted")}
-            >
-              Accept
-            </button>
-
-            <button
-              className="px-4 py-1 text-sm rounded-2xl bg-gray-200"
-              onClick={() => handleFriendRequest(request.id, "rejected")}
-            >
-              Reject
-            </button>
-          </div>
-
-          {/* ✅ DESKTOP */}
-          <div className="hidden sm:flex gap-2">
-            <button
-              className="p-2 rounded-full bg-primary text-white hover:scale-105 transition"
-              onClick={() => handleFriendRequest(request.id, "accepted")}
-            >
-              <FaCheck size={18} />
-            </button>
-
-            <button
-              className="p-2 rounded-full bg-gray-200 hover:scale-105 transition"
-              onClick={() => handleFriendRequest(request.id, "rejected")}
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* ✅ MOBILE */}
-          <div className="flex sm:hidden">
-            <button
-              className="px-4 py-1 text-md rounded-md bg-gray-200"
-              onClick={() => {
-                handleCancelRequest(request.user_id);
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-
-          {/* ✅ DESKTOP */}
-          <div className="hidden sm:block">
-            <button
-              className="px-4 py-1 text-md rounded-md bg-gray-200"
-              onClick={() => {
-                handleCancelRequest(request.user_id);
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-const Tabs = ["Followers", "Following", "Requests", "Sent Requests","Friends","Recently added","Mutual Friends"];
 
 interface FriendProps {
   user_id: string;
@@ -175,10 +15,12 @@ interface FriendProps {
 
 function Friends({ user_id, isOwnProfile }: FriendProps) {
   const [activeTab, setActiveTab] = useState("Followers");
-  const { user, isLoggedIn, isLoading } = useUser();
+  const { isLoggedIn, isLoading: authLoading } = useUser();
+
   const {
     getFollowers,
     getFollowings,
+    followUser,
     loading: userLoading,
     error: userError,
   } = useUsers();
@@ -189,263 +31,242 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     cancelRequest,
     getFriends,
     getMutualFriends,
+    removeFriend,
     loading: friendLoading,
     error: friendError,
   } = useFriends();
 
-  const [data, setData] = useState<FollowData[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [friends,setFriends]=useState<Friend[]>([])
+  // Unified state to reduce boilerplate
+  const [items, setItems] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(true);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
+  const fetchingRef = useRef(false);
 
   const loading = userLoading || friendLoading;
+  const error = friendError || userError;
 
-  // 1. Fetch Logic
-  const loadPosts = useCallback(
+  const loadData = useCallback(
     async (isInitial = false) => {
-      if (isLoading) return;
-      if (loading || (!hasNext && !isInitial)) return;
+      if (authLoading || fetchingRef.current) return;
+      if (!hasNext && !isInitial) return;
 
+      fetchingRef.current = true;
       const currentCursor = isInitial ? null : cursor;
 
-      let response:any;
-      if (activeTab === "Followers") {
-        response = await getFollowers(user_id, currentCursor); // Ensure your hook accepts 'active'
-      } else if (activeTab === "Followings") {
-        response = await getFollowings(user_id, currentCursor);
-      } else if (activeTab === "Requests") {
-        response = await getReciveRequests(currentCursor);
-      } else if (activeTab === "Sent Requests") {
-        response = await getSentRequests(currentCursor);
-      }
-      else if (activeTab === "Friends") {
-        response = await getFriends(user_id,"oldest",currentCursor);
-      }
-      else if (activeTab === "Recently added") {
-        response = await getFriends(user_id,"latest",currentCursor);
-      }
-      else if (activeTab === "Mutual Friends") {
-        response = await getMutualFriends(user_id,currentCursor);
-      }
-      if (!response) return;
+      try {
+        let response: any;
 
-      if (isInitial) {
-        if (activeTab === "Followers") {
-          setData(response.items); 
-        } else if (activeTab === "Followings") {
-          setData(response.items);
-        } else if (activeTab === "Requests") {
-          setRequests(response.items);
-        } else if (activeTab === "Sent Requests") {
-          setRequests(response.items);
-        }
-        else if (activeTab === "Friends") {
-        setFriends(response.items);
-        }
-        else if (activeTab === "Recently added") {
-          setFriends(response.items);
-        }
-        else if (activeTab === "Mutual Friends") {
-          setFriends(response.items);
-        }
-      } else {
-        if (activeTab === "Followers") {
-          setData((prev) => [...prev, ...response.items]);
-        } else if (activeTab === "Followings") {
-          setData((prev) => [...prev, ...response.items]);
-        } else if (activeTab === "Requests") {
-          setRequests((prev) => [...prev, ...response.items]);
-        } else if (activeTab === "Sent Requests") {
-          setRequests((prev) => [...prev, ...response.items]);
-        } else if (activeTab === "Friends") {
-          setFriends((prev) => [...prev, ...response.items]);
-        } else if (activeTab === "Recently added") {
-          setFriends((prev) => [...prev, ...response.items]);
-        } else if (activeTab === "Mutual Friends") {
-          setFriends((prev) => [...prev, ...response.items]);
+        // Strategy pattern for fetching
+        switch (activeTab) {
+          case "Followers":
+            response = await getFollowers(user_id, currentCursor);
+            break;
+          case "Followings":
+            response = await getFollowings(user_id, currentCursor);
+            break;
+          case "Requests":
+            response = await getReciveRequests(currentCursor);
+            break;
+          case "Sent Requests":
+            response = await getSentRequests(currentCursor);
+            break;
+          case "Friends":
+            response = await getFriends(user_id, "oldest", currentCursor);
+            break;
+          case "Recently added":
+            response = await getFriends(user_id, "latest", currentCursor);
+            break;
+          case "Mutual Friends":
+            response = await getMutualFriends(user_id, currentCursor);
+            break;
         }
 
+        if (response) {
+          setItems((prev) =>
+            isInitial ? response.items : [...prev, ...response.items],
+          );
+          setCursor(response.next_cursor);
+          setHasNext(response.has_next);
+        } else {
+          setHasNext(false);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        fetchingRef.current = false;
       }
-
-      setCursor(response.next_cursor);
-      setHasNext(response.has_next);
     },
     [
+      activeTab,
+      authLoading,
       cursor,
       hasNext,
-      loading,
+      user_id,
       getFollowers,
       getFollowings,
       getReciveRequests,
       getSentRequests,
       getFriends,
       getMutualFriends,
-      isLoading,
-      user_id,
-      activeTab,
     ],
   );
 
-  // 2. Reset feed when Category changes
+  // Reset and Load on Tab Change
   useEffect(() => {
-    if (isLoading) return;
-    setData([]);
-    setRequests([]);
-    setFriends([]);
-    setCursor(null);
+    setItems([]); // Clear UI immediately for better UX
     setHasNext(true);
-    loadPosts(true);
-  }, [activeTab, isLoading]);
+    setCursor(null);
+    loadData(true);
+  }, [activeTab, user_id]); // Added user_id in case profile changes
 
-  // 3. Infinite Scroll (Intersection Observer)
+  // Infinite Scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          loadPosts();
+        if (
+          entries[0].isIntersecting &&
+          hasNext &&
+          !fetchingRef.current &&
+          !loading
+        ) {
+          loadData();
         }
       },
-      { threshold: 0.1 },
+      { rootMargin: "200px" },
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
-
+    if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [loadPosts, hasNext, loading]);
-  console.log(data);
+  }, [loadData, hasNext, loading]);
 
-  const tabClass = useCallback(
-    (tab: string) =>
-      `px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${
-        activeTab === tab
-          ? "bg-purple-100 text-purple-700"
-          : "hover:bg-gray-100 text-gray-500"
-      }`,
-    [activeTab],
-  );
+  // Actions
+  const handleUnfollow = async (targetId: string) => {
+    
+      const res=await followUser(targetId);
+      if (!res) {
+        toast.error("something went wrong");
+        return;
+      }
+      if (activeTab === "Followings") {
+        setItems((prev) => prev.filter((u) => u.user_id !== targetId));
+      }
+  };
 
   const handleRequest = async (request_id: string, action: string) => {
-    try {
-      await handleReciveRequest(request_id, action);
+      const res=await handleReciveRequest(request_id, action);
+      if (!res) {
+        toast.error("something went wrong");
+        return;
+      }
       toast.success(`Request ${action}`);
-      setRequests((prev) => prev.filter((req) => req.id !== request_id));
-    } catch (err) {
-      toast.error("Something went wrong");
-    }
+      setItems((prev) => prev.filter((request) => request.id !== request_id));
+    
   };
 
-  const handleCancel = async (user_id: string) => {
-    try {
-      await cancelRequest(user_id);
-
-      // ✅ Alert
+  const handleCancelRequest = async (user_id: string) => {
+      const res=await cancelRequest(user_id);
+      if(!res){
+        toast.error('something went wrong');
+        return;
+      }
       toast.success("Request cancelled");
-
-      // ✅ UI update
-      setRequests((prev) => prev.filter((req) => req.user_id !== user_id));
-    } catch (err) {
-       toast.error("Something went wrong");
-    }
+      setItems((prev) => prev.filter((user) => user.user_id !== user_id));
   };
 
+    const handleUnfriend = async (user_id: string) => {
+        const res=await removeFriend(user_id);
+        if (!res) {
+          toast.error("something went wrong");
+          return;
+        }
+        toast.success("Friend Removed");
+        setItems((prev) => prev.filter((user) => user.user_id !== user_id));
+      
+    };
+
+
+  const renderItem = (item: any) => {
+    if (activeTab === "Requests" || activeTab === "Sent Requests") {
+      return (
+        <Request
+          key={item.user_id}
+          request={item}
+          purpose={activeTab === "Requests" ? "Recived" : "Sent"}
+          handleFriendRequest={handleRequest}
+          handleCancelRequest={handleCancelRequest}
+        />
+      );
+    }
+
+    return (
+      <Connections
+        key={item.user_id}
+        user={item}
+        handleUnfriend={handleUnfriend}
+        handleFollow={(uid) => followUser(uid)}
+        handleUnFollow={handleUnfollow}
+      />
+    );
+  };
 
   return (
     <div className="grid grid-cols-1 gap-2 mt-5">
-      {/* ================= STICKY TABS ================= */}
       <div className="sticky sm:top-35 top-55 z-10 bg-white pb-2">
         <div className="flex overflow-x-auto scrollbar-hide gap-1">
-          <button
-            className={tabClass("Followers")}
-            onClick={() => setActiveTab("Followers")}
-          >
-            Followers
-          </button>
-          <button
-            className={tabClass("Followings")}
-            onClick={() => setActiveTab("Followings")}
-          >
-            Followings
-          </button>
-          <button
-            className={tabClass("Friends")}
-            onClick={() => setActiveTab("Friends")}
-          >
-            Friends
-          </button>
-          <button
-            className={tabClass("Recently added")}
-            onClick={() => setActiveTab("Recently added")}
-          >
-            Recently added
-          </button>
+          {[
+            "Followers",
+            "Followings",
+            "Friends",
+            "Recently added",
+            "Mutual Friends",
+            "Requests",
+            "Sent Requests",
+          ].map((tab) => {
+            if (!isLoggedIn && tab !== "Followers" && tab !== "Followings")
+              return null;
+            if (tab === "Mutual Friends" && isOwnProfile) return null;
+            if (
+              (tab === "Requests" || tab === "Sent Requests") &&
+              !isOwnProfile
+            )
+              return null;
 
-          {!isOwnProfile && (
-            <button
-              className={tabClass("Mutual Friends")}
-              onClick={() => setActiveTab("Mutual Friends")}
-            >
-              Mutual Friends
-            </button>
-          )}
-          {isOwnProfile && (
-            <>
+            return (
               <button
-                className={tabClass("Requests")}
-                onClick={() => setActiveTab("Requests")}
+                key={tab}
+                className={`p-3 whitespace-nowrap rounded-xl text-sm font-semibold transition ${
+                  activeTab === tab
+                    ? "bg-purple-100 text-purple-700"
+                    : "hover:bg-gray-100 text-gray-500"
+                }`}
+                onClick={() => setActiveTab(tab)}
               >
-                Requests
+                {tab}
               </button>
-              <button
-                className={tabClass("Sent Requests")}
-                onClick={() => setActiveTab("Sent Requests")}
-              >
-                Sent Requests
-              </button>
-            </>
-          )}
+            );
+          })}
         </div>
       </div>
+      {error && !loading && (
+        <div className="col-span-full text-center py-5 text-red-500 font-medium">
+          {error}
+        </div>
+      )}
 
-      {/* ================= FRIENDS GRID ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
-        {activeTab === "Followers" &&
-          data.map((user) => <FollowCard user={user} key={user.user_id} />)}
-        {activeTab === "Followings" &&
-          data.map((user) => <FollowCard user={user} key={user.user_id} />)}
-        {activeTab === "Friends" &&
-          friends.map((user) => <FollowCard user={user} key={user.user_id} />)}
-        {activeTab === "Recently added" &&
-          friends.map((user) => <FollowCard user={user} key={user.user_id} />)}
-        {activeTab === "Mutual Friends" &&
-          friends.map((user) => <FollowCard user={user} key={user.user_id} />)}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        {items.map(renderItem)}
 
-        {isOwnProfile &&
-          activeTab === "Requests" &&
-          requests.map((request) => (
-            <Requests
-              request={request}
-              key={request.user_id}
-              purpose="Recived"
-              handleFriendRequest={handleRequest}
-              handleCancelRequest={handleCancel}
-            />
-          ))}
-        {isOwnProfile &&
-          activeTab === "Sent Requests" &&
-          requests.map((request) => (
-            <Requests
-              request={request}
-              key={request.user_id}
-              purpose="Sent"
-              handleFriendRequest={handleRequest}
-              handleCancelRequest={handleCancel}
-            />
-          ))}
+        {loading && [...Array(4)].map((_, i) => <ConnectionSkeleton key={i} />)}
+
+        {!error && !loading && items.length === 0 && (
+          <div className="col-span-full text-center py-10 text-gray-400">
+            No results found.
+          </div>
+        )}
+
+        <div ref={loaderRef} className="h-10 w-full" />
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { fetchFriends,
         fetchSentRequests,
         handleFriendRequest,
         cancelSentRequest,
-        removeFriend,
+        removeFriend as removeFriendService,
         sendFriendRequest
  } from "@/services/friends.service";
 import { PaginatedFriendResponse,PaginatedRequestResponse } from "@/types/friends.type";
@@ -106,9 +106,22 @@ export const useFriends = () => {
     }
   } 
 
+   const removeFriend=async(request_id:string)=>{
+    setError(null)
+    try {
+      setLoading(true)
+      return await removeFriendService(request_id);
+    } catch (err: any) {
+      setError(err.message)
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }
+
   
 
 
 
-  return {getFriends,getMutualFriends,getReciveRequests,getSentRequests,sendRequest,cancelRequest,handleReciveRequest,loading, error,setError};
+  return {getFriends,getMutualFriends,getReciveRequests,getSentRequests,sendRequest,cancelRequest,handleReciveRequest,removeFriend,loading, error,setError};
 };

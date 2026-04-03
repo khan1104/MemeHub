@@ -21,6 +21,7 @@ import { formatCount } from "@/lib/formatCount"
 import { timeAgo } from "@/lib/timeAgo"
 import LoginRequiredModal from "./modals/LoginRequiredModal"
 import { User } from "@/types/user.type"
+import { useAuth } from "@/hooks/auth"
 
 interface PostCardProps {
   post: Post,
@@ -31,7 +32,8 @@ interface PostCardProps {
 export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProps) {
   const router = useRouter();
   const { like, dislike, save, loading, error } = usePostAction();
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { checkAuth, showLoginModal, setShowLoginModal } = useAuth()
+  // const [showLoginModal, setShowLoginModal] = useState(false);
   const [likeCount, setLikeCount] = useState(post.like_count);
   const [dislikeCount, setDislikeCount] = useState(post.dislike_count);
 
@@ -59,13 +61,13 @@ export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProp
   }, []);
 
   // ================= LIKE =================
-  const checkAuth = (action: () => void) => {
-    if (isLoggedIn) {
-      action();
-    } else {
-      setShowLoginModal(true);
-    }
-  };
+  // const checkAuth = (action: () => void) => {
+  //   if (isLoggedIn) {
+  //     action();
+  //   } else {
+  //     setShowLoginModal(true);
+  //   }
+  // };
 
   // ================= LIKE =================
   const handleLike = async () => {

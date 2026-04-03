@@ -67,7 +67,7 @@ async def get_followings(user_id:str,cursor: str|None = None,limit: int = 10,cur
     return await service.get_followings(user_id=user_id,type="followings",logged_in_user_id=current_user_id,cursor=cursor,limit=limit)
 
 
-@route.post("/report{user_id}", status_code=status.HTTP_201_CREATED)
+@route.post("/report/{user_id}", status_code=status.HTTP_201_CREATED)
 async def report(user_id: str, data: UserReport, current_user=Depends(get_current_user)):
     await service.report(user_id,current_user["_id"],data.model_dump())
     return {"message": "user reported successfully"}

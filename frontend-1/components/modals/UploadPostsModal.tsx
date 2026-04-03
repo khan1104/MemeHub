@@ -12,7 +12,7 @@ type UploadModalProps = {
 }
 
 export default function UploadModal({ open, onClose }: UploadModalProps) {
-  const { uploadPost, loading, error,setError } = usePost()
+  const { uploadPost, loading, error, setError } = usePost()
   const [caption, setCaption] = useState("")
   const [selectedCats, setSelectedCats] = useState<string[]>([])
   const [file, setFile] = useState<File | null>(null)

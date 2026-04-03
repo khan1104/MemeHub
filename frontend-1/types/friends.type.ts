@@ -1,4 +1,4 @@
-export interface Friend {
+export interface Connection {
   user_id: string
   user_name: string
   profile_pic:string
@@ -8,7 +8,7 @@ export interface Friend {
 }
 
 export interface PaginatedFriendResponse {
-  items: Friend[];
+  items: Connection[];
   next_cursor: string | null;
   has_next: boolean;
 }

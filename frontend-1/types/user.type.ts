@@ -15,21 +15,21 @@ export interface User {
 };
 
 
-export interface FollowData {
-  user_id: string;
-  user_name: string;
-  profile_pic?: string;
-  isFollowing?: boolean;
-  isFriend?: boolean;
-  created_at: string;
-};
+// export interface FollowData {
+//   user_id: string;
+//   user_name: string;
+//   profile_pic?: string;
+//   isFollowing?: boolean;
+//   isFriend?: boolean;
+//   created_at: string;
+// };
 
 
-export interface PaginatedFollowDataResponse {
-  items: FollowData[];
-  next_cursor: string | null;
-  has_next: boolean;
-}
+// export interface PaginatedFollowDataResponse {
+//   items: FollowData[];
+//   next_cursor: string | null;
+//   has_next: boolean;
+// }
 
 export interface MonthlyTopUsers{
     user_id:string
