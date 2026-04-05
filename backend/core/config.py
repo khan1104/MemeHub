@@ -2,10 +2,10 @@ from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 class Settings(BaseSettings):
-    MONGO_URI: str = "mongodb://localhost:27017/"
+    MONGO_URI: str
     DATABASE_NAME: str
 
-    REDIS_HOST_URL: str = "localhost"
+    REDIS_HOST_URL: str = "redis"
 
     JWT_SECRET_KEY: str
     JWT_REFRESH_KEY: str
@@ -13,8 +13,8 @@ class Settings(BaseSettings):
 
     SUPABASE_URL: str
     SUPABASE_KEY: str
-    POSTS_BUCKET: str = "users_posts"
-    PROFILE_PICS_BUCKET: str = "profile_pics"
+    POSTS_BUCKET: str 
+    PROFILE_PICS_BUCKET: str
 
     GOOGLE_CLIENT_ID: str
     GOOGLE_SECRET_KEY: str

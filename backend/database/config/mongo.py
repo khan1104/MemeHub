@@ -2,8 +2,13 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from core.config import settings
 from pymongo import ASCENDING, DESCENDING
 
-client = AsyncIOMotorClient("mongodb+srv://MemeHubAdmin:MemeHub%40Admin%40667@memehubdatabase.3caobu5.mongodb.net/?appName=MemeHubDatabase")
-db = client[settings.DATABASE_NAME]
+db=None
+try:
+    client = AsyncIOMotorClient(settings.MONGO_URI)
+    db = client[settings.DATABASE_NAME]
+    print("database connected")
+except Exception as e:
+    print("error while connecting to database")
 
 async def create_indexes():
 
