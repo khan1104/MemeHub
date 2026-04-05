@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, ImageIcon, Check, Loader2, AlertCircle } from "lucide-react"
+import { X, ImageIcon, Check, Loader2, AlertCircle,Smile } from "lucide-react"
 import { CATEGORIES } from "@/data/MemeCategories"
 import { usePost } from "@/hooks/post"
 import { toast } from "sonner";
+import EmojiPicker from "emoji-picker-react";
 
 type UploadModalProps = {
   open: boolean
@@ -18,6 +19,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [fileType, setFileType] = useState<"image" | "video" | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Cleanup preview URL to prevent memory leaks
   useEffect(() => {
@@ -25,6 +27,10 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  const handleEmojiClick = (emojiData: any) => {
+    setCaption((prev) => prev + emojiData.emoji);
+  };
 
   if (!open) return null
 
@@ -165,7 +171,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
             </div>
           )}
 
-          <div className="space-y-1">
+          <div className="space-y-1 relative">
             <textarea
               rows={2}
               value={caption}
@@ -174,6 +180,22 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
               className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-purple-500 transition resize-none"
               onKeyDown={(e) => e.stopPropagation()}
             />
+
+            <Smile
+              size={22}
+              onClick={() => setShowEmojiPicker((prev) => !prev)}
+              className="absolute right-5 top-8 -translate-y-1/2 text-slate-400 cursor-pointer"
+            />
+
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+              <div className="absolute z-50 bottom-14 right-0 ">
+                <EmojiPicker
+                  onEmojiClick={handleEmojiClick}
+                  height={320}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">

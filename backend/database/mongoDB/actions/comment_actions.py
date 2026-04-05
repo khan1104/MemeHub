@@ -82,6 +82,16 @@ class CommentActions(BaseActions):
                         "pipeline": [
                             {"$match": {"$expr": {"$eq": ["$_id", "$$uid"]}}},
                             {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$_id", "$$uid"]},
+                                        {"$eq": ["$is_deleted", False]}  
+                                    ]
+                                }
+                            }
+                        },
+                            {
                                 "$project": {
                                     "user_name": 1,
                                     "profile_pic": 1,
@@ -99,25 +109,45 @@ class CommentActions(BaseActions):
             # Reactions (OPTIMIZED - single lookup)
             # -----------------------------------------
             pipeline.append({
-                "$lookup": {
-                    "from": "comments_reactions",
-                    "let": {"cid": "$_id"},
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {"$eq": ["$comment_id", "$$cid"]}
-                            }
-                        },
-                        {
-                            "$group": {
-                                "_id": "$type",
-                                "count": {"$sum": 1}
-                            }
-                        }
-                    ],
-                    "as": "reactions"
+    "$lookup": {
+        "from": "comments_reactions",
+        "let": {"cid": "$_id"},
+        "pipeline": [
+            {
+                "$match": {
+                    "$expr": {"$eq": ["$comment_id", "$$cid"]}
                 }
-            })
+            },
+                    {
+                        "$lookup": {
+                            "from": "users",
+                            "let": {"uid": "$user_id"},
+                            "pipeline": [
+                                {
+                                    "$match": {
+                                        "$expr": {
+                                            "$and": [
+                                                {"$eq": ["$_id", "$$uid"]},
+                                                {"$eq": ["$is_deleted", False]}
+                                            ]
+                                        }
+                                    }
+                                }
+                            ],
+                            "as": "user"
+                        }
+                    },
+                    {"$unwind": "$user"},
+                    {
+                        "$group": {
+                            "_id": "$type",
+                            "count": {"$sum": 1}
+                        }
+                    }
+                ],
+                "as": "reactions"
+            }
+        })
 
             # -----------------------------------------
             # My Reaction

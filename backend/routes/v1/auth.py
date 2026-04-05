@@ -1,30 +1,35 @@
-from fastapi import APIRouter,status,Depends,Response,Cookie
+from fastapi import APIRouter,status,Depends,Response,Cookie,Request
 from models.response.auth import RegisterResponse,OtpResponse,TokenResponse
-from models.request.auth import RegisterUser,LoginUser,Otp,verifyData,RefreshToken,ChangePassword,GoogleAuthRequest
+from models.request.auth import RegisterUser,LoginUser,Otp,verifyData,ChangePassword,GoogleAuthRequest
 from services.auth import AuthService
 from dependency.auth_dependency import get_current_user
+from core.rateLimiter import limiter
 
 
 route=APIRouter()
 service=AuthService()
 
 @route.post("/register",status_code=status.HTTP_201_CREATED,response_model=RegisterResponse)
-async def register(userdata:RegisterUser):
+@limiter.limit("10/hour")
+async def register(request:Request,userdata:RegisterUser):
     user=await service.registerUser(userdata.model_dump())
     return RegisterResponse(**user)
     
 @route.post("/send-otp",status_code=status.HTTP_200_OK,response_model=OtpResponse)
-async def sendOtp(data:Otp):
+@limiter.limit("2/minute")
+async def sendOtp(request:Request,data:Otp):
     otp=await service.sendOtp(data.email)
     return OtpResponse(**otp)
     
 @route.post("/verify-otp",status_code=status.HTTP_200_OK)
-async def verifyOtp(data:verifyData):
+@limiter.limit("5/minute")
+async def verifyOtp(request:Request,data:verifyData):
     await service.verifyOtp(data.email,data.otp)
     return {"message":"user verified succesffully"}
     
 @route.post("/login",status_code=status.HTTP_200_OK,response_model=TokenResponse)
-async def login(loginData:LoginUser,response: Response):
+@limiter.limit("5/minute")
+async def login(request:Request,loginData:LoginUser,response: Response):
     access_token,refresh_token=await service.loginUser(loginData.model_dump())
     response.set_cookie(
             key="refresh_token",
@@ -36,8 +41,10 @@ async def login(loginData:LoginUser,response: Response):
     )
     return TokenResponse(access_token=access_token)
 
+# frontend store the access token in state 
 @route.post("/refresh",status_code=status.HTTP_200_OK,response_model=TokenResponse)
-async def refreshToken(response: Response,refresh_token: str | None = Cookie(default=None, alias="refresh_token")):
+@limiter.limit("10/minute")
+async def refreshToken(request:Request,response: Response,refresh_token: str | None = Cookie(default=None, alias="refresh_token")):
     access_token,refresh_token=await service.refreshToken(refresh_token)
     response.set_cookie(
             key="refresh_token",
@@ -60,7 +67,8 @@ async def changePassword(changePassword:ChangePassword,current_user=Depends(get_
 
 
 @route.post("/google",status_code=status.HTTP_200_OK,response_model=TokenResponse)
-async def google_auth(response: Response,data: GoogleAuthRequest):
+@limiter.limit("10/minute")
+async def google_auth(request:Request,response: Response,data: GoogleAuthRequest):
     access_token,refresh_token=await service.google_auth(data.token_id)
     response.set_cookie(
             key="refresh_token",
@@ -70,7 +78,7 @@ async def google_auth(response: Response,data: GoogleAuthRequest):
             samesite="lax",
             max_age=60 * 60 * 24 * 5
     )
-    return TokenResponse(access_token=access_token,)
+    return TokenResponse(access_token=access_token)
 
 
 

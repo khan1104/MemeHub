@@ -46,7 +46,7 @@ function RightSidebar() {
 
           <div className="mt-2 flex justify-between text-sm">
             <span>
-              Reward: <span className="font-semibold">$100 Gift Card</span>
+              Reward: <span className="font-semibold">Accounce Later</span>
             </span>
             <span className="text-yellow-300 font-bold">Ends in: 5 Days</span>
           </div>

@@ -35,9 +35,9 @@ export default function Profile() {
 
   const { getUserById} = useUsers();
 
-  const { getUserPosts ,loading:usersPostLoading,error:userPostError} = usePost();
+  const { getUserPosts ,loading:usersPostLoading,error:userPostError,setError:userPostSetError} = usePost();
 
-  const { getSavedPosts, getLikedPosts,loading:postsLoading,error:postError } = usePostAction();
+  const { getSavedPosts, getLikedPosts,loading:postsLoading,error:postError,setError:postSetError } = usePostAction();
 
   const loading=usersPostLoading || postsLoading;
   const error=userPostError || postError
@@ -122,6 +122,8 @@ export default function Profile() {
   useEffect(() => {
     if (!user_id || isLoading) return;
     fetchingRef.current = false;
+    userPostSetError(null);
+    postSetError(null);
     setPosts([]);
     setCursor(null);
     setHasNext(true);

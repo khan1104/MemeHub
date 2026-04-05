@@ -1,74 +1,85 @@
-from fastapi import APIRouter,status,Depends,UploadFile,File
+from fastapi import APIRouter,status,Depends,UploadFile,File,Request
 from dependency.auth_dependency import get_current_user,get_current_user_optional
 from models.response.user import UserResponse,SearchUserResponse,PaginatedFollowDataResponse,MonthlyTopUsers
 from services.user import UserService
 from models.request.user import UserReport,UserUpdate
+from core.rateLimiter import limiter
 
 
 route=APIRouter()
 service=UserService()
 print("instance bana instnace bana")
 
-@route.get("/",status_code=status.HTTP_200_OK,response_model=list[UserResponse])
-async def getUsers():
-    data=await service.getAllUsers()
-    return data
 
 @route.get("/search",status_code=status.HTTP_200_OK, response_model=list[SearchUserResponse])
-async def search_users(q: str):
+@limiter.limit("10/seconds")
+async def search_users(request:Request,q: str):
     return await service.search_users(q)
 
+# this is beacause access token is stored in state so when user refresh refresh token is called if true then this endpoint for user data
 @route.get("/me",status_code=status.HTTP_200_OK,response_model=UserResponse)
-async def get_current_user(current_user=Depends(get_current_user)):
+@limiter.limit("5/minute")
+async def get_current_user(request:Request,current_user=Depends(get_current_user)):
     data=await service.getCurrentUser(current_user["_id"])
     return data
 
 @route.get("/top",status_code=status.HTTP_200_OK,response_model=list[MonthlyTopUsers])
-async def get_monthly_top_users():
+@limiter.limit("2/seconds")
+async def get_monthly_top_users(request:Request,):
     data=await service.get_monthly_top_users()
     return data
 
 
 @route.get("/{user_id}",status_code=status.HTTP_200_OK,response_model=UserResponse)
-async def get_user_by_id(user_id:str,current_user = Depends(get_current_user_optional)):
+@limiter.limit("5/seconds")
+async def get_user_by_id(request:Request,user_id:str,current_user = Depends(get_current_user_optional)):
     current_user_id = str(current_user["_id"]) if current_user else None
     data=await service.get_user_by_id(user_id,current_user_id)
     return data
 
 @route.patch("/me/info",status_code=status.HTTP_200_OK)
-async def update(data:UserUpdate,current_user=Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def update(request:Request,data:UserUpdate,current_user=Depends(get_current_user)):
     await service.upadteUser(current_user["_id"],data.model_dump(exclude_none=True))
     return {"message":"user updataed"}
 
 @route.patch("/me/profile-pic",status_code=status.HTTP_200_OK)
-async def upadte_profile_pic(profile_pic: UploadFile = File(...),current_user=Depends(get_current_user)):
+@limiter.limit("3/minute")
+async def upadte_profile_pic(request:Request,profile_pic: UploadFile = File(...),current_user=Depends(get_current_user)):
     await service.updateProfilePic(current_user["_id"],profile_pic)
 
 
-@route.delete("/{user_id}",status_code=status.HTTP_204_NO_CONTENT)
-async def deleteUser(user_id:str):
-    await service.deleteUser(user_id)
+# @route.delete("/{user_id}",status_code=status.HTTP_200_OK)
+# @limiter.limit("10/minute")
+# async def deleteAccount(request:Request,user_id:str):
+#     await service.deleteUser(user_id)
+#     return {"message":"user updataed"}
+
 
 @route.post("/follow/{user_id}", status_code=status.HTTP_200_OK)
-async def follow(user_id: str, current_user=Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def follow(request:Request,user_id: str, current_user=Depends(get_current_user)):
     data =await service.follow(user_id, current_user["_id"])
     return data
 
 @route.get("/followers/{user_id}",status_code=status.HTTP_200_OK,response_model=PaginatedFollowDataResponse)
-async def get_followers(user_id:str,cursor: str|None = None,limit: int = 10,current_user = Depends(get_current_user_optional)):
+@limiter.limit("5/second")
+async def get_followers(request:Request,user_id:str,cursor: str|None = None,limit: int = 10,current_user = Depends(get_current_user_optional)):
     current_user_id = str(current_user["_id"]) if current_user else None
     data=await service.get_followers(user_id=user_id,type="followers",logged_in_user_id=current_user_id,cursor=cursor,limit=limit)
     return data
     
 
 @route.get("/followings/{user_id}",status_code=status.HTTP_200_OK,response_model=PaginatedFollowDataResponse)
-async def get_followings(user_id:str,cursor: str|None = None,limit: int = 10,current_user = Depends(get_current_user_optional)):
+@limiter.limit("5/second")
+async def get_followings(request:Request,user_id:str,cursor: str|None = None,limit: int = 10,current_user = Depends(get_current_user_optional)):
     current_user_id = str(current_user["_id"]) if current_user else None
     return await service.get_followings(user_id=user_id,type="followings",logged_in_user_id=current_user_id,cursor=cursor,limit=limit)
 
 
 @route.post("/report/{user_id}", status_code=status.HTTP_201_CREATED)
-async def report(user_id: str, data: UserReport, current_user=Depends(get_current_user)):
+@limiter.limit("5/minute")
+async def report(request:Request,user_id: str, data: UserReport, current_user=Depends(get_current_user)):
     await service.report(user_id,current_user["_id"],data.model_dump())
     return {"message": "user reported successfully"}
 

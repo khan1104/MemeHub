@@ -8,9 +8,13 @@ from routes.v1.post import route as post_route
 from routes.v1.post_actions import route as post_action_route
 from routes.v1.friends import route as friend_route
 from routes.v1.comment_actions import route as comment_action_route
+from core.rateLimiter import limiter
+
+
 import uvicorn
 
 app=FastAPI(title="MemeHub Backend")
+app.state.limiter = limiter
 
 
 app.add_middleware(

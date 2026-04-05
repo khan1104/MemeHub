@@ -71,7 +71,8 @@ export const useFriends = () => {
     setError(null)
     try {
       setLoading(true)
-      return await sendFriendRequest(user_id);
+      await sendFriendRequest(user_id);
+      return true;
     } catch (err: any) {
       setError(err.message)
       return null
@@ -84,7 +85,8 @@ export const useFriends = () => {
     setError(null)
     try {
       setLoading(true)
-      return await cancelSentRequest(user_id);
+      await cancelSentRequest(user_id);
+      return true;
     } catch (err: any) {
       setError(err.message)
       return null
@@ -110,7 +112,8 @@ export const useFriends = () => {
     setError(null)
     try {
       setLoading(true)
-      return await removeFriendService(request_id);
+      await removeFriendService(request_id);
+      return true;
     } catch (err: any) {
       setError(err.message)
       return null

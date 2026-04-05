@@ -5,12 +5,15 @@ from dependency.auth_dependency import get_current_user,get_current_user_optiona
 from services.post import PostService
 from models.response.post import PostResponse,MemeResponse,PaginatedPostResponse
 from typing import List,Optional
+from core.rateLimiter import limiter
 
 route=APIRouter()
 service=PostService()
 
 @route.get("/", status_code=status.HTTP_200_OK, response_model=PaginatedPostResponse)
+@limiter.limit("10/seconds")
 async def getPosts(
+    request:Request,
     sort_by: Optional[str] = "latest",
     cursor: Optional[str] = None,
     current_user = Depends(get_current_user_optional),  # 👈 important
@@ -29,17 +32,21 @@ async def getPosts(
 
 
 @route.get("/user/{user_id}",status_code=status.HTTP_200_OK,response_model=PaginatedPostResponse)
-async def get_user_posts(user_id:str,sort_by: str = Query("latest", enum=["latest", "top","oldest"]),cursor: Optional[str] = None,limit: int = 10):
+@limiter.limit("10/seconds")
+async def get_user_posts(request:Request,user_id:str,sort_by: str = Query("latest", enum=["latest", "top","oldest"]),cursor: Optional[str] = None,limit: int = 10):
     return await service.getUserPosts(sort_by=sort_by,user_id=user_id,cursor=cursor,limit=limit)
 
 @route.get("/{post_id}",status_code=status.HTTP_200_OK,response_model=MemeResponse)
-async def get_post_by_id(post_id:str,user_id: Optional[str] = None):
+@limiter.limit("10/seconds")
+async def get_post_by_id(request:Request,post_id:str,user_id: Optional[str] = None):
     data=await service.get_post_by_id(post_id=post_id,user_id=user_id)
     return data
 
 
 @route.post("/", status_code=status.HTTP_201_CREATED,response_model=PostResponse)
+@limiter.limit("10/minute")
 async def createPost(
+    request:Request,
     caption: str = Form(...),
     file: UploadFile = File(...),
     tags: List[Memetags] = Form(..., min_length=1, max_length=3),
@@ -50,10 +57,11 @@ async def createPost(
     return PostResponse(**new_post)
 
 @route.patch("/{post_id}",status_code=status.HTTP_200_OK)
-async def updatePost(post_id:str,data:UpdateMeme,current_user=Depends(get_current_user)):
+async def updatePost(request:Request,post_id:str,data:UpdateMeme,current_user=Depends(get_current_user)):
     await service.update_post(post_id,current_user["_id"],data.model_dump())
     return {"message":"post updataed"}
 
 @route.delete("/{post_id}",status_code=status.HTTP_204_NO_CONTENT)
-async def deletePost(post_id:str,current_user=Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def deletePost(request:Request,post_id:str,current_user=Depends(get_current_user)):
     await service.deletePost(post_id,current_user["_id"])

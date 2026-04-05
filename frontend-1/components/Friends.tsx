@@ -23,6 +23,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     followUser,
     loading: userLoading,
     error: userError,
+    setError:userSetError
   } = useUsers();
   const {
     getSentRequests,
@@ -34,6 +35,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
     removeFriend,
     loading: friendLoading,
     error: friendError,
+    setError:friendSetError
   } = useFriends();
 
   // Unified state to reduce boilerplate
@@ -46,6 +48,12 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
 
   const loading = userLoading || friendLoading;
   const error = friendError || userError;
+
+
+  const clearErrors = () => {
+    userSetError(null);
+    friendSetError(null);
+  };
 
   const loadData = useCallback(
     async (isInitial = false) => {
@@ -115,6 +123,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
 
   // Reset and Load on Tab Change
   useEffect(() => {
+    clearErrors();
     setItems([]); // Clear UI immediately for better UX
     setHasNext(true);
     setCursor(null);
@@ -147,6 +156,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
       const res=await followUser(targetId);
       if (!res) {
         toast.error("something went wrong");
+        clearErrors();
         return;
       }
       if (activeTab === "Followings") {
@@ -154,10 +164,12 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
       }
   };
 
+
   const handleRequest = async (request_id: string, action: string) => {
       const res=await handleReciveRequest(request_id, action);
       if (!res) {
         toast.error("something went wrong");
+        clearErrors();
         return;
       }
       toast.success(`Request ${action}`);
@@ -169,6 +181,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
       const res=await cancelRequest(user_id);
       if(!res){
         toast.error('something went wrong');
+        clearErrors();
         return;
       }
       toast.success("Request cancelled");
@@ -179,6 +192,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
         const res=await removeFriend(user_id);
         if (!res) {
           toast.error("something went wrong");
+          clearErrors();
           return;
         }
         toast.success("Friend Removed");
@@ -205,7 +219,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
         key={item.user_id}
         user={item}
         handleUnfriend={handleUnfriend}
-        handleFollow={(uid) => followUser(uid)}
+        handleFollow={handleUnfollow}
         handleUnFollow={handleUnfollow}
       />
     );
@@ -249,7 +263,7 @@ function Friends({ user_id, isOwnProfile }: FriendProps) {
           })}
         </div>
       </div>
-      {error && !loading && (
+      {error && items.length === 0 && !loading && (
         <div className="col-span-full text-center py-5 text-red-500 font-medium">
           {error}
         </div>

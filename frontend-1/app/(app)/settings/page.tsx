@@ -44,11 +44,6 @@ export default function Settings() {
     if (success) router.replace("/sign-in");
   };
 
-  const handleDeleteAccount = () => {
-    if (deleteInput === expectedDeleteText) {
-      router.replace("/sign-in");
-    }
-  };
 
   const handleChangeName = async () => {
     const res = await updateUserInfo(newName, undefined);
@@ -208,13 +203,6 @@ export default function Settings() {
                 desc="Sign out of your account"
                 danger
               />
-              <SettingItem
-                onClick={() => setShowDeleteModal(true)}
-                icon={<Trash2 size={20} className="text-red-600" />}
-                title="Delete Account"
-                desc="Permanently delete your account and memes"
-                danger
-              />
             </div>
           </section>
         </div>
@@ -267,39 +255,6 @@ export default function Settings() {
       )}
 
       {/* DELETE ACCOUNT */}
-      {showDeleteModal && (
-        <Modal
-          title="Delete Account"
-          onClose={() => {
-            setShowDeleteModal(false);
-            setDeleteInput("");
-          }}
-        >
-          <p className="text-slate-600 mb-4 text-sm">
-            Type{" "}
-            <span className="font-mono font-bold text-red-600 bg-red-50 px-1">
-              {expectedDeleteText}
-            </span>{" "}
-            to confirm.
-          </p>
-          <input
-            className="w-full p-3 rounded-xl border mb-6"
-            value={deleteInput}
-            onChange={(e) => setDeleteInput(e.target.value)}
-          />
-          <button
-            disabled={deleteInput !== expectedDeleteText}
-            onClick={handleDeleteAccount}
-            className={`w-full py-3 rounded-xl font-bold ${
-              deleteInput === expectedDeleteText
-                ? "bg-red-600 text-white"
-                : "bg-slate-100 text-slate-400"
-            }`}
-          >
-            Delete Permanently
-          </button>
-        </Modal>
-      )}
     </div>
   );
 }

@@ -49,7 +49,16 @@ class PostAction(BaseActions):
                     "from": "users",
                     "let": {"uid": "$created_by"},
                     "pipeline": [
-                        {"$match": {"$expr": {"$eq": ["$_id", "$$uid"]}}},
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$_id", "$$uid"]},
+                                        {"$eq": ["$is_deleted", False]}  
+                                    ]
+                                }
+                            }
+                        },
                         {
                             "$project": {
                                 "_id": 1,
@@ -65,7 +74,6 @@ class PostAction(BaseActions):
             {
                 "$unwind": {
                     "path": "$user_info",
-                    "preserveNullAndEmptyArrays": True
                 }
             }
         ])
