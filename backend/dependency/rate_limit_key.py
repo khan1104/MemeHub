@@ -12,6 +12,6 @@ def get_rate_limit_key(request: Request):
             user_id = verify_token(token)  # 👈 reuse your function
             return f"user:{user_id}"
         except Exception:
-            pass  # fallback to IP if token invalid/expired
+            pass  
 
     return f"ip:{get_remote_address(request)}"

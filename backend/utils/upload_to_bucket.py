@@ -7,6 +7,8 @@ import shutil
 from constants.bucket import Bucket
 from core.config import settings
 from fastapi.concurrency import run_in_threadpool
+import logging
+logger = logging.getLogger(__name__)
 
 MAX_IMAGE_SIZE = 5 * 1024 * 1024
 MAX_VIDEO_SIZE = 50 * 1024 * 1024
@@ -98,7 +100,8 @@ async def upload_to_bucket(bucket: Bucket, file: UploadFile, file_ext: str) -> s
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(500, f"Upload error: {str(e)}")
+        logger.error(f"Bucket error: {str(e)}")
+        raise HTTPException(500, "Upload error")
     finally:
         if temp_file_path and temp_file_path.exists():
             temp_file_path.unlink()

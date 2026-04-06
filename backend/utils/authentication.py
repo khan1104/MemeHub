@@ -29,7 +29,7 @@ def verify_token(token: str, is_refresh: bool = False):
         payload = jwt.decode(token, secret, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token payload")
+            raise HTTPException(status_code=401, detail="Invalid token")
         return user_id
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")

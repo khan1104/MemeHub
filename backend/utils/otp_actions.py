@@ -5,6 +5,9 @@ import httpx
 from fastapi import HTTPException, status
 import database.config.redis as redis_config
 from core.config import settings
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 API_KEY = settings.BREVO_API_KEY
@@ -63,18 +66,20 @@ async def send_otp_email(email):
     if response.status_code in (200, 201): 
         try:
           await redis_config.redis_client.setex(f"otp:{email}", 300, otp)  # 5 minutes = 300 seconds
-          return otp
         except Exception as e:
-          raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="Something went wrong in redis server")
+          logger.error(f"Redis error: {str(e)}")
+          raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="Something went wrong")
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=response.text)
+        logger.error(f"Error while sending email: {str(response.text)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="Error while sending email")
 
 
 async def verifyOtp(email: str, otp: str):
     try:  
       data =await redis_config.redis_client.get(f"otp:{email}")
     except Exception as e:
-       raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="something went wrong with redis server")
+       logger.error(f"Redis error: {str(e)}")
+       raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="something went wrong")
     
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OTP has expired")

@@ -26,7 +26,7 @@ export default function RegisterPage() {
       {/* Logo */}
       <header className="mb-6 sm:mb-8 mt-2">
         <h1 className="text-[clamp(2rem,6vw,2.5rem)] tracking-wide text-primary text-center font-bold">
-          MemeHub
+          MeemHub
         </h1>
       </header>
 

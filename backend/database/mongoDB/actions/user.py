@@ -413,60 +413,6 @@ class TopUsers(BaseActions):
     def __init__(self):
         super().__init__(posts_reaction_collection)
 
-    # async def getMonthlyTopUser(self):
-    #     now = datetime.now(timezone.utc)
-    #     # after 10th day of every month
-    #     start_of_period = datetime(now.year, now.month, 10, tzinfo=timezone.utc)
-        
-
-    #     pipeline = [
-    #         {
-    #             "$match": {
-    #                 "type": "like",
-    #                 "created_at": { "$gte": start_of_period }
-    #             }
-    #         },
-    #         {
-    #             "$lookup": {
-    #                 "from": "posts",
-    #                 "localField": "post_id",
-    #                 "foreignField": "_id",
-    #                 "as": "post"
-    #             }
-    #         },
-    #         { "$unwind": "$post" },
-    #         {
-    #             "$group": {
-    #                 "_id": "$post.created_by",
-    #                 "total_likes": { "$sum": 1 }
-    #             }
-    #         },
-    #         { "$sort": { "total_likes": -1 } },
-    #         { "$limit": 4 },
-    #         {
-    #             "$lookup": {
-    #                 "from": "users",
-    #                 "localField": "_id",
-    #                 "foreignField": "_id",
-    #                 "as": "user"
-    #             }
-    #         },
-    #         { "$unwind": "$user" },
-    #         {
-    #             "$project": {
-    #                 "_id": 0,
-    #                 "user_id": {"$toString":"$user._id"},
-    #                 "user_name": "$user.user_name",
-    #                 "profile_pic": "$user.profile_pic",
-    #                 "total_likes": 1
-    #             }
-    #         }
-    #     ]
-
-    #     cursor = self.collection.aggregate(pipeline)
-    #     return await cursor.to_list(length=4)
-
-
     async def getMonthlyTopUser(self):
         now = datetime.now(timezone.utc)
 

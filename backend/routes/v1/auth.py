@@ -1,6 +1,6 @@
 from fastapi import APIRouter,status,Depends,Response,Cookie,Request
-from models.response.auth import RegisterResponse,OtpResponse,TokenResponse
-from models.request.auth import RegisterUser,LoginUser,Otp,verifyData,ChangePassword,GoogleAuthRequest
+from models.response.auth import RegisterResponse,TokenResponse
+from models.request.auth import RegisterUser,LoginUser,Otp,OtpVerifyData,ChangePassword,GoogleAuthRequest
 from services.auth import AuthService
 from dependency.auth_dependency import get_current_user
 from core.rateLimiter import limiter
@@ -15,15 +15,15 @@ async def register(request:Request,userdata:RegisterUser):
     user=await service.registerUser(userdata.model_dump())
     return RegisterResponse(**user)
     
-@route.post("/send-otp",status_code=status.HTTP_200_OK,response_model=OtpResponse)
+@route.post("/send-otp",status_code=status.HTTP_200_OK)
 @limiter.limit("2/minute")
 async def sendOtp(request:Request,data:Otp):
-    otp=await service.sendOtp(data.email)
-    return OtpResponse(**otp)
+    await service.sendOtp(data.email)
+    return {"message":"otp sent"}
     
 @route.post("/verify-otp",status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
-async def verifyOtp(request:Request,data:verifyData):
+async def verifyOtp(request:Request,data:OtpVerifyData):
     await service.verifyOtp(data.email,data.otp)
     return {"message":"user verified succesffully"}
     

@@ -24,7 +24,7 @@ export default function LoginPage() {
       {/* Logo */}
       <header className="mb-6 sm:mb-8">
         <h1 className="text-[clamp(2rem,6vw,2.5rem)] tracking-wide text-primary text-center font-bold">
-          MemeHub
+          MeemHub
         </h1>
       </header>
 
@@ -137,7 +137,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="mt-5 text-center text-sm sm:text-[0.95rem] text-label">
-        New to MemeHub?{" "}
+        New to MeemHub?{" "}
         <a href="/sign-up" className="font-bold text-primary">
           Create an Account
         </a>

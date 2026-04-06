@@ -8,26 +8,26 @@ from bson import ObjectId
 
 class PostService:
     def __init__(self):
-        self.PostActions=PostAction()
-        self.UserAction=UserActions()
+        self.post_actions=PostAction()
+        self.user_actions=UserActions()
 
     async def get_all_posts(self,**kwargs):
-        return await self.PostActions.get_all_with_user(**kwargs)
+        return await self.post_actions.get_all_with_user(**kwargs)
     
     async def get_post_by_id(self,post_id:str,user_id:str=None):
-        self.PostActions.validate_object_id(post_id)
-        post=await self.PostActions.get_data_by_id(post_id,{"created_by":1})
+        self.post_actions.validate_object_id(post_id)
+        post=await self.post_actions.get_data_by_id(post_id,{"created_by":1})
         if post is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not exists")
-        return await self.PostActions.get_all_with_user(post_id=post_id,user_id=user_id)
+        return await self.post_actions.get_all_with_user(post_id=post_id,user_id=user_id)
     
     
     async def getUserPosts(self,sort_by: str,cursor:str,limit:str,user_id:str):
-        self.PostActions.validate_object_id(user_id)
-        user=await self.UserAction.get_data_by_id(user_id,{"created_by":1})
+        self.post_actions.validate_object_id(user_id)
+        user=await self.user_actions.get_data_by_id(user_id,{"created_by":1})
         if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")
-        return await self.PostActions.get_all_with_user(sort_by=sort_by,cursor=cursor,limit=limit,query_filter={"created_by":ObjectId(user_id)})
+        return await self.post_actions.get_all_with_user(sort_by=sort_by,cursor=cursor,limit=limit,query_filter={"created_by":ObjectId(user_id)})
         
     async def createPost(self, caption: str, media_file, tags, current_user_id: str):
         file_ext = media_file.filename.split(".")[-1].lower()
@@ -46,7 +46,7 @@ class PostService:
 
         url = await upload_to_bucket(
             bucket=settings.POSTS_BUCKET,
-            file=media_file,  # FIXED
+            file=media_file,  
             file_ext=file_ext,
         )
 
@@ -58,26 +58,26 @@ class PostService:
             "media_type": media_type
         }
 
-        return await self.PostActions.create(data)
+        return await self.post_actions.create(data)
     
     async def update_post(self,post_id:str,user_id:str,updateData:dict):
-        self.PostActions.validate_object_id(post_id)
-        post=await self.PostActions.get_data_by_id(post_id,{"created_by":1})
+        self.post_actions.validate_object_id(post_id)
+        post=await self.post_actions.get_data_by_id(post_id,{"created_by":1})
         if post is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not exists")
         
-        self.PostActions.ensure_owner(post["created_by"],user_id,"you can't update others posts")
+        self.post_actions.ensure_owner(post["created_by"],user_id,"you can't update others posts")
         
-        return await self.PostActions.updated(post_id, {"caption": updateData.get("caption")})
+        return await self.post_actions.updated(post_id, {"caption": updateData.get("caption")})
         
     async def deletePost(self,post_id:str,user_id:str):
-        self.PostActions.validate_object_id(post_id)
-        post=await self.PostActions.get_data_by_id(post_id,{"created_by":1})
+        self.post_actions.validate_object_id(post_id)
+        post=await self.post_actions.get_data_by_id(post_id,{"created_by":1})
         if post is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Post not exists")
         
-        self.PostActions.ensure_owner(post["created_by"],user_id,"you can't delete others posts")
-        await self.PostActions.hard_delete(post_id)
+        self.post_actions.ensure_owner(post["created_by"],user_id,"you can't delete others posts")
+        await self.post_actions.hard_delete(post_id)
         
 
 

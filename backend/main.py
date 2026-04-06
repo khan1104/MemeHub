@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from database.config.mongo import create_indexes
 from database.config.redis import initialize_redis
 from routes.v1.auth import route as auth_route
@@ -15,6 +17,20 @@ import uvicorn
 
 app=FastAPI(title="MemeHub Backend")
 app.state.limiter = limiter
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    first_error = exc.errors()[0]   
+    field = first_error["loc"][-1]
+    message = first_error["msg"]
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "field": field,
+            "message": message
+        }
+    )
 
 
 app.add_middleware(

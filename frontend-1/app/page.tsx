@@ -19,7 +19,7 @@ export default function Page() {
     <div className="flex h-screen flex-col items-center justify-center">
       {/* Logo */}
       <h1 className="text-5xl font-bold text-primary tracking-tight animate-pulse">
-        MemeHub
+        MeemHub
       </h1>
 
       {/* Spinner */}

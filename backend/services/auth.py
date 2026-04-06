@@ -13,16 +13,16 @@ import httpx
 
 class AuthService:
     def __init__(self):
-        self.AuthActions=AuthActions()
-        self.TokenActions=TokensActions()
+        self.auth_actions=AuthActions()
+        self.token_actions=TokensActions()
 
     async def _issue_tokens(self,user_id: ObjectId):
-        existing = await self.TokenActions.get_by_filter(
+        existing = await self.token_actions.get_by_filter(
             {"user_id": user_id},
             {"_id": 1}
         )
         if existing:
-            await self.TokenActions.hard_delete(id=existing["_id"])
+            await self.token_actions.hard_delete(id=existing["_id"])
 
         access_token = create_token({"sub": str(user_id)})
         refresh_token = create_refresh_token({"sub": str(user_id)})
@@ -31,13 +31,7 @@ class AuthService:
             "refresh_token": refresh_token,
             "expires_at": datetime.now(timezone.utc) + timedelta(days=5)
         }
-        await self.TokenActions.create(data)
-        # await self.TokenActions.store_refresh_token({
-        #     "user_id": user_id,
-        #     "refresh_token": refresh_token,
-        #     "created_at": datetime.now(timezone.utc),
-        #     "expires_at": datetime.now(timezone.utc) + timedelta(days=5)
-        # })
+        await self.token_actions.create(data)
 
         return access_token, refresh_token
     
@@ -47,17 +41,17 @@ class AuthService:
         userData.setdefault("provider", AuthProviders.PROVIDER_EMAIL)
         userData.setdefault("is_verified", False)
 
-        existing = await self.AuthActions.find_by_email(
+        existing = await self.auth_actions.find_by_email(
             {"email": userData["email"]},
             {"_id":1, "provider":1, "is_verified":1, "is_deleted":1}
         )
 
         if existing:
             if existing["is_deleted"]:
-                await self.AuthActions.hard_delete(existing["_id"])
+                await self.auth_actions.hard_delete(existing["_id"])
 
             elif existing["provider"] == AuthProviders.PROVIDER_EMAIL and not existing["is_verified"]:
-                await self.AuthActions.hard_delete(existing["_id"])
+                await self.auth_actions.hard_delete(existing["_id"])
 
             elif existing["provider"] == AuthProviders.PROVIDER_GOOGLE:
                 raise HTTPException(
@@ -72,22 +66,20 @@ class AuthService:
                 )
 
         userData["password"] = hashPassword(userData.get("password"))
-        return await self.AuthActions.create(userData)
+        return await self.auth_actions.create(userData)
     
     async def sendOtp(self,email:str):
-        user=await self.AuthActions.get_by_filter({"email":email,"provider":AuthProviders.PROVIDER_EMAIL},{"email":1,"is_verified":1})
+        user=await self.auth_actions.get_by_filter({"email":email,"provider":AuthProviders.PROVIDER_EMAIL},{"email":1,"is_verified":1})
         if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")
         
         if user["is_verified"] is True:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="User is already verified")
 
-        generated_otp=await send_otp_email(email)
+        await send_otp_email(email)
 
-        return {"otp": generated_otp} # for testing
-    
     async def verifyOtp(self,email:str,otp:str):
-        user=await self.AuthActions.get_by_filter({"email":email,"provider":AuthProviders.PROVIDER_EMAIL},{"email":1,"is_verified":1})#is deleted is handle in action layer
+        user=await self.auth_actions.get_by_filter({"email":email,"provider":AuthProviders.PROVIDER_EMAIL},{"email":1,"is_verified":1})#is deleted is handle in action layer
         if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")
         
@@ -96,11 +88,11 @@ class AuthService:
         
         data=await verifyOtp(email,otp)
         if data:
-            await self.AuthActions.updated(user["_id"],{"is_verified": True})
+            await self.auth_actions.updated(user["_id"],{"is_verified": True})
 
     async def loginUser(self,loginData:dict):
 
-        user=await self.AuthActions.get_by_filter({"email":loginData.get("email"),"is_verified":True},{"password":1,"provider":1})
+        user=await self.auth_actions.get_by_filter({"email":loginData.get("email"),"is_verified":True},{"password":1,"provider":1})
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
         
@@ -114,7 +106,7 @@ class AuthService:
     
     async def refreshToken(self,refresh_token):
         user_id= verify_token(refresh_token,is_refresh=True)
-        stored_token=await self.TokenActions.get_by_filter({"user_id":ObjectId(user_id),"refresh_token":refresh_token},{"refresh_token": 1})
+        stored_token=await self.token_actions.get_by_filter({"user_id":ObjectId(user_id),"refresh_token":refresh_token},{"refresh_token": 1})
         if stored_token is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid refresh token")
         if refresh_token!=stored_token["refresh_token"]:
@@ -122,16 +114,16 @@ class AuthService:
         return await self._issue_tokens(ObjectId(user_id))
     
     async def logout(self,id:str):
-        await self.TokenActions.hard_delete(filter={"user_id":ObjectId(id)})
+        await self.token_actions.hard_delete(filter={"user_id":ObjectId(id)})
 
     #this function is for logged in user
     async def changePassword(self,user_id:str,new_password:str,retype_password:str):
         if new_password!=retype_password:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="password not match")
         
-        await self.TokenActions.hard_delete(filter={"user_id": ObjectId(user_id)})
+        await self.token_actions.hard_delete(filter={"user_id": ObjectId(user_id)})
         hash_password=hashPassword(new_password)
-        await self.AuthActions.updated(user_id,{"password":hash_password})
+        await self.auth_actions.updated(user_id,{"password":hash_password})
 
     async def google_auth(self,id_token:str):
         async with httpx.AsyncClient() as client:
@@ -156,17 +148,17 @@ class AuthService:
         name = google_user.get("name")
         picture = google_user.get("picture")
 
-        existing = await self.AuthActions.find_by_email(
+        existing = await self.auth_actions.find_by_email(
             {"email": email},
             {"_id": 1,"is_verified":1,"is_deleted":1,"provider":1}
         )
         
         if existing:
             if existing["is_deleted"] is True:
-                await self.AuthActions.hard_delete(existing["_id"])
+                await self.auth_actions.hard_delete(existing["_id"])
 
             if existing["is_verified"] is False:
-                await self.AuthActions.hard_delete(existing["_id"])
+                await self.auth_actions.hard_delete(existing["_id"])
 
             if existing["provider"]==AuthProviders.PROVIDER_GOOGLE:
                 id=existing["_id"]
@@ -186,7 +178,7 @@ class AuthService:
             "is_verified": True
         }
 
-        new_user = await self.AuthActions.create(new_user_data)
+        new_user = await self.auth_actions.create(new_user_data)
         id = new_user["_id"]
         return await self._issue_tokens(id)
     

@@ -1,23 +1,19 @@
 from bson import ObjectId
-from datetime import datetime
 from pymongo.errors import DuplicateKeyError
 from database.mongoDB.actions.user import UserActions
 from fastapi import HTTPException,status
 from database.mongoDB.actions.user import FollowActions,ReportActions,TopUsers
-from database.mongoDB.collections.collection import posts_collection,posts_reaction_collection,comments_reaction_collection,followers_collection,refresh_tokens_collection
 from utils.upload_to_bucket import upload_to_bucket
 from core.config import settings
 class UserService:
     def __init__(self):
-        self.UserActions=UserActions()
-        self.FollowAction=FollowActions()
-        self.ReportAction=ReportActions()
-        self.TopUsers=TopUsers()
+        self.user_actions=UserActions()
+        self.follow_actions=FollowActions()
+        self.report_actions=ReportActions()
+        self.top_users=TopUsers()
 
     async def getAllUsers(self):
-        data=await self.UserActions.get_user_with_details()
-        return data
-        # return await self.UserActions.get_all(projection={"password":0})
+        return await self.user_actions.get_user_with_details()
     
     async def search_users(self, query: str):
 
@@ -25,26 +21,25 @@ class UserService:
             return []
         projection = {"user_name": 1,"profile_pic":1}
 
-        users = await self.UserActions.get_all(
+        users = await self.user_actions.get_all(
             {"user_name": {"$regex": query, "$options": "i"}},
             projection=projection
         )
         return users
 
     async def getCurrentUser(self,user_id:str):
-        data=await self.UserActions.get_user_with_details(user_id)
-        return data
+        return await self.user_actions.get_user_with_details(user_id)
     
     async def get_user_by_id(self,user_id:str,current_user:str):
-        self.UserActions.validate_object_id(user_id)
-        data=await self.UserActions.get_user_with_details(user_id,current_user)
+        self.user_actions.validate_object_id(user_id)
+        data=await self.user_actions.get_user_with_details(user_id,current_user)
         
         if data is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")
         return data
     
     async def upadteUser(self,current_user_id:str,data:dict):
-        await self.UserActions.updated(current_user_id,data)
+        await self.user_actions.updated(current_user_id,data)
 
     async def updateProfilePic(self,current_user_id:str, profile_pic):
         
@@ -54,44 +49,31 @@ class UserService:
             file=profile_pic,
             file_ext=file_ext
         )
-        await self.UserActions.updated(current_user_id, {"profile_pic": url})
+        await self.user_actions.updated(current_user_id, {"profile_pic": url})
         return url
 
     
-    async def deleteUser(self,id:str):
-        self.UserActions.validate_object_id(id)
-        data=await self.UserActions.get_data_by_id(id)
-        if data is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")
-        deleted_user=await self.UserActions.soft_delete(id)
-        await posts_collection.delete_many({"created_by":ObjectId(id)})
-        await posts_reaction_collection.delete_many({"user_id":ObjectId(id)})
-        await comments_reaction_collection.delete_many({"user_id":ObjectId(id)})
-        await followers_collection.delete_many({"follower_id":ObjectId(id)})
-        await refresh_tokens_collection.delete_one({"user_id":ObjectId(id)})
-        return deleted_user
-    
     async def follow(self,to_follow:str,by_follow:str):
-        self.FollowAction.validate_object_id(to_follow)
+        self.follow_actions.validate_object_id(to_follow)
         if(str(to_follow)==str(by_follow)):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="you cannot follow yourself")
-        user=await self.UserActions.get_data_by_id(to_follow)
+        user=await self.user_actions.get_data_by_id(to_follow)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="user not exists")
-        action=await self.FollowAction.follow(to_follow,by_follow)
+        action=await self.follow_actions.follow(to_follow,by_follow)
         return action
     
     async def get_followers(self,**kwargs):
-        return await self.FollowAction.get_follow_data(**kwargs)
+        return await self.follow_actions.get_follow_data(**kwargs)
 
     async def get_followings(self,**kwargs):
-        return await self.FollowAction.get_follow_data(**kwargs)
+        return await self.follow_actions.get_follow_data(**kwargs)
     
     async def report(self, reported_user_id: str, reported_by: str, data: dict):
         if reported_user_id==str(reported_by):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="you cannot report yourself")
-        self.UserActions.validate_object_id(reported_user_id)
-        user=await self.UserActions.get_by_filter({"_id":ObjectId(reported_user_id),"is_verified":True})
+        self.user_actions.validate_object_id(reported_user_id)
+        user=await self.user_actions.get_by_filter({"_id":ObjectId(reported_user_id),"is_verified":True})
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist")
 
@@ -100,7 +82,7 @@ class UserService:
         data["status"] = "pending"
 
         try:
-            return await self.ReportAction.create(data)
+            return await self.report_actions.create(data)
 
         except DuplicateKeyError:
             raise HTTPException(
@@ -109,6 +91,6 @@ class UserService:
             )
         
     async def get_monthly_top_users(self):
-        return await self.TopUsers.getMonthlyTopUser()
+        return await self.top_users.getMonthlyTopUser()
 
             
