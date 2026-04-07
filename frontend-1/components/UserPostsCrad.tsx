@@ -10,6 +10,7 @@ import { formatCount } from "@/lib/formatCount";
 import { timeAgo } from "@/lib/timeAgo";
 import { usePost } from "@/hooks/post";
 import LoginRequiredModal from "./modals/LoginRequiredModal";
+import { toast } from "sonner";
 
 
 interface UserPostCardProps {
@@ -20,7 +21,7 @@ interface UserPostCardProps {
 export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
   const { user,isLoggedIn } = useUser();
   const router = useRouter();
-  const {deletePost}=usePost()
+  const {deletePost,error}=usePost()
   const isOwnPost = user?.user_id === post.created_by.user_id;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -56,6 +57,10 @@ export default function UserPostCard({ post,onDelete }: UserPostCardProps) {
         await deletePost(post.post_id);
       });
     };
+
+    useEffect(() => {
+      if (error) toast.error(error);
+    }, [error]);
 
   return (
     <div

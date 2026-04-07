@@ -1,4 +1,8 @@
+"use client"
+import { useRouter } from "next/navigation";
+
 export default function About() {
+  const router=useRouter()
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       {/* Container */}
@@ -7,7 +11,7 @@ export default function About() {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-gray-900">
-            About <span className="text-primary">MemeHub</span>
+            About <span className="text-primary">MeemHub</span>
           </h1>
           <p className="text-gray-600 text-lg">
             The internet’s playground for memes, creativity, and pure chaos.
@@ -17,12 +21,12 @@ export default function About() {
         {/* Card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm space-y-6">
           <h2 className="text-2xl font-semibold text-gray-900">
-            🚀 What is MemeHub?
+            🚀 What is MeemHub?
           </h2>
           <p className="text-gray-700 leading-relaxed">
-            MemeHub is a community-driven meme sharing platform where humor meets
+            MeemHub is a community-driven meme sharing platform where humor meets
             creativity. Whether youre into dark humor, relatable content,
-            programming jokes, or college memes — MemeHub is your home.
+            programming jokes, or college memes — MeemHub is your home.
           </p>
         </div>
 
@@ -52,9 +56,11 @@ export default function About() {
             Ready to post your first meme?
           </h3>
           <p className="text-gray-600">
-            Join MemeHub today and become part of the fun.
+            Join MeemHub today and become part of the fun.
           </p>
-          <button className="rounded-full bg-purple-600 px-6 py-3 text-white font-medium hover:bg-purple-700 transition">
+          <button className="rounded-full bg-purple-600 px-6 py-3 text-white font-medium hover:bg-purple-700 transition" onClick={()=>{
+            router.push("/home")
+          }}>
             Start Sharing 🚀
           </button>
         </div>

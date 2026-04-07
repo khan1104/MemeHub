@@ -5,10 +5,8 @@ import {
   Circle,
   CheckCircle2,
   AlertCircle,
-  Loader2,
-  RefreshCcw,
+  Loader2
 } from "lucide-react";
-import { usePost } from "@/hooks/post";
 import { useUsers } from "@/hooks/user";
 import { useCommentAction } from "@/hooks/commentActions";
 import { usePostAction } from "@/hooks/postsAction";
@@ -80,7 +78,6 @@ const ReportModal = ({ isOpen, onClose, targetType, id }: ReportModalProps) => {
     } else if (targetType === "User") {
       await reportUser(id, selectedReason, description);
     }
-    // API call ke baad humesha Step 3 par bhejo
     setStep(3);
   };
 

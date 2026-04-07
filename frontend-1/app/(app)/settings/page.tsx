@@ -1,68 +1,87 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   User,
-  Bell,
-  Lock,
-  Trash2,
   LogOut,
   ChevronRight,
   Camera,
   X,
-  Pencil
+  Pencil,
+  Loader2, 
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useAuth } from "@/hooks/auth";
 import { useUsers } from "@/hooks/user";
+import { toast } from "sonner";
 
 export default function Settings() {
   const router = useRouter();
-
-  const { user,loadUser } = useUser();
-  const { logout } = useAuth();
-  const { updateUserInfo ,loading,error} = useUsers();
-
-  // ===== STATES =====
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteInput, setDeleteInput] = useState("");
+  const { user, loadUser } = useUser();
+  const { logout ,error:logoutError} = useAuth();
+  const { updateUserInfo, loading, error } = useUsers();
 
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showChangeNameModal, setShowChangeNameModal] = useState(false);
   const [showChangeBioModal, setShowChangeBioModal] = useState(false);
 
-  const [newName, setNewName] = useState(user?.user_name || "");
-  const [newBio, setNewBio] = useState(user?.bio || "");
+  const [newName, setNewName] = useState("");
+  const [newBio, setNewBio] = useState("");
 
-  const USERNAME = user?.user_name;
-  const expectedDeleteText = `delete+${USERNAME}`;
+  useEffect(() => {
+    if (showChangeNameModal) setNewName(user?.user_name || "");
+    if (showChangeBioModal) setNewBio(user?.bio || "");
+  }, [showChangeNameModal, showChangeBioModal, user]);
 
+  // Error handling
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
+
+  useEffect(() => {
+    if (logoutError) toast.error(logoutError);
+  }, [logoutError]);
 
   const handleLogout = async () => {
     const success = await logout();
-    if (success) router.replace("/sign-in");
+    if (success) {
+      toast.success("Logged out successfully");
+      router.replace("/sign-in");
+    }
   };
 
-
   const handleChangeName = async () => {
+    if (!newName.trim() || newName === user?.user_name) {
+      setShowChangeNameModal(false);
+      return;
+    }
+
     const res = await updateUserInfo(newName, undefined);
-    setShowChangeNameModal(false);
-    if (res) await loadUser();
+    if (res) {
+      await loadUser();
+      toast.success("Username updated!");
+      setShowChangeNameModal(false);
+    }
   };
 
   const handleChangeBio = async () => {
-    const res = await updateUserInfo(undefined, newBio);
-    setShowChangeBioModal(false);
-    if (res) await loadUser();
-  };
+    if (newBio === user?.bio) {
+      setShowChangeBioModal(false);
+      return;
+    }
 
-  console.log("settings")
+    const res = await updateUserInfo(undefined, newBio);
+    if (res) {
+      await loadUser();
+      toast.success("Bio updated!");
+      setShowChangeBioModal(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen p-5 bg-slate-50/50">
       <div className="max-w-3xl md:ml-10">
-        {/* HEADER */}
         <header className="mb-10 text-center md:text-left">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             Settings
@@ -73,14 +92,12 @@ export default function Settings() {
         </header>
 
         <div className="space-y-8">
-          {/* ACCOUNT */}
+          {/* ACCOUNT SECTION */}
           <section>
             <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 px-1">
               My Account
             </h2>
-
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              {/* PROFILE INFO DROPDOWN */}
               <div className="border-b border-slate-100">
                 <div
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -99,23 +116,20 @@ export default function Settings() {
                       </p>
                     </div>
                   </div>
-
                   <ChevronRight
                     size={16}
-                    className={`text-slate-400 transition-transform ${
-                      showProfileDropdown ? "rotate-90" : ""
-                    }`}
+                    className={`text-slate-400 transition-transform ${showProfileDropdown ? "rotate-90" : ""}`}
                   />
                 </div>
 
                 {showProfileDropdown && (
                   <div className="pl-16 pr-5 pb-4 space-y-2">
-                    <div
+                    <button
+                      disabled={loading}
                       onClick={() => setShowChangeNameModal(true)}
-                      className="flex items-center justify-between px-4 py-2.5 rounded-xl cursor-pointer
-               hover:bg-slate-100 transition"
+                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 text-left">
                         <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
                           <Pencil size={14} />
                         </div>
@@ -129,14 +143,14 @@ export default function Settings() {
                         </div>
                       </div>
                       <ChevronRight size={14} className="text-slate-400" />
-                    </div>
+                    </button>
 
-                    <div
+                    <button
+                      disabled={loading}
                       onClick={() => setShowChangeBioModal(true)}
-                      className="flex items-center justify-between px-4 py-2.5 rounded-xl cursor-pointer
-               hover:bg-slate-100 transition"
+                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 text-left">
                         <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
                           <Pencil size={14} />
                         </div>
@@ -150,12 +164,11 @@ export default function Settings() {
                         </div>
                       </div>
                       <ChevronRight size={14} className="text-slate-400" />
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
 
-              {/* AVATAR */}
               <SettingItem
                 onClick={() => router.push(`/profile/${user?.user_id}`)}
                 icon={<Camera size={20} />}
@@ -165,35 +178,7 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* NOTIFICATIONS */}
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400 mb-3 px-1">
-              Notifications
-            </h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <SettingItem
-                icon={<Bell size={20} />}
-                title="Notification Settings"
-                desc="Likes, comments and followers"
-              />
-            </div>
-          </section>
-
-          {/* SECURITY */}
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400 mb-3 px-1">
-              Security
-            </h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <SettingItem
-                icon={<Lock size={20} />}
-                title="Change Password"
-                desc="Update your account password"
-              />
-            </div>
-          </section>
-
-          {/* DANGER */}
+          {/* DANGER ZONE */}
           <section className="pt-4">
             <div className="bg-red-50/30 rounded-2xl border border-red-100 overflow-hidden">
               <SettingItem
@@ -208,80 +193,76 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* ===== MODALS ===== */}
-
-      {/* CHANGE NAME */}
+      {/* MODALS */}
       {showChangeNameModal && (
         <Modal
           title="Change Username"
-          onClose={() => {
-            setShowChangeNameModal(false)
-          setNewName("")}}
+          onClose={() => setShowChangeNameModal(false)}
         >
           <input
+            disabled={loading}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="w-full p-3 rounded-xl border mb-4 outline-none focus:border-primary focus:ring-2 focus:ring-[rgba(114,64,232,0.2)]"
+            className="w-full p-3 rounded-xl border mb-4 outline-none focus:border-primary focus:ring-2 focus:ring-purple-100 disabled:bg-slate-50"
             placeholder="Enter new username"
           />
           <button
-            className="w-full py-3 rounded-xl bg-primary text-white font-bold"
+            disabled={loading || !newName.trim()}
+            className="w-full py-3 rounded-xl bg-primary text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-70"
             onClick={handleChangeName}
           >
-            Save Changes
+            {loading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </Modal>
       )}
 
-      {/* CHANGE BIO */}
       {showChangeBioModal && (
-        <Modal title="Change Bio" onClose={() => {setShowChangeBioModal(false)
-          setNewBio("")
-        }}>
+        <Modal title="Change Bio" onClose={() => setShowChangeBioModal(false)}>
           <textarea
+            disabled={loading}
             value={newBio}
             onChange={(e) => setNewBio(e.target.value)}
-            rows={2}
-            className="w-full p-3 rounded-xl border mb-4 outline-none focus:border-primary focus:ring-2 focus:ring-[rgba(114,64,232,0.2)]"
+            rows={3}
+            className="w-full p-3 rounded-xl border mb-4 outline-none focus:border-primary focus:ring-2 focus:ring-purple-100 disabled:bg-slate-50"
             placeholder="Write your bio..."
           />
           <button
-            className="w-full py-3 rounded-xl bg-primary text-white font-bold"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-primary text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-70"
             onClick={handleChangeBio}
           >
-            Save Changes
+            {loading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </Modal>
       )}
-
-      {/* DELETE ACCOUNT */}
     </div>
   );
 }
 
-/* ===== SUB COMPONENTS ===== */
-
+// Sub-components as they were, but with slight accessibility tweaks
 function SettingItem({ icon, title, desc, danger = false, onClick }: any) {
   return (
     <div
       onClick={onClick}
-      className="group flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50"
+      className="group flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50 transition-colors"
     >
       <div className="flex items-center gap-4">
         <div
-          className={`p-2.5 rounded-xl ${
-            danger
-              ? "bg-red-100/50 text-red-600"
-              : "bg-slate-100 text-slate-600 group-hover:bg-purple-500 group-hover:text-white"
-          }`}
+          className={`p-2.5 rounded-xl ${danger ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-600 group-hover:bg-purple-500 group-hover:text-white"}`}
         >
           {icon}
         </div>
         <div>
           <span
-            className={`font-semibold text-[15px] ${
-              danger ? "text-red-600" : "text-slate-800"
-            }`}
+            className={`font-semibold text-[15px] ${danger ? "text-red-600" : "text-slate-800"}`}
           >
             {title}
           </span>
@@ -295,12 +276,15 @@ function SettingItem({ icon, title, desc, danger = false, onClick }: any) {
 
 function Modal({ children, title, onClose }: any) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white w-full max-w-md rounded-3xl p-6">
-        <div className="flex justify-between mb-4">
-          <h3 className="text-xl font-bold">{title}</h3>
-          <button onClick={onClose}>
-            <X />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-slate-100 rounded-full transition-colors"
+          >
+            <X size={20} />
           </button>
         </div>
         {children}

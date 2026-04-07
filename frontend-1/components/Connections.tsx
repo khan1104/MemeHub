@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/auth";
+import { useUser } from "@/context/UserContext";
 
 
 interface ConnectionProps {
@@ -32,6 +33,7 @@ export default function Connections({
   handleUnFollow,
 }: ConnectionProps) {
   const router = useRouter();
+  const {user:currentUser}=useUser()
   const [open, setOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { checkAuth, showLoginModal, setShowLoginModal } = useAuth();
@@ -72,74 +74,77 @@ export default function Connections({
           {user.user_name}
         </p>
       </div>
-
-      {/* ✅ SAME MENU FOR ALL DEVICES */}
-      <div className="relative" ref={menuRef}>
-        <button
-          onClick={() => setOpen(!open)}
-          className="p-1 rounded-full hover:bg-gray-100"
-        >
-          <MoreVertical size={18} />
-        </button>
-
-        {open && (
-          <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-md z-50">
-            {/* Report */}
+      {currentUser?.user_id != user.user_id && (
+        <>
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => {
-                checkAuth(() => {
-                  setIsModalOpen(true);
-                });
-              }}
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+              onClick={() => setOpen(!open)}
+              className="p-1 rounded-full hover:bg-gray-100"
             >
-              <Flag size={16} />
-              Report
+              <MoreVertical size={18} />
             </button>
 
-            {/* Follow / Unfollow */}
-            <button
-              onClick={() => {
-                checkAuth(() => {
-                  if (user.isFollowing) {
-                    handleUnFollow(user.user_id);
-                  } else {
-                    handleFollow(user.user_id);
-                  }
-                  setOpen(false);
-                });
-              }}
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-purple-100"
-            >
-              {user.isFollowing ? (
-                <>
-                  <UserMinus size={16} />
-                  Unfollow
-                </>
-              ) : (
-                <>
-                  <UserPlus size={16} />
-                  Follow
-                </>
-              )}
-            </button>
+            {open && (
+              <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-md z-50">
+                {/* Report */}
+                <button
+                  onClick={() => {
+                    checkAuth(() => {
+                      setIsModalOpen(true);
+                    });
+                  }}
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <Flag size={16} />
+                  Report
+                </button>
 
-            {/* Unfriend */}
-            {user.isFriend && (
-              <button
-                onClick={() => {
-                  handleUnfriend(user.user_id);
-                  setOpen(false);
-                }}
-                className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-purple-100"
-              >
-                <UserX size={16} />
-                Unfriend
-              </button>
+                {/* Follow / Unfollow */}
+                <button
+                  onClick={() => {
+                    checkAuth(() => {
+                      if (user.isFollowing) {
+                        handleUnFollow(user.user_id);
+                      } else {
+                        handleFollow(user.user_id);
+                      }
+                      setOpen(false);
+                    });
+                  }}
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-purple-100"
+                >
+                  {user.isFollowing ? (
+                    <>
+                      <UserMinus size={16} />
+                      Unfollow
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus size={16} />
+                      Follow
+                    </>
+                  )}
+                </button>
+
+                {/* Unfriend */}
+                {user.isFriend && (
+                  <button
+                    onClick={() => {
+                      handleUnfriend(user.user_id);
+                      setOpen(false);
+                    }}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-purple-100"
+                  >
+                    <UserX size={16} />
+                    Unfriend
+                  </button>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
+
       <ReportModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

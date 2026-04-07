@@ -15,7 +15,6 @@ import {
 import { Post } from "@/types/posts.type"
 import { useRouter } from "next/navigation"
 import { usePostAction } from "@/hooks/postsAction"
-import { useUser } from "@/context/UserContext"
 import ReportModal from "@/components/modals/ReportModal";
 import { formatCount } from "@/lib/formatCount"
 import { timeAgo } from "@/lib/timeAgo"
@@ -60,14 +59,6 @@ export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProp
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ================= LIKE =================
-  // const checkAuth = (action: () => void) => {
-  //   if (isLoggedIn) {
-  //     action();
-  //   } else {
-  //     setShowLoginModal(true);
-  //   }
-  // };
 
   // ================= LIKE =================
   const handleLike = async () => {

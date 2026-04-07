@@ -1,6 +1,5 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 function MonthlyChallenge() {

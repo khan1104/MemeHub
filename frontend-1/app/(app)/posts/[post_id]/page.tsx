@@ -9,6 +9,7 @@ import EmojiPicker from "emoji-picker-react";
 import PostCard from "@/components/PostsCard";
 import RightSidebar from "@/components/layout/RightSidebar";
 import Comments from "@/components/Comments";
+import CommentSkeleton from "@/components/skeletons/Comments";
 import PostCardSkeleton from "@/components/skeletons/PostCard";
 
 import { formatCount } from "@/lib/formatCount";
@@ -23,7 +24,7 @@ export default function PostPage() {
   const { post_id } = useParams<{ post_id: string }>();
 
   const { getSinglePost, loading, error } = usePost();
-  const { getComments, addComment,loading:commentLoading } = usePostAction();
+  const { getComments, addComment,loading:commentLoading,error:commentError } = usePostAction();
   const { user,isLoading,isLoggedIn } = useUser();
 
   // ---------------- STATE ----------------
@@ -41,14 +42,22 @@ export default function PostPage() {
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  // ---------------- FETCH POST (ONLY ONCE) ----------------
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleInput = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px"; 
+    }
+  };
+
 useEffect(() => {
   if (!post_id || isLoading) return; // ⛔ IMPORTANT
 
   getSinglePost(post_id).then(setPost);
 }, [post_id, isLoading, user]);
 
-  // ---------------- FETCH COMMENTS ----------------
   const loadComments = useCallback(
     async (isInitial = false) => {
       if (isLoading) return;
@@ -69,9 +78,9 @@ useEffect(() => {
     [cursor, hasNext, sortBy, post_id, commentLoading, getComments, isLoading],
   );
 
-  // ---------------- SORT CHANGE RESET ----------------
+
 useEffect(() => {
-  if (isLoading) return; // ⛔ wait for user
+  if (isLoading) return;
 
   setComments([]);
   setCursor(null);
@@ -100,20 +109,16 @@ const handleAddComment = async () => {
 
   setCommentText("");
 
-  // backend call
   const success = await addComment(post_id, commentText);
   if (!success) return;
 
-  // update count immediately
   setPost((prev) =>
     prev ? { ...prev, total_comments: prev.total_comments + 1 } : prev,
   );
 
-  // reset cursor BUT keep comments
   setCursor(null);
   setHasNext(true);
 
-  // refetch fresh comments silently
   loadComments(true);
 };
 
@@ -186,17 +191,25 @@ const handleDeleteLocal = (id: string) => {
         {user && (
           <div className="mt-4 flex gap-3 items-start">
             <div className="relative w-full">
-              <input
+              <textarea
+                ref={textareaRef}
+                disabled={commentLoading}
+                rows={1} // Start with 1 row for comments
                 value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
+                maxLength={250}
+                onChange={(e) => {
+                  setCommentText(e.target.value);
+                  handleInput();
+                }}
                 placeholder="Write a comment..."
-                className="w-full border border-slate-300 rounded-xl px-4 pr-12 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full border border-slate-300 rounded-xl px-4 pr-12 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none overflow-hidden"
+                style={{ maxHeight: "150px", scrollbarWidth: "none" }}
               />
 
               <Smile
                 size={20}
                 onClick={() => setShowEmoji((p) => !p)}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer"
+                className="absolute right-4 top-[22px] -translate-y-1/2 text-slate-400 cursor-pointer hover:text-purple-500 transition-colors"
               />
 
               {showEmoji && (
@@ -205,14 +218,15 @@ const handleDeleteLocal = (id: string) => {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowEmoji(false)}
                   />
-                  <div className="absolute bottom-14 left-0 z-50 shadow-2xl">
+                  <div className="absolute bottom-full mb-2 left-0 z-50 shadow-2xl">
                     <EmojiPicker
-                      onEmojiClick={(emoji) =>
-                        setCommentText((p) => p + emoji.emoji)
-                      }
+                      onEmojiClick={(emoji) => {
+                        setCommentText((p) => p + emoji.emoji);
+                        setTimeout(handleInput, 0);
+                      }}
                       height={350}
                       width={300}
-                      searchDisabled
+                      previewConfig={{ showPreview: false }}
                     />
                   </div>
                 </>
@@ -228,36 +242,37 @@ const handleDeleteLocal = (id: string) => {
             </button>
           </div>
         )}
-
-        {/* COMMENTS LIST */}
-        {comments.length > 0 ? (
-          <>
-            {comments.map((comment) => (
-              <Comments
-                key={comment.comment_id}
-                comment={comment}
-                onDelete={handleDeleteLocal}
-                onUpdate={handleUpdateLocal}
-              />
-            ))}
-
-            {/* SENTINEL */}
-            <div
-              ref={loaderRef}
-              className="h-10 flex items-center justify-center"
-            >
-              {commentLoading && (
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-700" />
-              )}
-            </div>
-          </>
-        ) : (
-          !commentLoading && (
-            <div className="py-20 text-center text-gray-500 font-medium">
-              No comments yet!
-            </div>
-          )
+        {commentError && (
+          <div className="text-center py-10 text-red-500">{commentError}.</div>
         )}
+
+          {commentLoading && comments.length === 0 ? (
+            Array.from({ length: 3 }).map((_, idx) => <CommentSkeleton key={idx} />)
+          ) : comments.length > 0 ? (
+            <>
+              {comments.map((comment) => (
+                <Comments
+                  key={comment.comment_id}
+                  comment={comment}
+                  onDelete={handleDeleteLocal}
+                  onUpdate={handleUpdateLocal}
+                />
+              ))}
+
+              {/* SENTINEL */}
+              <div ref={loaderRef} className="h-10 flex items-center justify-center">
+                {commentLoading && (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-700" />
+                )}
+              </div>
+            </>
+          ) : (
+            !commentLoading && (
+              <div className="py-20 text-center text-gray-500 font-medium">
+                No comments yet!
+              </div>
+            )
+          )}
       </main>
 
       {/* SIDEBAR */}

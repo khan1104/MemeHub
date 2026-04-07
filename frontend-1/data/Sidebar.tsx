@@ -39,14 +39,14 @@ export const CATEGORIES = [
 
 export const SECTION_TWO = [
   { name: "Templates", href: "/templates", icon: Flame },
-  { name: "Friends", href: "/friends", icon: Contact, requiresAuth: true },
+  { name: "Friends", href: "/profile", icon: Contact, requiresAuth: true },
   { name: "My Posts", href: "/profile", icon: Clock, requiresAuth: true },
   { name: "Monthly Meme Challenge", href: "/monthlyChallenege", icon: Trophy },
 ];
 
 export const SECTION_THREE = [
-  { name: "About MemeHub", href: "/about", icon: CiSquareInfo },
+  { name: "About MeemHub", href: "/about", icon: CiSquareInfo },
   { name: "Privacy Policy", href: "/policies", icon: BookOpenText },
-  { name: "Support", href: "/support", icon: BiSupport },
+  // { name: "Support", href: "/support", icon: BiSupport },
   { name: "Settings", href: "/settings", icon: Settings, requiresAuth: true },
 ];

@@ -6,7 +6,7 @@ export default function Support() {
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-4xl font-bold text-gray-900">
-            MemeHub Support
+            MeemHub Support
           </h1>
           <p className="text-gray-600 text-lg">
             Need help? We’ve got you covered.
@@ -58,7 +58,7 @@ export default function Support() {
         </div>
 
         {/* Contact */}
-        <div className="rounded-2xl bg-purple-600 p-8 text-white space-y-4 text-center">
+        <div className="rounded-2xl bg-purple-600 py-3 text-white space-y-4 text-center">
           <h2 className="text-2xl font-semibold">
             📩 Still Need Help?
           </h2>

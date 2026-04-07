@@ -82,7 +82,7 @@ export default function Home() {
         }
       },
       {
-        rootMargin: "150px", // preload before reaching bottom
+        rootMargin: "150px",
         threshold: 0,
       },
     );

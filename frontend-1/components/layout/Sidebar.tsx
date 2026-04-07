@@ -54,7 +54,7 @@ const NavItem = ({ item, user, pathname, setOpen }: any) => {
     <>
       <Link href={dynamicHref} onClick={handleClick}>
         <div
-          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition-all
+          className={`flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold transition-all
           ${
             isActive
               ? "bg-purple-100 text-purple-700"

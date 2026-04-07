@@ -23,18 +23,16 @@ interface CommentProps {
 
 function Comments({ comment, onDelete, onUpdate }: CommentProps) {
   const router = useRouter();
-  const { user, isLoggedIn } = useUser();
+  const { user} = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [showLoginModal, setShowLoginModal] = useState(false);
   const { checkAuth, showLoginModal, setShowLoginModal } = useAuth()
   const {
     updateComment,
     deleteComment,
     like,
     dislike,
-    loading,
-    error,
+    loading
   } = useCommentAction();
 
   const isOwnComment = user?.user_id === comment.created_by.user_id;
@@ -47,15 +45,6 @@ function Comments({ comment, onDelete, onUpdate }: CommentProps) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment.comment);
-  console.log(comment)
-
-  // const checkAuth = (action: () => void) => {
-  //   if (isLoggedIn) {
-  //     action();
-  //   } else {
-  //     setShowLoginModal(true);
-  //   }
-  // };
   const handleLike = async () => {
     checkAuth(async () => {
       if (loading) return;

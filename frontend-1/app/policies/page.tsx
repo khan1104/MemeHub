@@ -1,8 +1,11 @@
+"use client";
+import { useRouter } from "next/navigation";
+
 export default function PrivacyPolicy() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-4xl space-y-10">
-        
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-4xl font-bold text-gray-900">
@@ -16,7 +19,7 @@ export default function PrivacyPolicy() {
         {/* Privacy Policy */}
         <PolicyCard title="🔐 Privacy Policy">
           <p>
-            At <b>MemeHub</b>, your privacy matters. This policy explains how we
+            At <b>MeemHub</b>, your privacy matters. This policy explains how we
             collect, use, and protect your information.
           </p>
 
@@ -50,9 +53,7 @@ export default function PrivacyPolicy() {
 
         {/* Enforcement */}
         <PolicyCard title="⚠️ Rule Enforcement">
-          <p>
-            Violating MemeHub policies may result in:
-          </p>
+          <p>Violating MeemHub policies may result in:</p>
           <ul className="list-disc pl-5 space-y-2">
             <li>Content removal</li>
             <li>Temporary account suspension</li>
@@ -61,21 +62,25 @@ export default function PrivacyPolicy() {
         </PolicyCard>
 
         {/* Footer */}
-         <div className="text-center space-y-4">
+        <div className="text-center space-y-4">
           <h3 className="text-xl font-semibold text-gray-900">
             Ready to post your first meme?
           </h3>
           <p className="text-gray-600">
-            Join MemeHub today and become part of the fun.
+            Join MeemHub today and become part of the fun.
           </p>
-          <button className="rounded-full bg-purple-600 px-6 py-3 text-white font-medium hover:bg-purple-700 transition">
+          <button
+            className="rounded-full bg-purple-600 px-6 py-3 text-white font-medium hover:bg-purple-700 transition"
+            onClick={() => {
+              router.push("/home");
+            }}
+          >
             Start Sharing 🚀
           </button>
         </div>
-
       </div>
     </div>
-  )
+  );
 }
 
 /* Reusable Card */
@@ -83,15 +88,13 @@ function PolicyCard({
   title,
   children,
 }: {
-  title: string
-  children: React.ReactNode
+  title: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
       <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
-      <div className="text-gray-700 leading-relaxed space-y-3">
-        {children}
-      </div>
+      <div className="text-gray-700 leading-relaxed space-y-3">{children}</div>
     </div>
-  )
+  );
 }

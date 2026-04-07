@@ -10,7 +10,7 @@ export const uploadPostSchema = z.object({
     .string()
     .trim() // Removes accidental whitespace
     .min(1, "Caption is required")
-    .max(200, "Caption must be under 200 characters"),
+    .max(150, "Caption must be under 150 characters"),
 
   file: z
     .instanceof(File, { message: "Please upload a file" })

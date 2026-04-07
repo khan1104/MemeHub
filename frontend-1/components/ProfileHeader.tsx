@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Edit,
@@ -8,6 +8,7 @@ import {
   UserPlus,
   ChevronDown,
   MessageCircle,
+  Loader2,
 } from "lucide-react";
 import { FaUserPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,8 @@ import { User } from "@/types/user.type";
 import { useUsers } from "@/hooks/user";
 import { useUser } from "@/context/UserContext";
 import { useFriends } from "@/hooks/friends";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/auth";
 
 interface ProfileHeaderProps {
   user: User;
@@ -27,83 +30,106 @@ export default function ProfileHeader({
   isOwnProfile,
 }: ProfileHeaderProps) {
   const router = useRouter();
+  const { loadUser, isLoading: contextLoading } = useUser();
+  const { checkAuth, showLoginModal, setShowLoginModal } = useAuth();
 
-  const { isLoggedIn, loadUser ,isLoading} = useUser();
   const {
     updateProfilePic,
-    followUser
+    followUser,
+    loading: userLoading,
+    error: userError,
   } = useUsers();
   const {
     sendRequest,
-    cancelRequest
+    cancelRequest,
+    removeFriend,
+    loading: friendLoading,
+    error: friendError,
   } = useFriends();
 
-  
-  const [totalFollowers,setTotalFollowers]=useState(user.total_followers)
-
+  // --- Local States for Optimistic UI ---
+  const [totalFriends, setTotalFriends] = useState(user.total_friends);
+  const [totalFollowers, setTotalFollowers] = useState(user.total_followers);
   const [isFollowed, setIsFollowed] = useState(user.isFollowing);
   const [isRequestSent, setIsRequestSent] = useState(user.isRequestSent);
+  const [isFriend, setIsFriend] = useState(user.isFriend);
 
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  // Keep local state in sync if the user prop changes (e.g., on navigation)
+  useEffect(() => {
+    setIsFriend(user.isFriend);
+    setIsFollowed(user.isFollowing);
+    setIsRequestSent(user.isRequestSent);
+    setTotalFollowers(user.total_followers);
+    setTotalFriends(user.total_friends); // Sync friends count
+  }, [user]);
 
-
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const checkAuth = (action: () => void) => {
-    if (isLoggedIn) {
-      action();
-    } else {
-      setShowLoginModal(true);
+  // --- Error Handling & Optimistic Reversal ---
+  useEffect(() => {
+    if (userError) {
+      // Revert Follow State
+      setIsFollowed(user.isFollowing);
+      setTotalFollowers(user.total_followers);
+      toast.error(userError || "Failed to update follow status");
     }
-  };
+  }, [userError, user]);
 
+useEffect(() => {
+  if (friendError) {
+    setIsFriend(user.isFriend);
+    setIsRequestSent(user.isRequestSent);
+    setTotalFriends(user.total_friends); // Revert count on error
+    toast.error(friendError || "Action failed");
+  }
+}, [friendError, user]);
+
+  // --- Handlers ---
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const res = await updateProfilePic(file);
-    if (res) {
-      await loadUser();
-    }
+    if (res) await loadUser();
   };
 
+  const handleUnfriend = async () => {
+    if (friendLoading) return;
 
-  const handleFollow = async () => {
+    // Optimistic Update
+    setIsFriend(false);
+    setTotalFriends((prev) => prev - 1); // Friends count kam karein
+
+    const res = await removeFriend(user.user_id);
+    if (res) {
+      toast.success("Removed from friends");
+    }
+  };
+  const handleFollow = () => {
     checkAuth(async () => {
-      if (!user?.user_id || isLoading) return;
-      // optimistic UI
-      if (isFollowed) {
-        setTotalFollowers((prev) => prev - 1);
-        setIsFollowed(false);
-      } else {
-        setTotalFollowers((prev) => prev + 1);
-        setIsFollowed(true);
-      }
+      if (!user?.user_id || userLoading) return;
+
+      // Optimistic Update
+      const nextState = !isFollowed;
+      setIsFollowed(nextState);
+      setTotalFollowers((prev) => (nextState ? prev + 1 : prev - 1));
+
       await followUser(user.user_id);
     });
   };
 
-  const handleAddFriend = async () => {
+  const handleFriendAction = (action: "send" | "cancel") => {
     checkAuth(async () => {
-      if (!user?.user_id || isLoading) return;
-      if (isRequestSent) {
-        setIsRequestSent(false);
-      } else {
-        setIsRequestSent(true);
-      }
-      await sendRequest(user.user_id);
+      if (!user?.user_id || friendLoading) return;
+
+      // Optimistic Update
+      setIsRequestSent(action === "send");
+
+      if (action === "send") await sendRequest(user.user_id);
+      else await cancelRequest(user.user_id);
     });
   };
-  const handleCancelRequest = async () => {
-    checkAuth(async () => {
-      if (!user?.user_id || isLoading) return;
-      if (isRequestSent) {
-        setIsRequestSent(false);
-      } else {
-        setIsRequestSent(true);
-      }
-      await cancelRequest(user.user_id);
-    });
-  };
+
+  const fileRef = useRef<HTMLInputElement>(null);
+  const actionBtnClass =
+  "flex items-center justify-center gap-2 px-5 py-2 rounded-xl transition-all disabled:opacity-70";
 
   return (
     <div className="sticky top-0 left-0 z-10 py-6 -mt-6 bg-white">
@@ -129,9 +155,15 @@ export default function ProfileHeader({
               <button
                 className="absolute bottom-1 right-1 bg-primary text-white p-2 rounded-full shadow"
                 onClick={() => fileRef.current?.click()}
+                disabled={userLoading}
               >
                 <Edit size={14} />
               </button>
+              {userLoading && (
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/90">
+                  <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
+                </div>
+              )}
               <input
                 ref={fileRef}
                 type="file"
@@ -170,25 +202,19 @@ export default function ProfileHeader({
                   Posts
                 </div>
 
-                <button
-                  className="flex items-center gap-2 hover:text-purple-600"
-                >
+                <button className="flex items-center gap-2 hover:text-purple-600">
                   <Users size={16} />
-                  <span className="font-semibold">{user?.total_friends}</span>
+                  <span className="font-semibold">{totalFriends}</span>
                   Friends
                 </button>
 
-                <button
-                  className="flex items-center gap-2 hover:text-purple-600"
-                >
+                <button className="flex items-center gap-2 hover:text-purple-600">
                   <UserPlus size={16} />
                   <span className="font-semibold">{totalFollowers}</span>
                   Followers
                 </button>
 
-                <button
-                  className="flex items-center gap-2 hover:text-purple-600"
-                >
+                <button className="flex items-center gap-2 hover:text-purple-600">
                   <UserPlus size={16} />
                   <span className="font-semibold">{user?.total_following}</span>
                   Following
@@ -204,38 +230,55 @@ export default function ProfileHeader({
                     Edit Profile
                   </button>
                 ) : (
-                  <div className={`grid ${user.isFriend ? "grid-cols-3":"grid-cols-2"} gap-2`}>
-                    {user?.isFriend ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {isFriend ? (
                       <>
-                        <button className="bg-gray-200 px-2.5 py-2 rounded-xl flex items-center gap-1">
-                          <MessageCircle size={16} />
-                          Message
-                        </button>
-                        <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center">
-                          Unfriend
+                        <button
+                          onClick={handleUnfriend}
+                          disabled={friendLoading}
+                          className={`${actionBtnClass} bg-gray-100 text-red-500 hover:bg-red-50`}
+                        >
+                          {friendLoading ? (
+                            <Loader2 size={18} className="animate-spin" />
+                          ) : (
+                            "Unfriend"
+                          )}
                         </button>
                       </>
-                    ):isRequestSent ? (
-                    <button
-                      className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded-xl flex items-center justify-center gap-2"
-                      onClick={handleCancelRequest}
-                    >
-                      Cancel Request
-                    </button>
-                  ) : (
-                    <button
-                      className="bg-gray-200 px-7 py-2 rounded-xl flex items-center gap-2"
-                      onClick={handleAddFriend}
-                    >
-                      <FaUserPlus size={16} />
-                      Add Friend
-                    </button>
-                  )}
+                    ) : isRequestSent ? (
+                      <button
+                        onClick={() => handleFriendAction("cancel")}
+                        disabled={friendLoading}
+                        className={`${actionBtnClass} bg-red-50 text-red-600 border border-red-100`}
+                      >
+                        {friendLoading && (
+                          <Loader2 size={18} className="animate-spin" />
+                        )}
+                        Cancel Request
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleFriendAction("send")}
+                        disabled={friendLoading}
+                        className={`${actionBtnClass} bg-gray-100 text-gray-800 hover:bg-gray-200`}
+                      >
+                        {friendLoading ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <FaUserPlus size={18} />
+                        )}
+                        Add Friend
+                      </button>
+                    )}
 
                     <button
                       onClick={handleFollow}
-                      className="bg-primary text-white px-5 py-2 rounded-xl"
+                      disabled={userLoading}
+                      className={`${actionBtnClass} ${isFollowed ? "bg-gray-800 text-white" : "bg-primary text-white"}`}
                     >
+                      {userLoading && (
+                        <Loader2 size={18} className="animate-spin" />
+                      )}
                       {isFollowed ? "Unfollow" : "Follow"}
                     </button>
                   </div>
@@ -255,11 +298,9 @@ export default function ProfileHeader({
                 <span className="font-semibold">{user?.total_posts}</span> Posts
               </div>
 
-              <button
-                className="flex items-center gap-2 hover:text-purple-600"
-              >
+              <button className="flex items-center gap-2 hover:text-purple-600">
                 <Users size={16} />
-                <span className="font-semibold">{user?.total_friends}</span>
+                <span className="font-semibold">{totalFriends}</span>
                 Friends
               </button>
 
@@ -289,37 +330,52 @@ export default function ProfileHeader({
             </button>
           ) : (
             <>
-              {user?.isFriend ? (
+              {isFriend? (
                 <>
-                  <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
-                    <MessageCircle size={16} />
-                    Message
-                  </button>
-                  <button className="bg-gray-200 px-5 py-2 rounded-xl flex items-center gap-2">
-                    Unfriend
+                  <button
+                    onClick={handleUnfriend}
+                    disabled={friendLoading}
+                    className="bg-red-50 text-red-600 px-5 py-2 rounded-xl flex items-center gap-2 hover:bg-red-100 transition-colors"
+                  >
+                    {friendLoading ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      "Unfriend"
+                    )}
                   </button>
                 </>
               ) : isRequestSent ? (
                 <button
-                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded-xl flex items-center justify-center gap-2"
-                  onClick={handleCancelRequest}
+                  onClick={() => handleFriendAction("cancel")}
+                  disabled={friendLoading}
+                  className={`${actionBtnClass} bg-red-50 text-red-600 border border-red-100`}
                 >
+                  {friendLoading && (
+                    <Loader2 size={18} className="animate-spin" />
+                  )}
                   Cancel Request
                 </button>
               ) : (
                 <button
-                  className="bg-gray-200 px-7 py-2 rounded-xl flex items-center gap-2"
-                  onClick={handleAddFriend}
+                  onClick={() => handleFriendAction("send")}
+                  disabled={friendLoading}
+                  className={`${actionBtnClass} bg-gray-100 text-gray-800 hover:bg-gray-200`}
                 >
-                  <FaUserPlus size={16} />
+                  {friendLoading ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <FaUserPlus size={18} />
+                  )}
                   Add Friend
                 </button>
               )}
 
               <button
                 onClick={handleFollow}
-                className="bg-primary text-white px-5 py-2 rounded-xl"
+                disabled={userLoading}
+                className={`${actionBtnClass} ${isFollowed ? "bg-gray-800 text-white" : "bg-primary text-white"}`}
               >
+                {userLoading && <Loader2 size={18} className="animate-spin" />}
                 {isFollowed ? "Unfollow" : "Follow"}
               </button>
             </>
@@ -329,4 +385,3 @@ export default function ProfileHeader({
     </div>
   );
 }
-

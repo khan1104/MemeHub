@@ -18,20 +18,15 @@ import { Post } from "@/types/posts.type";
 import { User } from "@/types/user.type";
 
 export default function Profile() {
-  /* ================= ROUTE ================= */
   const params = useParams();
   const user_id = params.user_id as string;
 
   const { user: currentUser, isLoading } = useUser();
   const isOwnProfile = currentUser?.user_id === user_id;
 
-  /* ================= TAB ================= */
-
   const [activeTab, setActiveTab] = useState<
     "latest" | "top" | "oldest" | "friends" | "saved" | "liked"
   >("latest");
-
-  /* ================= HOOKS ================= */
 
   const { getUserById} = useUsers();
 
@@ -42,8 +37,6 @@ export default function Profile() {
   const loading=usersPostLoading || postsLoading;
   const error=userPostError || postError
 
-  /* ================= STATE ================= */
-
   const [user, setUser] = useState<User | null>(null);
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -52,10 +45,8 @@ export default function Profile() {
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  // const requestIdRef = useRef(0);
   const fetchingRef = useRef(false);
 
-  /* ================= LOAD PROFILE ================= */
 
   useEffect(() => {
 
@@ -69,7 +60,6 @@ export default function Profile() {
     loadProfile();
   }, [user_id, isLoading]);
 
-  /* ================= LOAD POSTS ================= */
 
   const loadPosts = useCallback(
     async (isInitial = false) => {
@@ -117,7 +107,6 @@ export default function Profile() {
     [activeTab, cursor, hasNext, user_id,isLoading,loading,getLikedPosts,getSavedPosts,getUserPosts],
   );
 
-  /* ================= TAB CHANGE ================= */
 
   useEffect(() => {
     if (!user_id || isLoading) return;
@@ -131,7 +120,6 @@ export default function Profile() {
     loadPosts(true);
   }, [activeTab, user_id]);
 
-  /* ================= INFINITE SCROLL ================= */
    useEffect(() => {
       const currentLoader = loaderRef.current;
       if (!currentLoader) return;
@@ -144,7 +132,7 @@ export default function Profile() {
           }
         },
         {
-          rootMargin: "150px", // preload before reaching bottom
+          rootMargin: "150px",
           threshold: 0,
         },
       );
@@ -170,8 +158,6 @@ export default function Profile() {
     );
   };
 
-  /* ================= TAB STYLE ================= */
-
   const tabClass = (tab: string) =>
     `pb-2 border-b-2 cursor-pointer whitespace-nowrap transition ${
       activeTab === tab
@@ -179,13 +165,10 @@ export default function Profile() {
         : "border-transparent text-gray-500 hover:text-primary"
     }`;
 
-  /* ================= UI ================= */
-
   return (
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 pt-6">
       <div className="flex-1 flex flex-col">
         {/* PROFILE HEADER */}
-
         <div className="sticky top-0 left-0 z-10 -mt-6 bg-white">
           {!user ? (
             <ProfileHeaderSkeleton />
@@ -242,19 +225,22 @@ export default function Profile() {
           </div>
         </div>
 
-        {activeTab !== "friends" && !error && !loading && posts.length === 0 && (
-          <div className="w-full flex justify-center items-center py-10">
-            <p className="text-gray-400 text-sm">
-              {activeTab === "liked"
-                ? "You haven’t liked any posts yet"
-                : activeTab === "saved"
-                  ? "You haven’t saved any posts yet"
-                  : isOwnProfile
-                    ? "You haven’t posted anything yet"
-                    : "This user doesn’t have any posts yet"}
-            </p>
-          </div>
-        )}
+        {activeTab !== "friends" &&
+          !error &&
+          !loading &&
+          posts.length === 0 && (
+            <div className="w-full flex justify-center items-center py-10">
+              <p className="text-gray-400 text-sm">
+                {activeTab === "liked"
+                  ? "You haven’t liked any posts yet"
+                  : activeTab === "saved"
+                    ? "You haven’t saved any posts yet"
+                    : isOwnProfile
+                      ? "You haven’t posted anything yet"
+                      : "This user doesn’t have any posts yet"}
+              </p>
+            </div>
+          )}
         {error && !loading && (
           <div className="text-center py-10 text-red-500">{error}.</div>
         )}
@@ -287,7 +273,7 @@ export default function Profile() {
           </div>
         )}
 
-        {activeTab === "friends" && user && !error &&  (
+        {activeTab === "friends" && user && !error && (
           <Friends user_id={user.user_id} isOwnProfile={isOwnProfile} />
         )}
       </div>

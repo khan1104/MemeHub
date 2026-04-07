@@ -15,8 +15,8 @@ import {
 import { useAuth } from "@/hooks/auth";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-// import { IoMdNotifications } from "react-icons/io";
 import { useUsers } from "@/hooks/user";
+import { toast } from "sonner";
 
 const useDebounce = (value: string, delay: number = 500) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -52,14 +52,12 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
     error: searchError,
   } = useUsers();
   const [users, setUsers] = useState<any[]>([]);
-  // const [loadingSearch, setLoadingSearch] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const debouncedQuery = useDebounce(query, 500);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const loading=authLogin || searchLaoding;
   const userInitial = user?.user_name
     ? user.user_name.charAt(0).toUpperCase()
     : "U";
@@ -96,7 +94,6 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
    setSelectedIndex(-1);
  }, [users]);
 
-  /* -------------------- Click Outside -------------------- */
   useEffect(() => {
     const handleClickOutside = (e: any) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -136,7 +133,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   }, [authError]);
 
   useEffect(() => {
-    if (searchError) alert(searchError);
+    if (searchError) toast.error(searchError);
   }, [searchError]);
 
   return (
@@ -277,8 +274,6 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
 
               {isLoggedIn && (
                 <>
-                  {/* Upload Button */}
-                  {/* <IoMdNotifications size={27} /> */}
                   <button
                     type="button"
                     onClick={() => setOpenUpload(true)}
@@ -408,7 +403,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               🚧 We’re Working On It
             </h2>
             <p className="mt-2 text-gray-600">
-              MemeHub mobile app is coming soon. Stay tuned for updates!
+              MeemHub mobile app is coming soon. Stay tuned for updates!
             </p>
             <button
               onClick={() => setOpenAppModal(false)}

@@ -16,5 +16,6 @@ export const apiError = (error: any) => {
   if(error?.response?.status==500){
     throw new Error("server Error");
   }
+  
   throw new Error(error?.response?.data?.detail || "Some thing went wrong");
 };

@@ -1,85 +1,86 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { X, ImageIcon, Check, Loader2, AlertCircle,Smile } from "lucide-react"
-import { CATEGORIES } from "@/data/MemeCategories"
-import { usePost } from "@/hooks/post"
+import { useState, useEffect, useRef } from "react";
+import { X, ImageIcon, Check, Loader2, AlertCircle, Smile } from "lucide-react";
+import { CATEGORIES } from "@/data/MemeCategories";
+import { usePost } from "@/hooks/post";
 import { toast } from "sonner";
 import EmojiPicker from "emoji-picker-react";
 
 type UploadModalProps = {
-  open: boolean
-  onClose: () => void
-}
+  open: boolean;
+  onClose: () => void;
+};
 
 export default function UploadModal({ open, onClose }: UploadModalProps) {
-  const { uploadPost, loading, error, setError } = usePost()
-  const [caption, setCaption] = useState("")
-  const [selectedCats, setSelectedCats] = useState<string[]>([])
-  const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [fileType, setFileType] = useState<"image" | "video" | null>(null)
+  const { uploadPost, loading, error, setError } = usePost();
+  const [caption, setCaption] = useState("");
+  const [selectedCats, setSelectedCats] = useState<string[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<"image" | "video" | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
-  // Cleanup preview URL to prevent memory leaks
+  const textareaRef = useRef(null);
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
-  const handleEmojiClick = (emojiData: any) => {
-    setCaption((prev) => prev + emojiData.emoji);
-  };
-
-  if (!open) return null
+  if (!open) return null;
 
   const resetForm = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setCaption("")
-    setSelectedCats([])
-    setFile(null)
-    setPreviewUrl(null)
-    setFileType(null)
-    setError(null)
-  }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setCaption("");
+    setSelectedCats([]);
+    setFile(null);
+    setPreviewUrl(null);
+    setFileType(null);
+    setError(null);
+  };
 
   const handleClose = () => {
-    if (loading) return 
-    resetForm()
-    onClose()
-  }
+    if (loading) return;
+    resetForm();
+    onClose();
+  };
 
   const handleFile = (file: File) => {
-    // If there's an existing preview, revoke it first
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    
-    setFile(file)
-    setFileType(file.type.startsWith("video") ? "video" : "image")
-    setPreviewUrl(URL.createObjectURL(file))
-  }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+
+    setFile(file);
+    setFileType(file.type.startsWith("video") ? "video" : "image");
+    setPreviewUrl(URL.createObjectURL(file));
+  };
 
   const toggleCategory = (cat: string) => {
     setSelectedCats((prev) => {
-      if (prev.includes(cat)) return prev.filter((c) => c !== cat)
-      if (prev.length >= 3) return prev
-      return [...prev, cat]
-    })
-  }
+      if (prev.includes(cat)) return prev.filter((c) => c !== cat);
+      if (prev.length >= 3) return prev;
+      return [...prev, cat];
+    });
+  };
 
   const handleUpload = async () => {
-    if (!file) return
+    if (!file) return;
 
-    const success = await uploadPost(caption, file, selectedCats)
-    
+    const success = await uploadPost(caption, file, selectedCats);
+
     if (success) {
-      // Small delay or immediate close
-      toast.success("Post Uploaded sucess",{position:"top-center"});
-      handleClose()
+      toast.success("Post Uploaded sucess", { position: "top-center" });
+      handleClose();
     }
-  }
+  };
+  const handleInput = (e) => {
+    const el = textareaRef.current;
 
-  const isFormValid = file !== null && caption.trim().length > 0 && selectedCats.length > 0
+    el.style.height = "auto"; // reset
+
+    el.style.height = el.scrollHeight + "px"; // grow
+  };
+
+  const isFormValid =
+    file !== null && caption.trim().length > 0 && selectedCats.length > 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-2">
@@ -93,7 +94,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
           <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/90">
             <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
             <p className="mt-4 text-lg font-bold text-gray-700">
-              Uploading your meme...
+              Uploading your post...
             </p>
           </div>
         )}
@@ -116,10 +117,6 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
             {previewUrl ? (
               <div className="relative w-full h-[260px] flex items-center justify-center overflow-hidden rounded-lg bg-gray-100">
                 {fileType === "video" ? (
-                  // <CustomVideoPlayer
-                  //   src={previewUrl}
-                  //   className="max-h-full max-w-full rounded-lg object-contain"
-                  // />
                   <video
                     src={previewUrl}
                     controls
@@ -173,11 +170,22 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
 
           <div className="space-y-1 relative">
             <textarea
+              ref={textareaRef}
               rows={2}
               value={caption}
-              onChange={(e) => setCaption(e.target.value)}
+              maxLength={150}
+              onChange={(e) => {
+                setCaption(e.target.value);
+                handleInput(e);
+              }}
               placeholder="Write a funny caption..."
-              className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-purple-500 transition resize-none"
+              /* Added 'overflow-hidden' to hide scrollbars */
+              className="w-full rounded-xl border pl-4 pr-12 py-3 text-sm outline-none focus:border-purple-500 transition resize-none overflow-hidden"
+              style={{
+                maxHeight: "120px",
+                scrollbarWidth: "none" /* For Firefox */,
+                msOverflowStyle: "none" /* For IE/Edge */,
+              }}
               onKeyDown={(e) => e.stopPropagation()}
             />
 
@@ -189,10 +197,15 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
 
             {/* Emoji Picker */}
             {showEmojiPicker && (
-              <div className="absolute z-50 bottom-14 right-0 ">
+              <div className="absolute z-50 bottom-16 right-0 ">
                 <EmojiPicker
-                  onEmojiClick={handleEmojiClick}
+                  onEmojiClick={(emoji) => {
+                    setCaption((p) => p + emoji.emoji);
+                    // Small timeout to recalculate height after emoji is added
+                    setTimeout(handleInput, 0);
+                  }}
                   height={320}
+                  previewConfig={{ showPreview: false }}
                 />
               </div>
             )}

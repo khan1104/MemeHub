@@ -43,6 +43,7 @@ export const useAuth = () => {
   };
 
   const googleLogin = async (tokenId: string) => {
+    setError(null);
     try {
       setLoading(true);
       const data = await gooleLoginUser(tokenId);
@@ -57,6 +58,7 @@ export const useAuth = () => {
   };
 
   const register = async (user_name: string, email: string, password: string) => {
+    setError(null);
     const validation = registerSchema.safeParse({ user_name, email, password });
     if (!validation.success) {
       setError(validation.error.issues[0].message);
@@ -76,6 +78,7 @@ export const useAuth = () => {
   };
 
   const sendOtp = async () => {
+    setError(null);
     const email = localStorage.getItem("verify_email");
     if (!email) return false;
 
@@ -92,6 +95,7 @@ export const useAuth = () => {
   };
 
   const verifyOtp = async (otp: string) => {
+    setError(null);
     const email = localStorage.getItem("verify_email");
     if (!email || otp.length !== 6) return;
 
@@ -108,12 +112,15 @@ export const useAuth = () => {
   };
 
   const logout = async () => {
+    setError(null);
     try {
       setLoading(true);
       await logoutUser();
       clearAccessToken();
       return true;
-    } finally {
+    } catch (err: any) {
+      setError(err.message || "OTP verification failed");
+    }finally {
       setLoading(false);
     }
   };

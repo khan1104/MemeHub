@@ -18,7 +18,6 @@ export default function VerificationPage() {
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(RESEND_TIME);
 
-  // Safely get email on client side
   useEffect(() => {
     sendOtp()
   }, []);
