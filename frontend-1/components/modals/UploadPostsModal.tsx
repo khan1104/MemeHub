@@ -20,7 +20,8 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<"image" | "video" | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const textareaRef = useRef(null);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -71,12 +72,13 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
       handleClose();
     }
   };
+
   const handleInput = () => {
     const el = textareaRef.current;
-
-    el.style.height = "auto"; // reset
-
-    el.style.height = el.scrollHeight + "px"; // grow
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px";
+    }
   };
 
   const isFormValid =
@@ -176,7 +178,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
               maxLength={150}
               onChange={(e) => {
                 setCaption(e.target.value);
-                handleInput(e);
+                handleInput();
               }}
               placeholder="Write a funny caption..."
               /* Added 'overflow-hidden' to hide scrollbars */
