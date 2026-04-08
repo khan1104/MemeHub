@@ -22,3 +22,10 @@ export interface MonthlyTopUsers{
     total_likes:number
 
 }
+
+export interface SearchUsers{
+    _id:string
+    user_name:string
+    profile_pic:string
+
+}

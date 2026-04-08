@@ -71,7 +71,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
       handleClose();
     }
   };
-  const handleInput = (e) => {
+  const handleInput = () => {
     const el = textareaRef.current;
 
     el.style.height = "auto"; // reset

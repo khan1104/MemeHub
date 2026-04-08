@@ -102,7 +102,7 @@ export const useUsers = () => {
     }
   }
 
-  const getFollowings=async(user_id:string,cursor?: string)=>{
+  const getFollowings=async(user_id:string,cursor?: string|null)=>{
     setError(null)
     try{
         setLoading(true)
@@ -116,7 +116,7 @@ export const useUsers = () => {
     }
   }
 
-  const getFollowers=async(user_id:string,cursor?: string)=>{
+  const getFollowers=async(user_id:string,cursor?: string|null)=>{
     setError(null)
     try{
         setLoading(true)

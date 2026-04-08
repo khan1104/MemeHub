@@ -54,8 +54,8 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => {
-                setEmail(e.target.value)
-                setError(null)
+                setEmail(e.target.value);
+                setError(null);
               }}
               className="w-full rounded-[10px] border border-border px-3.5 py-3 text-base focus:outline-none focus:border-primary focus:ring-3 focus:ring-[rgba(114,64,232,0.2)]"
             />
@@ -74,8 +74,8 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => {
-                  setPassword(e.target.value)
-                  setError(null)
+                  setPassword(e.target.value);
+                  setError(null);
                 }}
                 className="w-full rounded-[10px] border border-border px-3.5 pr-11 py-3 text-base focus:outline-none focus:border-primary focus:ring-3 focus:ring-[rgba(114,64,232,0.2)]"
               />
@@ -121,16 +121,20 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="flex items-center my-6 sm:my-7 text-[0.85rem] text-label">
           <div className="flex-1 border-b border-border" />
-          <span className="mx-2.5 whitespace-nowrap">
-            Or continue with
-          </span>
+          <span className="mx-2.5 whitespace-nowrap">Or continue with</span>
           <div className="flex-1 border-b border-border" />
         </div>
 
         <GoogleLogin
-          onSuccess={async(data)=>{
-            const success=await googleLogin(data.credential)
-            if (success) router.replace("/home")}}
+          onSuccess={async (data) => {
+            if (!data.credential) {
+              setError("Google login failed. No credential received.");
+              return;
+            }
+
+            const success = await googleLogin(data.credential);
+            if (success) router.replace("/home");
+          }}
           onError={() => setError("Google login failed. Try again.")}
         />
       </div>

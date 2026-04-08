@@ -9,7 +9,7 @@ export const savePost=async(post_id:string)=>{
     apiError(error)
   }
 }
-export const fetchSavedPosts=async(cursor?: string,limit: number = 6)=>{
+export const fetchSavedPosts=async(cursor?: string|null,limit: number = 6)=>{
   try {
     const res = await protected_api.get(`/posts_actions/save`,{
     params: {
@@ -23,7 +23,7 @@ export const fetchSavedPosts=async(cursor?: string,limit: number = 6)=>{
   }
 }
 
-export const fetchLikedPosts=async(cursor?: string,limit: number =6)=>{
+export const fetchLikedPosts=async(cursor?: string|null,limit: number =6)=>{
   try {
     const res = await protected_api.get(`/posts_actions/liked`,{
     params: {
@@ -70,7 +70,7 @@ export const reportPost=async(post_id:string,reason:string,description:string)=>
 
 export const fetchComments=async(
   post_id:string,
-  cursor?: string,
+  cursor?: string|null,
   user_id?:string,
   sort_by?:string,
   limit: number = 3

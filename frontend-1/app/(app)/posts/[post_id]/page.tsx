@@ -30,7 +30,7 @@ export default function PostPage() {
   // ---------------- STATE ----------------
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const totalComments=post?.total_comments
+  const totalComments = post?.total_comments ?? 0;
   const [sortBy, setSortBy] = useState<"latest" | "top">("latest");
   const [showSort, setShowSort] = useState(false);
 

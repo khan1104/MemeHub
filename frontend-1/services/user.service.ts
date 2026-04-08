@@ -70,7 +70,7 @@ export const reportUser=async(user_id:string,reason:string,description:string)=>
 }
 
 
-export const fetchFollowers=async(user_id:string,cursor?: string,limit: number = 12)=>{
+export const fetchFollowers=async(user_id:string,cursor?: string|null,limit: number = 12)=>{
    try {
   const res = await protected_api.get(`/users/followers/${user_id}`,{
       params: {
@@ -85,7 +85,7 @@ export const fetchFollowers=async(user_id:string,cursor?: string,limit: number =
   }
 }
 
-export const fetchFollowings=async(user_id:string,cursor?: string,limit: number = 12)=>{
+export const fetchFollowings=async(user_id:string,cursor?: string|null,limit: number = 12)=>{
    try {
     const res = await protected_api.get(`/users/followings/${user_id}`,{
       params: {

@@ -15,7 +15,7 @@ export const useFriends = () => {
   const [error, setError] = useState<string | null>(null);
 
 
-  const getFriends=async(user_id:string,sort_by?:string,cursor?: string): Promise<PaginatedFriendResponse | null>=>{
+  const getFriends=async(user_id:string,sort_by?:string,cursor?: string|null): Promise<PaginatedFriendResponse | null>=>{
     setError(null)
     try {
       setLoading(true)
@@ -28,7 +28,7 @@ export const useFriends = () => {
     }
   }
 
-  const getMutualFriends=async(user_id:string,cursor?: string): Promise<PaginatedFriendResponse | null>=>{
+  const getMutualFriends=async(user_id:string,cursor?: string|null): Promise<PaginatedFriendResponse | null>=>{
     setError(null)
     try {
       setLoading(true)
@@ -41,7 +41,7 @@ export const useFriends = () => {
     }
   }
 
-  const getReciveRequests=async(cursor?: string): Promise<PaginatedRequestResponse | null>=>{
+  const getReciveRequests=async(cursor?: string|null): Promise<PaginatedRequestResponse | null>=>{
     setError(null)
     try {
       setLoading(true)
@@ -54,7 +54,7 @@ export const useFriends = () => {
     }
   }
 
-  const getSentRequests=async(cursor?: string): Promise<PaginatedRequestResponse | null>=>{
+  const getSentRequests=async(cursor?: string|null): Promise<PaginatedRequestResponse | null>=>{
     setError(null)
     try {
       setLoading(true)

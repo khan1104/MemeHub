@@ -13,7 +13,7 @@ export const uploadPost = async (formData: FormData) => {
 
 export const fetchPosts = async (
   sort_by?:string,
-  cursor?: string,
+  cursor?: string|null,
   limit: number = 10
 ) => {
   try{
@@ -50,7 +50,7 @@ export const fetchSinglePost=async(post_id:string,user_id?:string)=>{
 export const fetchUserPosts=async(
   user_id:string,
   sort_by?:string,
-  cursor?: string,
+  cursor?: string|null,
   limit: number = 9)=>{
   try{
     const res=await public_api.get(`/posts/user/${user_id}`,{

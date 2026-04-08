@@ -52,8 +52,9 @@ export default function RegisterPage() {
               placeholder="Choose a username"
               required
               value={username}
-              onChange={(e) =>{setUsername(e.target.value)
-                setError(null)
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setError(null);
               }}
               className="
                 w-full rounded-[10px]
@@ -77,8 +78,9 @@ export default function RegisterPage() {
               required
               value={email}
               onChange={(e) => {
-                setEmail(e.target.value)
-                setError(null)}}
+                setEmail(e.target.value);
+                setError(null);
+              }}
               className="
                 w-full rounded-[10px]
                 border border-border
@@ -102,8 +104,9 @@ export default function RegisterPage() {
                 placeholder="Create password"
                 required
                 value={password}
-                onChange={(e) => {setPassword(e.target.value)
-                  setError(null)
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError(null);
                 }}
                 className="
                   w-full rounded-[10px]
@@ -148,9 +151,15 @@ export default function RegisterPage() {
         </div>
 
         <GoogleLogin
-          onSuccess={async(data)=>{
-            const success=await googleLogin(data.credential)
-            if (success) router.replace("/home")}}
+          onSuccess={async (data) => {
+            if (!data.credential) {
+              setError("Google login failed. No credential received.");
+              return;
+            }
+
+            const success = await googleLogin(data.credential);
+            if (success) router.replace("/home");
+          }}
           onError={() => setError("Google login failed. Try again.")}
         />
       </div>

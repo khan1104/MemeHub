@@ -246,9 +246,15 @@ export default function Settings() {
     </div>
   );
 }
-
+interface SettingItemProps {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+  danger?: boolean;
+  onClick?: () => void;
+}
 // Sub-components as they were, but with slight accessibility tweaks
-function SettingItem({ icon, title, desc, danger = false, onClick }: any) {
+function SettingItem({ icon, title, desc, danger = false, onClick }: SettingItemProps) {
   return (
     <div
       onClick={onClick}
@@ -274,7 +280,13 @@ function SettingItem({ icon, title, desc, danger = false, onClick }: any) {
   );
 }
 
-function Modal({ children, title, onClose }: any) {
+interface ModalProps {
+  children: React.ReactNode;
+  title: string;
+  onClose: () => void;
+}
+
+function Modal({ children, title, onClose }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">

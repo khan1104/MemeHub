@@ -52,7 +52,7 @@ export const usePost = () => {
     }
   }
 
-  const getPosts = async (cursor?: string): Promise<PaginatedPostResponse | null> => {
+  const getPosts = async (cursor?: string|null): Promise<PaginatedPostResponse | null> => {
     setError(null)
     try {
       setLoading(true)
@@ -66,7 +66,7 @@ export const usePost = () => {
     }
   }
 
-  const getUserPosts=async(user_id:string,sort_by?:string,cursor?: string):Promise<PaginatedPostResponse|null>=>{
+  const getUserPosts=async(user_id:string,sort_by?:string,cursor?: string|null):Promise<PaginatedPostResponse|null>=>{
     setError(null)
     try {
       setLoading(true)

@@ -17,7 +17,7 @@ import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import { useUsers } from "@/hooks/user";
 import { toast } from "sonner";
-
+import { SearchUsers } from "@/types/user.type";
 const useDebounce = (value: string, delay: number = 500) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -51,7 +51,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
     loading: searchLaoding,
     error: searchError,
   } = useUsers();
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<SearchUsers[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const debouncedQuery = useDebounce(query, 500);

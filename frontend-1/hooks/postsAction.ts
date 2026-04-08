@@ -33,7 +33,7 @@ export const usePostAction = () => {
     }
   }
 
-  const getSavedPosts=async(cursor?: string)=>{
+  const getSavedPosts=async(cursor?: string|null)=>{
     setError(null)
     try {
       setLoading(true)
@@ -47,7 +47,7 @@ export const usePostAction = () => {
     }
   }
 
-  const getLikedPosts=async(cursor?: string)=>{
+  const getLikedPosts=async(cursor?: string|null)=>{
     setError(null)
     try {
       setLoading(true)
@@ -117,7 +117,7 @@ export const usePostAction = () => {
       }
     }
 
-    const getComments = async (post_id:string,sort_by:string,cursor?:string): Promise<PaginatedCommentResponse | null> => {
+    const getComments = async (post_id:string,sort_by:string,cursor?:string|null): Promise<PaginatedCommentResponse | null> => {
       setError(null)
       try {
         setLoading(true)

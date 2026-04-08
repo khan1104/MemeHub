@@ -48,7 +48,7 @@ export const removeFriend=async(user_id:string)=>{
     }
 }
 
-export const fetchFriends=async(user_id:string,sort_by?:string,cursor?: string,limit: number = 12)=>{
+export const fetchFriends=async(user_id:string,sort_by?:string,cursor?: string|null,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/friends/${user_id}`,{
             params: {
@@ -65,7 +65,7 @@ export const fetchFriends=async(user_id:string,sort_by?:string,cursor?: string,l
 }
 
 
-export const fetchMutualFriends=async(user_id:string,cursor?: string,limit: number = 12)=>{
+export const fetchMutualFriends=async(user_id:string,cursor?: string|null,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/mutual-friends/${user_id}`,{
             params: {
@@ -80,7 +80,7 @@ export const fetchMutualFriends=async(user_id:string,cursor?: string,limit: numb
     }
 }
 
-export const fetchReciveRequests=async(cursor?: string,limit: number = 12)=>{
+export const fetchReciveRequests=async(cursor?: string|null,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/requests`,{
             params: {
@@ -95,7 +95,7 @@ export const fetchReciveRequests=async(cursor?: string,limit: number = 12)=>{
     }
 }
 
-export const fetchSentRequests=async(cursor?: string,limit: number = 12)=>{
+export const fetchSentRequests=async(cursor?: string|null,limit: number = 12)=>{
     try{
         const res=await protected_api.get(`/friends/sent-requests`,{
             params: {
