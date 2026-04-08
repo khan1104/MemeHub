@@ -6,8 +6,8 @@ import { FeedProvider } from "@/context/FeedContext";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "MemeHub",
-  description: "MemeHub is a meme sharing platform",
+  title: "MeemHub",
+  description: "MeemHub is a meme sharing platform",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
           <UserProvider>
             <FeedProvider>
               {children}
-              <Toaster position="top-center"/>
+              <Toaster position="top-center" richColors/>
             </FeedProvider>
           </UserProvider>
         </GoogleOAuthProvider>

@@ -15,7 +15,7 @@ from core.rateLimiter import limiter
 
 import uvicorn
 
-app=FastAPI(title="MemeHub Backend")
+app=FastAPI(title="MeemHub Backend")
 app.state.limiter = limiter
 
 @app.exception_handler(RequestValidationError)

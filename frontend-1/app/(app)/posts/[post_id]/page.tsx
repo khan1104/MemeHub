@@ -53,7 +53,7 @@ export default function PostPage() {
   };
 
 useEffect(() => {
-  if (!post_id || isLoading) return; // ⛔ IMPORTANT
+  if (!post_id || isLoading) return; 
 
   getSinglePost(post_id).then(setPost);
 }, [post_id, isLoading, user]);

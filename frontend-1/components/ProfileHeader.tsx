@@ -19,6 +19,7 @@ import { useUser } from "@/context/UserContext";
 import { useFriends } from "@/hooks/friends";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/auth";
+import { formatCount } from "@/lib/formatCount";
 
 interface ProfileHeaderProps {
   user: User;
@@ -198,25 +199,25 @@ useEffect(() => {
 
               <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
                 <div>
-                  <span className="font-semibold">{user?.total_posts}</span>{" "}
+                  <span className="font-semibold">{formatCount(user.total_posts)}</span>{" "}
                   Posts
                 </div>
 
                 <button className="flex items-center gap-2 hover:text-purple-600">
                   <Users size={16} />
-                  <span className="font-semibold">{totalFriends}</span>
+                  <span className="font-semibold">{formatCount(totalFriends)}</span>
                   Friends
                 </button>
 
                 <button className="flex items-center gap-2 hover:text-purple-600">
                   <UserPlus size={16} />
-                  <span className="font-semibold">{totalFollowers}</span>
+                  <span className="font-semibold">{formatCount(totalFollowers)}</span>
                   Followers
                 </button>
 
                 <button className="flex items-center gap-2 hover:text-purple-600">
                   <UserPlus size={16} />
-                  <span className="font-semibold">{user?.total_following}</span>
+                  <span className="font-semibold">{formatCount(user?.total_following)}</span>
                   Following
                 </button>
               </div>
@@ -295,24 +296,24 @@ useEffect(() => {
 
             <div className="flex flex-wrap gap-4 mt-2 text-sm">
               <div>
-                <span className="font-semibold">{user?.total_posts}</span> Posts
+                <span className="font-semibold">{formatCount(user?.total_posts)}</span> Posts
               </div>
 
               <button className="flex items-center gap-2 hover:text-purple-600">
                 <Users size={16} />
-                <span className="font-semibold">{totalFriends}</span>
+                <span className="font-semibold">{formatCount(totalFriends)}</span>
                 Friends
               </button>
 
               <button className="flex items-center gap-2 hover:text-purple-600">
                 <UserPlus size={16} />
-                <span className="font-semibold">{totalFollowers}</span>
+                <span className="font-semibold">{formatCount(totalFollowers)}</span>
                 Followers
               </button>
 
               <button className="flex items-center gap-2 hover:text-purple-600">
                 <UserPlus size={16} />
-                <span className="font-semibold">{user?.total_following}</span>
+                <span className="font-semibold">{formatCount(user?.total_following)}</span>
                 Following
               </button>
             </div>

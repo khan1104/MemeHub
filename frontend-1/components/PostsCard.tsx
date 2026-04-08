@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/auth"
 
 interface PostCardProps {
   post: Post,
-  currentUser:User,
+  currentUser:User |null,
   isLoggedIn:boolean
 }
 
