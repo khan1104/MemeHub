@@ -1,7 +1,11 @@
 export function timeAgo(date: string | Date) {
-  const seconds = Math.floor(
-    (Date.now() - new Date(date).getTime()) / 1000
-  )
+  const parsed = new Date(date)
+
+  if (isNaN(parsed.getTime())) return ""
+
+  const seconds = Math.floor((Date.now() - parsed.getTime()) / 1000)
+
+  if (seconds < 10) return "just now"
 
   const intervals = [
     { label: "year", seconds: 31536000 },
@@ -15,7 +19,7 @@ export function timeAgo(date: string | Date) {
   for (const interval of intervals) {
     const count = Math.floor(seconds / interval.seconds)
     if (count >= 1) {
-      return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`
+      return `${count === 1 ? "a" : count} ${interval.label}${count > 1 ? "s" : ""} ago`
     }
   }
 

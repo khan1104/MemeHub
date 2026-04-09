@@ -202,7 +202,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               >
                 <span>M</span>
                 <span className="text-xl text-[#1A1C1E] sm:text-2xl">
-                  emeHub
+                  eemHub
                 </span>
               </div>
             </div>
