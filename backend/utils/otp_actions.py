@@ -23,7 +23,6 @@ async def send_otp_email(email):
     <div style="font-family:Arial, sans-serif; background-color:#fff9f3; padding:30px; border-radius:12px; max-width:500px; margin:auto; box-shadow:0 0 12px rgba(0,0,0,0.1);">
       <div style="text-align:center;">
         <h2 style="color:#44e35c; margin:10px 0;">MemeHub OTP Verification</h2>
-        <h3 style="color:#44e35c; margin:10px 0;">Dont worry for now i don't have any domain </h3>
       </div>
 
       <p style="font-size:16px; color:#333;">Hey there 👋</p>
