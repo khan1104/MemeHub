@@ -1,11 +1,18 @@
+
+// in future updaten this according to loaction
 export function timeAgo(date: string | Date) {
-  const parsed = new Date(date)
+   const utcDate = new Date(date)
 
-  if (isNaN(parsed.getTime())) return ""
+  // IST = UTC + 5:30
+  const istOffset = 5.5 * 60 * 60 * 1000
+  const istDate = new Date(utcDate.getTime() + istOffset)
 
-  const seconds = Math.floor((Date.now() - parsed.getTime()) / 1000)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - istDate.getTime()) / 1000)
+  const days = Math.floor(seconds / 86400)
 
-  if (seconds < 10) return "just now"
+  if (seconds < 5) return "just now"
+  if (days === 1) return "yesterday"
 
   const intervals = [
     { label: "year", seconds: 31536000 },
@@ -14,12 +21,13 @@ export function timeAgo(date: string | Date) {
     { label: "day", seconds: 86400 },
     { label: "hour", seconds: 3600 },
     { label: "minute", seconds: 60 },
+    { label: "second", seconds: 1 },
   ]
 
   for (const interval of intervals) {
     const count = Math.floor(seconds / interval.seconds)
     if (count >= 1) {
-      return `${count === 1 ? "a" : count} ${interval.label}${count > 1 ? "s" : ""} ago`
+      return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`
     }
   }
 
