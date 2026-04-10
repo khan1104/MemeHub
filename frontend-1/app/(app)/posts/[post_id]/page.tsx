@@ -147,7 +147,7 @@ const handleDeleteLocal = (id: string) => {
         {loading && !post ? (
           <PostCardSkeleton />
         ) : (
-          <PostCard post={post} currentUser={user} isLoggedIn={isLoggedIn} />
+          <PostCard post={post} currentUser={user} isLoggedIn={isLoggedIn} isActive={false} onPlay={()=>{}}/>
         )}
 
         {/* COMMENTS HEADER */}
