@@ -35,7 +35,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://memehub.in","https://www.meemhub.in"],
+    # allow_origins=["https://memehub.in","https://www.meemhub.in"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

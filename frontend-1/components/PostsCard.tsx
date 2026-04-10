@@ -23,15 +23,23 @@ import { User } from "@/types/user.type"
 import { useAuth } from "@/hooks/auth"
 
 interface PostCardProps {
-  post: Post,
-  currentUser:User |null,
-  isLoggedIn:boolean
+  post: Post;
+  currentUser: User | null;
+  isLoggedIn: boolean;
+  isActive: boolean; // Add this
+  onPlay: () => void; // Add this
 }
 
-export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProps) {
+export default function PostCard({
+  post,
+  currentUser,
+  isLoggedIn,
+  isActive,
+  onPlay,
+}: PostCardProps) {
   const router = useRouter();
   const { like, dislike, save, loading, error } = usePostAction();
-  const { checkAuth, showLoginModal, setShowLoginModal } = useAuth()
+  const { checkAuth, showLoginModal, setShowLoginModal } = useAuth();
   // const [showLoginModal, setShowLoginModal] = useState(false);
   const [likeCount, setLikeCount] = useState(post.like_count);
   const [dislikeCount, setDislikeCount] = useState(post.dislike_count);
@@ -58,7 +66,6 @@ export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProp
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
 
   // ================= LIKE =================
   const handleLike = async () => {
@@ -126,6 +133,37 @@ export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProp
   const handleUserProfile = () => {
     router.push(`/profile/${post.created_by.user_id}`);
   };
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // 1. Handle External Pause (Jab koi dusra video play ho)
+  useEffect(() => {
+    if (!isActive && videoRef.current) {
+      videoRef.current.pause();
+    }
+  }, [isActive]);
+
+  // 2. Handle Scroll Out (Jab video screen se bahar chala jaye)
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement || post.media_type !== "video") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting && !videoElement.paused) {
+          videoElement.pause();
+        }
+        if (entry.isIntersecting) {
+          // Browsers auto-play bina mute ke allow nahi karte
+          videoElement.play().catch((err) => console.log("Autoplay blocked"));
+          onPlay();
+        }
+      },
+      { threshold: 0.3, rootMargin: "0px" },
+    );
+
+    observer.observe(videoElement);
+    return () => observer.disconnect();
+  }, [post.media_type]);
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl mb-4 shadow-sm">
       {/* ================= HEADER ================= */}
@@ -228,12 +266,11 @@ export default function PostCard({ post, currentUser, isLoggedIn }: PostCardProp
           //   className="w-full max-h-[520px]"
           // />
           <video
+            ref={videoRef} // Ref zaroori hai
             src={post.media_url}
             controls
             playsInline
-            controlsList="nodownload noplaybackrate"
-            disablePictureInPicture
-            onContextMenu={(e) => e.preventDefault()}
+            onPlay={onPlay} // Jab user play click karega, parent ko pata chal jayega
             className="w-full max-h-130 object-contain"
           />
         )}

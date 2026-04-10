@@ -12,7 +12,7 @@ export const fetchCurrentUser= async () => {
   }
 };
 
-export const fetchUserById=async(user_id:string,current_user_id:string)=>{
+export const fetchUserById=async(user_id:string,current_user_id:string|undefined)=>{
   try {
     const res = await protected_api.get(`/users/${user_id}`,
       {

@@ -23,6 +23,7 @@ export default function Home() {
   // Refs
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const fetchingRef = useRef(false);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   // 1. Fetch Logic
   const loadPosts = useCallback(
@@ -55,7 +56,7 @@ export default function Home() {
 
       fetchingRef.current = false;
     },
-    [cursor, hasNext, getPosts, isLoading,loading],
+    [cursor, hasNext, getPosts, isLoading, loading],
   );
 
   // 2. Reset feed when Category changes
@@ -69,7 +70,7 @@ export default function Home() {
   }, [feed]);
 
   // 3. Infinite Scroll (Intersection Observer)
-  
+
   useEffect(() => {
     const currentLoader = loaderRef.current;
     if (!currentLoader) return;
@@ -93,7 +94,6 @@ export default function Home() {
       if (currentLoader) observer.disconnect();
     };
   }, [hasNext, loadPosts]);
-
 
   return (
     <div className="mx-auto flex max-w-360 gap-6 px-2 sm:px-5 lg:px-8 pt-8">
@@ -119,6 +119,8 @@ export default function Home() {
                   post={post}
                   currentUser={currentUser}
                   isLoggedIn={isLoggedIn}
+                  isActive={activeVideoId === post.post_id}
+                  onPlay={() => setActiveVideoId(post.post_id)}
                 />
               ))}
             </>

@@ -207,6 +207,7 @@ export default function UploadModal({ open, onClose }: UploadModalProps) {
                     setTimeout(handleInput, 0);
                   }}
                   height={320}
+                  width={300}
                   previewConfig={{ showPreview: false }}
                 />
               </div>

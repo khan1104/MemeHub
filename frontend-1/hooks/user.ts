@@ -21,10 +21,6 @@ export const useUsers = () => {
   const getUserById=async(user_id:string)=>{
     setError(null);
     try{
-      if (!user?.user_id) {
-        // handle error or return early
-        return;
-      }
       setLoading(true)
       const data=await fetchUserById(user_id,user?.user_id);
       return data;
